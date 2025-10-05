@@ -7,6 +7,7 @@ import {
   Clock,
   DollarSign,
   GraduationCap,
+  Settings,
   TrendingUp,
   UserCheck,
   Users,
@@ -29,7 +30,6 @@ import PaymentForm from "../components/payments/PaymentForm";
 import PaymentList from "../components/payments/PaymentList";
 import QuizForm from "../components/quizzes/QuizForm";
 import QuizList from "../components/quizzes/QuizList";
-import Settings from "../components/settings/Settings";
 import StudentForm from "../components/students/StudentForm";
 import StudentList from "../components/students/StudentList";
 
@@ -250,6 +250,7 @@ const AdminDashboard = () => {
           }`}
           onClick={() => setActiveTab("settings")}
         >
+          <Settings className="w-4 h-4" />
           Settings
         </a>
       </div>

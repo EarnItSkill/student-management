@@ -217,6 +217,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateCourse = async (id, updatedData) => {
+    console.log(id);
+    console.log(updatedData);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/course/${id}`,

@@ -6,6 +6,7 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
+  GraduationCap,
   HelpCircle,
   List,
 } from "lucide-react";
@@ -108,110 +109,155 @@ const CourseDetails = () => {
           </div>
         </div>
 
-        {/* Topics Section */}
-        {course.topic && course.topic.length > 0 && (
+        {/* Classes Accordion Section */}
+        {course.classes && course.classes.length > 0 && (
           <div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">
-              <h2 className="card-title text-2xl flex items-center gap-2 mb-6">
-                <List className="w-6 h-6 text-primary" />
-                Course Topics (বিষয়সমূহ)
+              <h2 className="card-title text-3xl flex items-center gap-2 mb-6">
+                <GraduationCap className="w-8 h-8 text-primary" />
+                Course Classes (ক্লাসের বিবরণ)
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {course.topic.map((topic, index) => (
-                  <div
-                    key={index}
-                    className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow"
-                  >
-                    <div className="card-body p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="avatar placeholder">
-                          <div className="bg-primary text-white rounded-full w-10">
-                            <span className="text-lg">{index + 1}</span>
-                          </div>
-                        </div>
-                        <h3 className="font-bold text-lg">{topic}</h3>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Questions & Answers Section */}
-        {course.quesAns && course.quesAns.length > 0 && (
-          <div className="card bg-base-100 shadow-xl mb-6">
-            <div className="card-body">
-              <h2 className="card-title text-2xl flex items-center gap-2 mb-6">
-                <HelpCircle className="w-6 h-6 text-secondary" />
-                Questions & Answers (প্রশ্ন ও উত্তর)
-              </h2>
               <div className="space-y-4">
-                {course.quesAns.map((qa) => (
+                {course.classes.map((classItem, classIndex) => (
                   <div
-                    key={qa.id}
-                    className="collapse collapse-plus bg-base-200"
+                    key={classItem.id}
+                    className="collapse collapse-arrow bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20"
                   >
-                    <input type="checkbox" />
-                    <div className="collapse-title text-lg font-semibold">
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary">Q{qa.id}.</span>
-                        <span>{qa.question}</span>
+                    <input type="radio" name="class-accordion" />
+                    <div className="collapse-title text-xl font-bold">
+                      <div className="flex items-center gap-3">
+                        <div className="badge badge-primary badge-lg">
+                          Class {classIndex + 1}
+                        </div>
+                        <span>ক্লাস {classIndex + 1}</span>
                       </div>
                     </div>
                     <div className="collapse-content">
-                      <div className="alert alert-success mt-2">
-                        <CheckCircle className="w-5 h-5" />
-                        <span>
-                          <strong>Answer:</strong> {qa.answer}
-                        </span>
+                      <div className="space-y-6 mt-4">
+                        {/* Topics Section */}
+                        {classItem.topic && classItem.topic.length > 0 && (
+                          <div className="card bg-base-100 shadow">
+                            <div className="card-body">
+                              <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                                <List className="w-5 h-5 text-primary" />
+                                Topics (বিষয়সমূহ)
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {classItem.topic.map((topic, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+                                  >
+                                    <div className="avatar placeholder">
+                                      <div className="bg-primary text-white rounded-full w-8">
+                                        <span className="text-sm">
+                                          {index + 1}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className="font-semibold">
+                                      {topic}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Questions & Answers Section */}
+                        {classItem.quesAns && classItem.quesAns.length > 0 && (
+                          <div className="card bg-base-100 shadow">
+                            <div className="card-body">
+                              <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                                <HelpCircle className="w-5 h-5 text-secondary" />
+                                Questions & Answers (প্রশ্ন ও উত্তর)
+                              </h3>
+                              <div className="space-y-3">
+                                {classItem.quesAns.map((qa, index) => (
+                                  <div
+                                    key={qa.id || index}
+                                    className="collapse collapse-plus bg-base-200"
+                                  >
+                                    <input type="checkbox" />
+                                    <div className="collapse-title font-semibold">
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-secondary">
+                                          Q{index + 1}.
+                                        </span>
+                                        <span>{qa.question}</span>
+                                      </div>
+                                    </div>
+                                    <div className="collapse-content">
+                                      <div className="alert alert-success mt-2">
+                                        <CheckCircle className="w-5 h-5" />
+                                        <span>
+                                          <strong>Answer:</strong> {qa.answer}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Homework Section */}
+                        {classItem.homeWork &&
+                          classItem.homeWork.length > 0 && (
+                            <div className="card bg-base-100 shadow">
+                              <div className="card-body">
+                                <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                                  <Briefcase className="w-5 h-5 text-accent" />
+                                  Homework (হোমওয়ার্ক)
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {classItem.homeWork.map((hw, index) => (
+                                    <div
+                                      key={hw.id || index}
+                                      className="card bg-base-200"
+                                    >
+                                      <div className="card-body p-4">
+                                        <h4 className="font-bold mb-2">
+                                          {hw.title}
+                                        </h4>
+                                        <p className="text-sm text-gray-600">
+                                          {hw.task}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Important Words Section */}
+                        {classItem.someWord &&
+                          classItem.someWord.length > 0 && (
+                            <div className="card bg-base-100 shadow">
+                              <div className="card-body">
+                                <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                                  <BookMarked className="w-5 h-5 text-info" />
+                                  Important Words (গুরুত্বপূর্ণ শব্দ)
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                  {classItem.someWord.map((word, index) => (
+                                    <div
+                                      key={index}
+                                      className="badge badge-info badge-lg p-3"
+                                    >
+                                      <span className="font-bold">{word}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Homework Section */}
-        {course.homeWork && course.homeWork.length > 0 && (
-          <div className="card bg-base-100 shadow-xl mb-6">
-            <div className="card-body">
-              <h2 className="card-title text-2xl flex items-center gap-2 mb-6">
-                <Briefcase className="w-6 h-6 text-accent" />
-                Homework (হোমওয়ার্ক)
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {course.homeWork.map((hw) => (
-                  <div key={hw.id} className="card bg-base-200 shadow">
-                    <div className="card-body p-4">
-                      <h3 className="font-bold text-lg mb-2">{hw.title}</h3>
-                      <p className="text-sm text-gray-600">{hw.task}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Important Words Section */}
-        {course.someWord && course.someWord.length > 0 && (
-          <div className="card bg-base-100 shadow-xl mb-6">
-            <div className="card-body">
-              <h2 className="card-title text-2xl flex items-center gap-2 mb-6">
-                <BookMarked className="w-6 h-6 text-info" />
-                Important Words (গুরুত্বপূর্ণ শব্দ)
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {course.someWord.map((word, index) => (
-                  <div
-                    key={index}
-                    className="badge badge-lg badge-info gap-2 p-4"
-                  >
-                    <span className="font-bold">{word}</span>
                   </div>
                 ))}
               </div>

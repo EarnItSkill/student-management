@@ -1,4 +1,4 @@
-import { BookOpen, GraduationCap, Plus, Save, Trash2, X } from "lucide-react";
+import { BookOpen, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
@@ -15,7 +15,10 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
         duration: course.duration,
         fee: course.fee,
         image: course.image,
-        classes: course.classes || [],
+        topic: course.topic || [],
+        quesAns: course.quesAns || [],
+        homeWork: course.homeWork || [],
+        someWord: course.someWord || [],
       };
     }
     return {
@@ -24,7 +27,10 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
       duration: "",
       fee: "",
       image: "",
-      classes: [],
+      topic: [],
+      quesAns: [],
+      homeWork: [],
+      someWord: [],
     };
   };
 
@@ -39,12 +45,39 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
   });
 
   const {
-    fields: classFields,
-    append: appendClass,
-    remove: removeClass,
+    fields: topicFields,
+    append: appendTopic,
+    remove: removeTopic,
   } = useFieldArray({
     control,
-    name: "classes",
+    name: "topic",
+  });
+
+  const {
+    fields: quesAnsFields,
+    append: appendQuesAns,
+    remove: removeQuesAns,
+  } = useFieldArray({
+    control,
+    name: "quesAns",
+  });
+
+  const {
+    fields: homeWorkFields,
+    append: appendHomeWork,
+    remove: removeHomeWork,
+  } = useFieldArray({
+    control,
+    name: "homeWork",
+  });
+
+  const {
+    fields: someWordFields,
+    append: appendSomeWord,
+    remove: removeSomeWord,
+  } = useFieldArray({
+    control,
+    name: "someWord",
   });
 
   useEffect(() => {
@@ -56,19 +89,10 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
       const courseData = {
         ...data,
         fee: parseFloat(data.fee),
-        classes: data.classes.map((classItem, classIndex) => ({
-          id: classIndex + 1,
-          topic: classItem.topic || [],
-          quesAns: (classItem.quesAns || []).map((qa, index) => ({
-            ...qa,
-            id: index + 1,
-          })),
-          homeWork: (classItem.homeWork || []).map((hw, index) => ({
-            ...hw,
-            id: index + 1,
-          })),
-          someWord: classItem.someWord || [],
-        })),
+        topic: data.topic,
+        quesAns: data.quesAns.map((qa, index) => ({ ...qa, id: index + 1 })),
+        homeWork: data.homeWork.map((hw, index) => ({ ...hw, id: index + 1 })),
+        someWord: data.someWord,
       };
 
       if (isEdit) {
@@ -83,18 +107,9 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
     }
   };
 
-  const addNewClass = () => {
-    appendClass({
-      topic: [],
-      quesAns: [],
-      homeWork: [],
-      someWord: [],
-    });
-  };
-
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-6xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box max-w-5xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6 sticky top-0 bg-base-100 z-10 pb-4 border-b">
           <h3 className="font-bold text-2xl flex items-center gap-2">
@@ -213,42 +228,211 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Classes Section */}
-          <div className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg border-2 border-primary/20">
+          {/* Topics (Simple String Array) */}
+          <div className="card bg-base-200 shadow-lg">
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="font-bold text-xl flex items-center gap-2">
-                  <GraduationCap className="w-6 h-6 text-primary" />
-                  Classes (ক্লাসসমূহ)
-                </h4>
+                <h4 className="font-bold text-lg">Topics (বিষয়সমূহ)</h4>
                 <button
                   type="button"
-                  onClick={addNewClass}
-                  className="btn btn-primary gap-2"
+                  onClick={() => appendTopic("")}
+                  className="btn btn-sm btn-primary gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Class
+                  Add Topic
                 </button>
               </div>
 
-              <div className="space-y-6">
-                {classFields.map((classField, classIndex) => (
-                  <ClassSection
-                    key={classField.id}
-                    classIndex={classIndex}
-                    register={register}
-                    control={control}
-                    removeClass={removeClass}
-                  />
-                ))}
-
-                {classFields.length === 0 && (
-                  <div className="text-center py-8 bg-base-100 rounded-lg">
-                    <p className="text-gray-500">No classes added yet</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Click "Add Class" to create your first class
-                    </p>
+              <div className="space-y-2">
+                {topicFields.map((field, index) => (
+                  <div key={field.id} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={`Topic ${index + 1}`}
+                      className="input input-bordered flex-1"
+                      {...register(`topic.${index}`, { required: true })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeTopic(index)}
+                      className="btn btn-error btn-square"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
+                ))}
+                {topicFields.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No topics added yet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Questions & Answers */}
+          <div className="card bg-base-200 shadow-lg">
+            <div className="card-body">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-bold text-lg">
+                  Questions & Answers (প্রশ্ন ও উত্তর)
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => appendQuesAns({ question: "", answer: "" })}
+                  className="btn btn-sm btn-primary gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Q&A
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {quesAnsFields.map((field, index) => (
+                  <div key={field.id} className="card bg-base-100 shadow">
+                    <div className="card-body p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-semibold text-sm">
+                          Q&A {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeQuesAns(index)}
+                          className="btn btn-error btn-xs"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Question"
+                          className="input input-sm input-bordered w-full"
+                          {...register(`quesAns.${index}.question`, {
+                            required: true,
+                          })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Answer"
+                          className="input input-sm input-bordered w-full"
+                          {...register(`quesAns.${index}.answer`, {
+                            required: true,
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {quesAnsFields.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No Q&A added yet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Homework (No Deadline) */}
+          <div className="card bg-base-200 shadow-lg">
+            <div className="card-body">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-bold text-lg">Homework (হোমওয়ার্ক)</h4>
+                <button
+                  type="button"
+                  onClick={() => appendHomeWork({ title: "", task: "" })}
+                  className="btn btn-sm btn-primary gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Homework
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {homeWorkFields.map((field, index) => (
+                  <div key={field.id} className="card bg-base-100 shadow">
+                    <div className="card-body p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-semibold text-sm">
+                          Homework {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeHomeWork(index)}
+                          className="btn btn-error btn-xs"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Homework title"
+                          className="input input-sm input-bordered"
+                          {...register(`homeWork.${index}.title`, {
+                            required: true,
+                          })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Task"
+                          className="input input-sm input-bordered"
+                          {...register(`homeWork.${index}.task`, {
+                            required: true,
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {homeWorkFields.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No homework added yet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Important Words (Simple String Array) */}
+          <div className="card bg-base-200 shadow-lg">
+            <div className="card-body">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-bold text-lg">
+                  Important Words (গুরুত্বপূর্ণ শব্দ)
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => appendSomeWord("")}
+                  className="btn btn-sm btn-primary gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Word
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {someWordFields.map((field, index) => (
+                  <div key={field.id} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={`Word ${index + 1}`}
+                      className="input input-bordered flex-1"
+                      {...register(`someWord.${index}`, { required: true })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSomeWord(index)}
+                      className="btn btn-error btn-square"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {someWordFields.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No words added yet
+                  </p>
                 )}
               </div>
             </div>
@@ -283,264 +467,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
-  );
-};
-
-// Separate Component for Each Class
-const ClassSection = ({ classIndex, register, control, removeClass }) => {
-  const {
-    fields: topicFields,
-    append: appendTopic,
-    remove: removeTopic,
-  } = useFieldArray({
-    control,
-    name: `classes.${classIndex}.topic`,
-  });
-
-  const {
-    fields: quesAnsFields,
-    append: appendQuesAns,
-    remove: removeQuesAns,
-  } = useFieldArray({
-    control,
-    name: `classes.${classIndex}.quesAns`,
-  });
-
-  const {
-    fields: homeWorkFields,
-    append: appendHomeWork,
-    remove: removeHomeWork,
-  } = useFieldArray({
-    control,
-    name: `classes.${classIndex}.homeWork`,
-  });
-
-  const {
-    fields: someWordFields,
-    append: appendSomeWord,
-    remove: removeSomeWord,
-  } = useFieldArray({
-    control,
-    name: `classes.${classIndex}.someWord`,
-  });
-
-  return (
-    <div className="card bg-base-100 shadow-xl border-2 border-primary/30">
-      <div className="card-body">
-        <div className="flex justify-between items-center mb-4">
-          <h5 className="font-bold text-lg flex items-center gap-2">
-            <div className="badge badge-primary badge-lg">
-              Class {classIndex + 1}
-            </div>
-            <span>ক্লাস {classIndex + 1}</span>
-          </h5>
-          <button
-            type="button"
-            onClick={() => removeClass(classIndex)}
-            className="btn btn-error btn-sm gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Remove Class
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Topics */}
-          <div className="collapse collapse-arrow bg-base-200">
-            <input type="checkbox" defaultChecked />
-            <div className="collapse-title font-semibold">
-              Topics (বিষয়সমূহ) - {topicFields.length} items
-            </div>
-            <div className="collapse-content">
-              <div className="space-y-2 mt-2">
-                {topicFields.map((field, index) => (
-                  <div key={field.id} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={`Topic ${index + 1}`}
-                      className="input input-sm input-bordered flex-1"
-                      {...register(`classes.${classIndex}.topic.${index}`, {
-                        required: true,
-                      })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeTopic(index)}
-                      className="btn btn-error btn-sm btn-square"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendTopic("")}
-                  className="btn btn-sm btn-outline btn-primary w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Topic
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Questions & Answers */}
-          <div className="collapse collapse-arrow bg-base-200">
-            <input type="checkbox" />
-            <div className="collapse-title font-semibold">
-              Questions & Answers - {quesAnsFields.length} items
-            </div>
-            <div className="collapse-content">
-              <div className="space-y-2 mt-2">
-                {quesAnsFields.map((field, index) => (
-                  <div key={field.id} className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-semibold">
-                          Q&A {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeQuesAns(index)}
-                          className="btn btn-error btn-xs"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          placeholder="Question"
-                          className="input input-sm input-bordered w-full"
-                          {...register(
-                            `classes.${classIndex}.quesAns.${index}.question`,
-                            { required: true }
-                          )}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Answer"
-                          className="input input-sm input-bordered w-full"
-                          {...register(
-                            `classes.${classIndex}.quesAns.${index}.answer`,
-                            { required: true }
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendQuesAns({ question: "", answer: "" })}
-                  className="btn btn-sm btn-outline btn-primary w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Q&A
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Homework */}
-          <div className="collapse collapse-arrow bg-base-200">
-            <input type="checkbox" />
-            <div className="collapse-title font-semibold">
-              Homework - {homeWorkFields.length} items
-            </div>
-            <div className="collapse-content">
-              <div className="space-y-2 mt-2">
-                {homeWorkFields.map((field, index) => (
-                  <div key={field.id} className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-semibold">
-                          HW {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeHomeWork(index)}
-                          className="btn btn-error btn-xs"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Title"
-                          className="input input-sm input-bordered"
-                          {...register(
-                            `classes.${classIndex}.homeWork.${index}.title`,
-                            { required: true }
-                          )}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Task"
-                          className="input input-sm input-bordered"
-                          {...register(
-                            `classes.${classIndex}.homeWork.${index}.task`,
-                            { required: true }
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendHomeWork({ title: "", task: "" })}
-                  className="btn btn-sm btn-outline btn-primary w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Homework
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Important Words */}
-          <div className="collapse collapse-arrow bg-base-200">
-            <input type="checkbox" />
-            <div className="collapse-title font-semibold">
-              Important Words - {someWordFields.length} items
-            </div>
-            <div className="collapse-content">
-              <div className="space-y-2 mt-2">
-                {someWordFields.map((field, index) => (
-                  <div key={field.id} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={`Word ${index + 1}`}
-                      className="input input-sm input-bordered flex-1"
-                      {...register(`classes.${classIndex}.someWord.${index}`, {
-                        required: true,
-                      })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSomeWord(index)}
-                      className="btn btn-error btn-sm btn-square"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendSomeWord("")}
-                  className="btn btn-sm btn-outline btn-primary w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Word
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

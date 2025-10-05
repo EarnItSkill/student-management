@@ -244,6 +244,8 @@ const Settings = () => {
                     "cyberpunk",
                     "retro",
                     "valentine",
+                    "sunset",
+                    "business",
                   ].map((themeName) => (
                     <button
                       key={themeName}

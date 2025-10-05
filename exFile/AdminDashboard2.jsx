@@ -7,24 +7,24 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import DashboardLayout from "../components/common/DashboardLayout";
-import { useAppContext } from "../context/useAppContext";
+import DashboardLayout from "../client/src/components/common/DashboardLayout";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 // Import CRUD Components
-import AttendanceForm from "../components/attendence/AttendanceForm";
-import AttendanceList from "../components/attendence/AttendanceList";
-import BatchForm from "../components/batches/BatchForm";
-import BatchList from "../components/batches/BatchList";
-import CourseForm from "../components/courses/CourseForm";
-import CourseList from "../components/courses/CourseList";
-import EnrollmentForm from "../components/enrollments/EnrollmentForm";
-import EnrollmentList from "../components/enrollments/EnrollmentList";
-import PaymentForm from "../components/payments/PaymentForm";
-import PaymentList from "../components/payments/PaymentList";
-import QuizForm from "../components/quizzes/QuizForm";
-import QuizList from "../components/quizzes/QuizList";
-import StudentForm from "../components/students/StudentForm";
-import StudentList from "../components/students/StudentList";
+import AttendanceForm from "../client/src/components/attendence/AttendanceForm";
+import AttendanceList from "../client/src/components/attendence/AttendanceList";
+import BatchForm from "../client/src/components/batches/BatchForm";
+import BatchList from "../client/src/components/batches/BatchList";
+import CourseForm from "../client/src/components/courses/CourseForm";
+import CourseList from "../client/src/components/courses/CourseList";
+import EnrollmentForm from "../client/src/components/enrollments/EnrollmentForm";
+import EnrollmentList from "../client/src/components/enrollments/EnrollmentList";
+import PaymentForm from "../client/src/components/payments/PaymentForm";
+import PaymentList from "../client/src/components/payments/PaymentList";
+import QuizForm from "../client/src/components/quizzes/QuizForm";
+import QuizList from "../client/src/components/quizzes/QuizList";
+import StudentForm from "../client/src/components/students/StudentForm";
+import StudentList from "../client/src/components/students/StudentList";
 
 const AdminDashboard = () => {
   const { currentUser, students, courses, batches, enrollments, payments } =

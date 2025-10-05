@@ -17,6 +17,7 @@ import DashboardLayout from "../components/common/DashboardLayout";
 import { useAppContext } from "../context/useAppContext";
 
 // Import CRUD Components
+import AttendanceForm from "../components/attendence/AttendanceForm";
 import AttendanceList from "../components/attendence/AttendanceList";
 import BatchForm from "../components/batches/BatchForm";
 import BatchList from "../components/batches/BatchList";

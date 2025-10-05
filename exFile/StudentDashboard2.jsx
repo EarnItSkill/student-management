@@ -8,8 +8,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
-import DashboardLayout from "../components/common/DashboardLayout";
-import { useAppContext } from "../context/useAppContext";
+import DashboardLayout from "../client/src/components/common/DashboardLayout";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const StudentDashboard = () => {
   const {

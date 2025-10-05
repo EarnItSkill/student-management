@@ -11,6 +11,7 @@ import QuizList from "../components/quizzes/QuizList";
 import Settings from "../components/settings/settings";
 import StudentList from "../components/students/StudentList";
 import AdminDashboard from "../pages/AdminDashboard";
+import CourseDetails from "../pages/CourseDetails";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
@@ -37,6 +38,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/course/:id" element={<CourseDetails />} />
 
       {/* Protected Student Routes */}
       <Route
@@ -59,6 +61,7 @@ const AppRoutes = () => {
       >
         <Route path="students" element={<StudentList />} />
         <Route path="courses" element={<CourseList />} />
+
         <Route path="batches" element={<BatchList />} />
         <Route path="payments" element={<PaymentList />} />
         <Route path="attendance" element={<AttendanceList />} />

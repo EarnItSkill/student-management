@@ -1,11 +1,13 @@
-import { Headset, Mail, MapPinHouse, Timer } from "lucide-react";
+import { Headset, Mail, MapPinHouse, Timer, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import Footer from "../components/common/Footer";
 import Navbar from "../components/common/Navbar";
 import { useAppContext } from "../context/useAppContext";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const { courses, batches } = useAppContext();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-base-200">
@@ -51,7 +53,7 @@ const Home = () => {
 
           <div className="stat place-items-center">
             <div className="stat-title">সফল শিক্ষার্থী</div>
-            <div className="stat-value text-accent">500+</div>
+            <div className="stat-value text-accent">50+</div>
             <div className="stat-desc">গর্বিত শিক্ষার্থী</div>
           </div>
         </div>
@@ -66,7 +68,7 @@ const Home = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {courses.map((course) => (
             <div
-              key={course.id}
+              key={course._id}
               className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all"
             >
               <figure>
@@ -85,10 +87,23 @@ const Home = () => {
                   </div>
                   <div className="badge badge-secondary"> ৳ {course.fee}</div>
                 </div>
-                <div className="card-actions justify-end mt-4">
-                  <Link to="/login" className="btn btn-primary btn-sm">
-                    ভর্তি হন
-                  </Link>
+
+                <div className="flex justify-between">
+                  <div className="card-actions justify-end mt-4">
+                    <button
+                      onClick={() => navigate(`/course/${course._id}`)}
+                      className="btn btn-success btn-sm gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
+                  </div>
+
+                  <div className="card-actions justify-end mt-4">
+                    <Link to="/login" className="btn btn-primary btn-sm">
+                      ভর্তি হন
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -105,9 +120,9 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {batches.map((batch) => {
-              const course = courses.find((c) => c.id === batch.courseId);
+              const course = courses.find((c) => c._id === batch.courseId);
               return (
-                <div key={batch.id} className="card bg-base-200 shadow-lg">
+                <div key={batch._id} className="card bg-base-200 shadow-lg">
                   <div className="card-body">
                     <h3 className="card-title text-lg">{batch.batchName}</h3>
                     <p className="text-sm text-gray-600">{course?.title}</p>

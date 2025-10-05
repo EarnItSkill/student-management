@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
+  Eye,
   Target,
   TrendingUp,
   XCircle,
@@ -14,6 +15,8 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/common/DashboardLayout";
+import TakeQuiz from "../components/quizzes/TakeQuiz";
+import ViewQuizResult from "../components/quizzes/ViewQuizResult";
 import { useAppContext } from "../context/useAppContext";
 
 const StudentDashboard = () => {
@@ -29,6 +32,8 @@ const StudentDashboard = () => {
   } = useAppContext();
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [quizModal, setQuizModal] = useState({ isOpen: false, quiz: null });
+  const [resultModal, setResultModal] = useState({ isOpen: false, quiz: null });
 
   // Get student's data
   const myEnrollments = enrollments.filter(
@@ -327,7 +332,7 @@ const StudentDashboard = () => {
                               {batch.batchName}
                             </p>
                             <div className="badge badge-success badge-sm mt-2">
-                              {batch.enrollment?.status}
+                              {batch.enrollment?.status} fsdf
                             </div>
                           </div>
                         </div>
@@ -594,10 +599,23 @@ const StudentDashboard = () => {
                           <span>{batch.schedule}</span>
                         </div>
                       </div>
+                      <div className="flex justify-between">
+                        <div className="card-actions justify-end mt-4">
+                          <button
+                            onClick={() =>
+                              navigate(`/course/${batch.courseId}`)
+                            }
+                            className="btn btn-success btn-sm gap-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </button>
+                        </div>
 
-                      <div className="card-actions justify-end mt-4">
-                        <div className="badge badge-success">
-                          {batch.enrollment?.status}
+                        <div className="card-actions justify-end mt-4">
+                          <div className="badge badge-success">
+                            {batch.enrollment?.status}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -800,10 +818,10 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* Quizzes Tab */}
         {activeTab === "quizzes" && (
           <div>
             <h2 className="text-2xl font-bold mb-4">My Quizzes</h2>
+
             {/* Quiz Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="stat bg-base-200 rounded-lg shadow-lg">
@@ -916,34 +934,50 @@ const StudentDashboard = () => {
                         </div>
 
                         {myResult ? (
-                          <div
-                            className={`alert mt-4 ${
-                              percentage >= 80
-                                ? "alert-success"
-                                : percentage >= 60
-                                ? "alert-warning"
-                                : "alert-error"
-                            }`}
-                          >
-                            <CheckCircle className="w-6 h-6" />
-                            <div>
-                              <div className="font-bold">
-                                {percentage >= 80
-                                  ? "Excellent!"
+                          <div className="space-y-3 mt-4">
+                            <div
+                              className={`alert ${
+                                percentage >= 80
+                                  ? "alert-success"
                                   : percentage >= 60
-                                  ? "Good Job!"
-                                  : "Need Improvement"}
-                              </div>
-                              <div className="text-sm">
-                                Submitted:{" "}
-                                {new Date(
-                                  myResult.submittedAt
-                                ).toLocaleDateString()}
+                                  ? "alert-warning"
+                                  : "alert-error"
+                              }`}
+                            >
+                              <CheckCircle className="w-6 h-6" />
+                              <div>
+                                <div className="font-bold">
+                                  {percentage >= 80
+                                    ? "Excellent!"
+                                    : percentage >= 60
+                                    ? "Good Job!"
+                                    : "Need Improvement"}
+                                </div>
+                                <div className="text-sm">
+                                  Submitted:{" "}
+                                  {new Date(
+                                    myResult.submittedAt
+                                  ).toLocaleDateString()}
+                                </div>
                               </div>
                             </div>
+
+                            {/* 👇 View Result Button যোগ করুন */}
+                            <button
+                              onClick={() =>
+                                setResultModal({ isOpen: true, quiz })
+                              }
+                              className="btn btn-outline btn-primary btn-block gap-2"
+                            >
+                              <Eye className="w-5 h-5" />
+                              View Result & Answers
+                            </button>
                           </div>
                         ) : (
-                          <button className="btn btn-primary btn-block mt-4 gap-2">
+                          <button
+                            onClick={() => setQuizModal({ isOpen: true, quiz })}
+                            className="btn btn-primary btn-block mt-4 gap-2"
+                          >
                             <Clock className="w-5 h-5" />
                             Take Quiz
                           </button>
@@ -955,6 +989,26 @@ const StudentDashboard = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Quiz Taking Modal */}
+        {quizModal.isOpen && quizModal.quiz && (
+          <TakeQuiz
+            quiz={quizModal.quiz}
+            onClose={() => setQuizModal({ isOpen: false, quiz: null })}
+            onSuccess={() => {
+              setQuizModal({ isOpen: false, quiz: null });
+            }}
+          />
+        )}
+
+        {/* 👇 View Result Modal যোগ করুন */}
+        {resultModal.isOpen && resultModal.quiz && (
+          <ViewQuizResult
+            quiz={resultModal.quiz}
+            studentId={currentUser?._id}
+            onClose={() => setResultModal({ isOpen: false, quiz: null })}
+          />
         )}
       </div>
     </DashboardLayout>

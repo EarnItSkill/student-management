@@ -117,7 +117,9 @@ async function run() {
       res.send(result);
     });
 
-    // ================================================
+    // =========================
+    // About Course
+    // =========================
 
     // CREATE (Add a new course)
     app.post("/courses", async (req, res) => {
@@ -140,6 +142,29 @@ async function run() {
       const course = await coursesCollection.findOne(query);
       res.send(course);
     });
+
+    // app.get("/course/:id", async (req, res) => {
+    //   try {
+    //     const id = req.params.id;
+
+    //     // Check if ID is valid ObjectId
+    //     if (!ObjectId.isValid(id)) {
+    //       return res.status(400).send({ error: "Invalid course ID" });
+    //     }
+
+    //     const query = { _id: new ObjectId(id) };
+    //     const course = await coursesCollection.findOne(query);
+
+    //     if (!course) {
+    //       return res.status(404).send({ error: "Course not found" });
+    //     }
+
+    //     res.send(course);
+    //   } catch (error) {
+    //     console.error("Error fetching course:", error);
+    //     res.status(500).send({ error: "Failed to fetch course" });
+    //   }
+    // });
 
     // Delete a single cours
     app.delete("/courses/:id", async (req, res) => {
@@ -350,23 +375,17 @@ async function run() {
     app.post("/quizzes", async (req, res) => {
       const newQuiz = req.body;
 
-      // 1. সার্ভার থেকে ডিফল্ট ভ্যালু সেট করা
-      // কুইজের ফলাফল ট্র্যাক করার জন্য একটি খালি অ্যারে ইনিশিয়ালাইজ করা হলো
       newQuiz.results = [];
 
       try {
-        // 2. কুইজ রেকর্ডটি ডাটাবেজে সংরক্ষণ করা
         const result = await quizzesCollection.insertOne(newQuiz);
 
-        // 3. নতুন _id সহ পুরো অবজেক্টটি খুঁজে নেওয়া (ফ্রন্টএন্ডের স্টেট আপডেটের জন্য প্রয়োজন)
         const quizWithId = await quizzesCollection.findOne({
           _id: result.insertedId,
         });
 
-        // 4. সফলতার রেসপন্স পাঠানো
-        res.status(201).send(quizWithId); // 201 Created স্ট্যাটাস পাঠানো হলো
+        res.status(201).send(quizWithId);
       } catch (error) {
-        // 5. কোনো ত্রুটি হলে তা হ্যান্ডেল করা
         console.error("Failed to add quiz:", error);
         res
           .status(500)
@@ -374,7 +393,6 @@ async function run() {
       }
     });
 
-    // PATCH: /quizzes/:id (আপনার ব্রাউজার এবং ফ্রন্টএন্ডের জন্য প্রয়োজন)
     app.patch("/quizzes/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
@@ -382,15 +400,11 @@ async function run() {
       console.log("PATCH request received for ID:", id);
       console.log("Data to update:", updatedData);
 
-      // 1. নিরাপত্তা এবং ObjectId ভ্যালিডেশন
       try {
         const objectId = new ObjectId(id);
 
-        // 2. _id যেন আপডেট না হয়
         delete updatedData._id;
 
-        // 3. results অ্যারে সুরক্ষা (Results array protection)
-        // কুইজের মূল ডেটা আপডেটের সময় results ফিল্ডটি যেন ওভাররাইট না হয়
         if (updatedData.results) {
           delete updatedData.results;
         }
@@ -398,7 +412,6 @@ async function run() {
         const query = { _id: objectId };
         const updateDoc = { $set: updatedData };
 
-        // 4. আপডেট এবং আপডেট হওয়া ডকুমেন্টটি ফেরত নেওয়া
         const updateResult = await quizzesCollection.updateOne(
           query,
           updateDoc
@@ -408,12 +421,9 @@ async function run() {
           return res.status(404).send({ message: "Quiz not found" });
         }
 
-        // আপডেট সফল হলে আবার নতুন ডকুমেন্ট ফেচ করে পাঠাও
         const updatedQuiz = await quizzesCollection.findOne(query);
         res.send(updatedQuiz);
       } catch (error) {
-        // 5. ত্রুটি হ্যান্ডেলিং
-        // এই ব্লকটি 500 ত্রুটিগুলি ক্যাচ করবে
         if (error.name === "BSONTypeError") {
           return res.status(400).send({ message: "Invalid Quiz ID format." });
         }
@@ -450,12 +460,50 @@ async function run() {
           return res.status(400).send({ message: "Invalid Quiz ID format." });
         }
         console.error("Server Error during quiz deletion:", error);
-        res
-          .status(500)
-          .send({
-            message: "Failed to delete quiz due to server error.",
-            error: error.message,
-          });
+        res.status(500).send({
+          message: "Failed to delete quiz due to server error.",
+          error: error.message,
+        });
+      }
+    });
+
+    // PATCH: /quizzes/:id/submit
+    app.patch("/quizzes/:id/submit", async (req, res) => {
+      const quizId = req.params.id;
+      const newResult = req.body; // ফ্রন্টএন্ড থেকে আসা নতুন রেজাল্ট অবজেক্ট
+
+      try {
+        const objectId = new ObjectId(quizId);
+        const query = { _id: objectId };
+
+        // $push অপারেটর ব্যবহার করে results অ্যারেতে নতুন রেজাল্ট যোগ করা
+        const updateDoc = {
+          $push: { results: newResult },
+        };
+
+        // FindOneAndUpdate ব্যবহার করে আপডেট হওয়া ডকুমেন্টটি ফেরত নেওয়া হলো
+        const result = await quizzesCollection.findOneAndUpdate(
+          query,
+          updateDoc,
+          { returnDocument: "after" } // আপডেটের পর নতুন ডকুমেন্টটি ফেরত দিন
+        );
+
+        if (result.value) {
+          // সফল হলে আপডেট হওয়া ডকুমেন্টটি ফ্রন্টএন্ডে ফেরত দিন
+          res.send(result.value);
+        } else {
+          res.status(404).send({ message: "Quiz not found" });
+        }
+      } catch (error) {
+        // ত্রুটি হ্যান্ডেলিং
+        if (error.name === "BSONTypeError") {
+          return res.status(400).send({ message: "Invalid Quiz ID format." });
+        }
+        console.error("Server Error during quiz submission:", error);
+        res.status(500).send({
+          message: "Failed to submit quiz due to server error.",
+          error: error.message,
+        });
       }
     });
 

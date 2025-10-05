@@ -3,15 +3,18 @@ import {
   Clock,
   DollarSign,
   Edit,
+  Eye,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 import ConfirmModal from "../common/ConfirmModal";
 
 const CourseList = ({ onEdit, onAdd }) => {
+  const navigate = useNavigate();
   const { courses, deleteCourse } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteModal, setDeleteModal] = useState({
@@ -103,6 +106,13 @@ const CourseList = ({ onEdit, onAdd }) => {
                 </div>
 
                 <div className="card-actions justify-end mt-4">
+                  <button
+                    onClick={() => navigate(`/course/${course._id}`)}
+                    className="btn btn-success btn-sm gap-1"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </button>
                   <button
                     onClick={() => onEdit(course)}
                     className="btn btn-info btn-sm gap-2"

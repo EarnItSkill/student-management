@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "studentId": 1,
+    "batchId": 1,
+    "enrollDate": "2024-12-20",
+    "status": "active"
+  },
+  {
+    "id": 2,
+    "studentId": 2,
+    "batchId": 2,
+    "enrollDate": "2025-01-10",
+    "status": "active"
+  },
+  {
+    "id": 3,
+    "studentId": 3,
+    "batchId": 3,
+    "enrollDate": "2025-01-05",
+    "status": "active"
+  }
+]

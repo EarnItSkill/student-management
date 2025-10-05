@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "studentId": 1,
+    "batchId": 1,
+    "date": "2025-01-15",
+    "status": "present"
+  },
+  {
+    "id": 2,
+    "studentId": 1,
+    "batchId": 1,
+    "date": "2025-01-16",
+    "status": "present"
+  },
+  {
+    "id": 3,
+    "studentId": 2,
+    "batchId": 2,
+    "date": "2025-02-10",
+    "status": "absent"
+  },
+  {
+    "id": 4,
+    "studentId": 3,
+    "batchId": 3,
+    "date": "2025-01-20",
+    "status": "present"
+  }
+]

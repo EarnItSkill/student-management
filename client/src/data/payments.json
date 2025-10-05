@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "studentId": 1,
+    "batchId": 1,
+    "amount": 5000,
+    "paymentDate": "2024-12-20",
+    "method": "Cash",
+    "status": "paid"
+  },
+  {
+    "id": 2,
+    "studentId": 2,
+    "batchId": 2,
+    "amount": 4000,
+    "paymentDate": "2025-01-10",
+    "method": "Bkash",
+    "status": "partial"
+  },
+  {
+    "id": 3,
+    "studentId": 3,
+    "batchId": 3,
+    "amount": 12000,
+    "paymentDate": "2025-01-05",
+    "method": "Bank",
+    "status": "paid"
+  }
+]

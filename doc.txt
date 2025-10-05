@@ -1,0 +1,35 @@
+Add Student- Ok
+Delete Student- Ok
+Update Student- Ok
+Get STudents- Ok
+Get Student- Ok
+
+Get Courses - Ok
+Add Course - Ok
+Delete Course - ok
+Update Course - ok
+Get Single Course - ok
+
+Get Batches - ok
+Add Batches - ok
+Delete Batches - ok 
+Update Batches - ok
+Get Single Batches - ok
+
+Get Enrolments - ok
+Add Enrolment - ok
+Delete Enrolment - ok 
+
+Get Payments - ok
+Add Payments - ok 
+Update Payments - ok
+
+Get Quizzes - ok
+Add Quiz - ok 
+Update Quiz - ok
+Delete Quiz - ok
+
+https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400
+https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400
+https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400
+https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400

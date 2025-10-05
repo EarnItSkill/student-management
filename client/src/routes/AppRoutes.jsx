@@ -1,0 +1,84 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAppContext } from "../context/useAppContext";
+
+// Pages
+import AttendanceList from "../components/attendence/AttendanceList";
+import BatchList from "../components/batches/BatchList";
+import CourseList from "../components/courses/CourseList";
+import EnrollmentList from "../components/enrollments/EnrollmentList";
+import PaymentList from "../components/payments/PaymentList";
+import QuizList from "../components/quizzes/QuizList";
+import Settings from "../components/settings/settings";
+import StudentList from "../components/students/StudentList";
+import AdminDashboard from "../pages/AdminDashboard";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import NotFound from "../pages/NotFound";
+import StudentDashboard from "../pages/StudentDashboard";
+
+// Protected Route Component
+const ProtectedRoute = ({ children, allowedRole }) => {
+  const { isAuthenticated, currentUser } = useAppContext();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRole && currentUser?.role !== allowedRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected Student Routes */}
+      <Route
+        path="/dashboard/student"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      ></Route>
+
+      {/* Protected Admin Routes */}
+      <Route
+        path="/dashboard/admin"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="students" element={<StudentList />} />
+        <Route path="courses" element={<CourseList />} />
+        <Route path="batches" element={<BatchList />} />
+        <Route path="payments" element={<PaymentList />} />
+        <Route path="attendance" element={<AttendanceList />} />
+        <Route path="enrollments" element={<EnrollmentList />} />
+        <Route path="quizzes" element={<QuizList />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      {/* <Route
+        path="/dashboard/admin"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      /> */}
+
+      {/* 404 Not Found */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+export default AppRoutes;

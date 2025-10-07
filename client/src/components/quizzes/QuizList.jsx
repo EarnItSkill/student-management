@@ -229,12 +229,9 @@ const QuizList = ({ onEdit, onAdd }) => {
             <h2 className="text-2xl font-bold">
               {selectedBatchData?.batchName}
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-400">
               {selectedBatchData?.course?.title}
             </p>
-            <div className="badge badge-secondary badge-sm mt-1">
-              Category: {selectedBatchData?.batchCategory?.toUpperCase()}
-            </div>
           </div>
         </div>
         <button onClick={onAdd} className="btn btn-primary gap-2">
@@ -251,9 +248,9 @@ const QuizList = ({ onEdit, onAdd }) => {
           </div>
           <div className="stat-title">Total Quizzes</div>
           <div className="stat-value text-primary">{batchQuizzes.length}</div>
-          <div className="stat-desc">
+          {/* <div className="stat-desc">
             For {selectedCourse?.toUpperCase()} category
-          </div>
+          </div> */}
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
           <div className="stat-figure text-success">
@@ -278,7 +275,7 @@ const QuizList = ({ onEdit, onAdd }) => {
       {/* Search and View Toggle */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="form-control flex-1">
-          <div className="input-group">
+          <div className="input-group flex items-center gap-3">
             <span className="bg-base-200">
               <Search className="w-5 h-5" />
             </span>
@@ -344,13 +341,13 @@ const QuizList = ({ onEdit, onAdd }) => {
               key={quiz._id}
               className="card bg-base-100 shadow-lg hover:shadow-xl transition-all"
             >
-              <div className="card-body">
+              <div className="card-body border rounded-2xl border-gray-500">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="card-title text-lg">{quiz.title}</h3>
-                    <div className="badge badge-accent badge-sm mt-2">
+                    {/* <div className="badge badge-accent badge-sm mt-2">
                       {quiz.quizCategory?.toUpperCase()}
-                    </div>
+                    </div> */}
                   </div>
                   <Award className="w-8 h-8 text-primary flex-shrink-0" />
                 </div>
@@ -584,7 +581,7 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                       {/* Show correct answers summary */}
                       <div className="divider my-2"></div>
-                      <div className="alert alert-success py-2">
+                      <div className="alert alert-warning py-2">
                         <CheckCircle className="w-4 h-4" />
                         <span className="text-sm font-semibold">
                           Correct Answer{correctAnswers.length > 1 ? "s" : ""}:{" "}

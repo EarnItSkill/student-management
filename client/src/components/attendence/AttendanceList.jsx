@@ -115,7 +115,7 @@ const AttendanceList = ({ onAdd }) => {
 
         {/* Search */}
         <div className="form-control mb-6">
-          <div className="input-group">
+          <div className="input-group flex items-center gap-3">
             <span className="bg-base-200">
               <Search className="w-5 h-5" />
             </span>

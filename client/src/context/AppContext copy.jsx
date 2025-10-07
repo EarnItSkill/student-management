@@ -1,12 +1,4 @@
 import axios from "axios";
-import {
-  BookPlus,
-  Layers,
-  Pencil,
-  Trash2,
-  UserPlus,
-  XCircle,
-} from "lucide-react";
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -138,6 +130,7 @@ export const AppProvider = ({ children }) => {
 
   const addStudent = async (newStudent) => {
     try {
+      // optional: generate image if not provided
       const studentData = {
         ...newStudent,
         role: "student",
@@ -146,70 +139,56 @@ export const AppProvider = ({ children }) => {
           `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
       };
 
+      // 🔹 Step 1: send to backend
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/student`,
         studentData
       );
 
+      // 🔹 Step 2: get the created student from API response
       const createdStudent = response.data;
-      setStudents((prev) => [...prev, createdStudent]);
 
-      // ✅ সফল ম্যাসেজ
-      toast.success("ছাত্রটি সফলভাবে যোগ করা হয়েছে!", {
-        icon: <UserPlus className="text-green-500" />,
-      });
+      // 🔹 Step 3: update local state
+      setStudents((prev) => [...prev, createdStudent]);
 
       return createdStudent;
     } catch (error) {
       console.error("Failed to add student:", error);
-      toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
       throw error;
     }
   };
 
   const updateStudent = async (id, updatedData) => {
     try {
+      // 🔹 Step 1: API তে ডাটা পাঠাও (PUT বা PATCH)
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/student/${id}`,
         updatedData
       );
 
+      // 🔹 Step 2: API থেকে আপডেটেড student অবজেক্ট নাও
       const updatedStudent = response.data;
-
+      // 🔹 Step 3: লোকাল স্টেট আপডেট করো
       setStudents((prev) =>
         prev.map((s) => (s._id === id ? updatedStudent : s))
       );
 
-      toast.success("ছাত্রের তথ্য সফলভাবে আপডেট হয়েছে!", {
-        icon: <Pencil className="text-blue-500" />,
-      });
-
       return updatedStudent;
     } catch (error) {
       console.error("Failed to update student:", error);
-      toast.error("ছাত্রের তথ্য আপডেট করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
       throw error;
     }
   };
 
   const deleteStudent = async (id) => {
     try {
+      // 🔹 Step 1: Delete from backend
       await axios.delete(`${import.meta.env.VITE_API_URL}/student/${id}`);
 
+      // 🔹 Step 2: Update local state after successful deletion
       setStudents((prev) => prev.filter((s) => s._id !== id));
-
-      toast.success("ছাত্রটি সফলভাবে মুছে ফেলা হয়েছে!", {
-        icon: <Trash2 className="text-orange-500" />,
-      });
     } catch (error) {
       console.error("Failed to delete student:", error);
-      toast.error("ছাত্র মুছে ফেলতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
       throw error;
     }
   };
@@ -225,19 +204,11 @@ export const AppProvider = ({ children }) => {
 
       setCourses([...courses, response.data]);
 
-      // ✅ সফল toast
-      toast.success("সফলতার সাথে কোর্স তৈরি হয়েছে!", {
-        icon: <BookPlus className="text-green-500" />,
-      });
+      toast.success("সপলতার সহিত কোর্স তৈরী হয়েছে");
 
       return response.data;
     } catch (error) {
       console.error("Error adding course:", error);
-
-      // ❌ ব্যর্থ toast
-      toast.error("কোর্স তৈরি করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
 
       throw error;
     }
@@ -258,40 +229,38 @@ export const AppProvider = ({ children }) => {
         )
       );
 
-      // ✅ সফল toast
-      toast.success("সফলতার সাথে কোর্স আপডেট হয়েছে!", {
-        icon: <Pencil className="text-blue-500" />,
-      });
+      toast.success("সপলতার সহিত কোর্স আপডেট হয়েছে।");
 
       return updatedCourseFromServer;
     } catch (error) {
       console.error("Error updating course:", error);
 
-      // ❌ ব্যর্থ toast
-      toast.error("কোর্স আপডেট করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
-
       throw error;
     }
   };
+
+  // const deleteCourse = async (id) => {
+  //   try {
+  //     await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${id}`);
+
+  //     setCourses(courses.filter((c) => c._id !== id));
+
+  //     toast.success("সপলতার সহিত কোর্স ডিলিট হয়েছে।");
+  //   } catch (error) {
+  //     console.error("Error deleting course:", error);
+
+  //     throw error;
+  //   }
+  // };
 
   const deleteCourse = async (id) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${id}`);
       setCourses(courses.filter((c) => c._id !== id));
-
-      // ✅ সফল toast
-      toast.success("সফলতার সাথে কোর্স ডিলিট হয়েছে!", {
-        icon: <Trash2 className="text-orange-500" />,
-      });
+      toast.success("সফলতার সহিত কোর্স ডিলিট হয়েছে।");
     } catch (error) {
       console.error("Error deleting course:", error);
-
-      // ❌ ব্যর্থ toast
-      toast.error("কোর্স ডিলিট করতে সমস্যা হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
+      toast.error("কোর্স ডিলিট করতে সমস্যা হয়েছে!");
     }
   };
 
@@ -310,19 +279,9 @@ export const AppProvider = ({ children }) => {
         return [...prevBatches, batchWithId];
       });
 
-      // ✅ সফল toast
-      toast.success("সফলতার সাথে নতুন ব্যাচ যোগ হয়েছে!", {
-        icon: <Layers className="text-green-500" />,
-      });
-
       return batchWithId;
     } catch (error) {
       console.error("API-এর মাধ্যমে নতুন ব্যাচ যোগ করার সময় ত্রুটি:", error);
-
-      // ❌ ব্যর্থ toast
-      toast.error("ব্যাচ যোগ করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
 
       throw error;
     }
@@ -343,22 +302,12 @@ export const AppProvider = ({ children }) => {
         );
       });
 
-      // ✅ সফল toast
-      toast.success("ব্যাচ সফলভাবে আপডেট হয়েছে!", {
-        icon: <Pencil className="text-blue-500" />,
-      });
-
       return updatedBatch;
     } catch (error) {
       console.error(
         `API-এর মাধ্যমে ব্যাচ ID: ${batchId} আপডেট করার সময় ত্রুটি:`,
         error
       );
-
-      // ❌ ব্যর্থ toast
-      toast.error(" ব্যাচ আপডেট করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
 
       throw error;
     }
@@ -372,22 +321,12 @@ export const AppProvider = ({ children }) => {
         return prevBatches.filter((batch) => batch._id !== batchId);
       });
 
-      // ✅ সফল toast
-      toast.success("ব্যাচ সফলভাবে ডিলিট হয়েছে!", {
-        icon: <Trash2 className="text-orange-500" />,
-      });
-
       return true;
     } catch (error) {
       console.error(
         `API-এর মাধ্যমে ব্যাচ ID: ${batchId} ডিলিট করার সময় ত্রুটি:`,
         error
       );
-
-      // ❌ ব্যর্থ toast
-      toast.error("ব্যাচ ডিলিট করতে সমস্যা হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
 
       throw error;
     }

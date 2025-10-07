@@ -43,7 +43,7 @@ const StudentList = ({ onEdit, onAdd }) => {
 
       {/* Search */}
       <div className="form-control mb-6">
-        <div className="input-group">
+        <div className="input-group flex items-center gap-3">
           <span className="bg-base-200">
             <Search className="w-5 h-5" />
           </span>
@@ -81,7 +81,7 @@ const StudentList = ({ onEdit, onAdd }) => {
                     <div>
                       <h3 className="font-bold">{student.name}</h3>
                       <span className="badge badge-sm badge-primary">
-                        ID: {student?.id}
+                        ID: {student?.studentId}
                       </span>
                     </div>
                   </div>

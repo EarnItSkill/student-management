@@ -38,6 +38,50 @@ const BatchList = ({ onEdit, onAdd }) => {
     }
   };
 
+  const formatTimeToBangla = (timeString) => {
+    if (!timeString) return "";
+    const [hourStr, minuteStr] = timeString.split(":");
+    let hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+
+    const period = hour >= 12 ? "pm" : "am";
+    if (hour > 12) hour -= 12;
+    if (hour === 0) hour = 12;
+
+    // ইংরেজি সংখ্যা → বাংলা সংখ্যা
+    const engToBn = (num) =>
+      num
+        .toString()
+        .replace(/0/g, "০")
+        .replace(/1/g, "১")
+        .replace(/2/g, "২")
+        .replace(/3/g, "৩")
+        .replace(/4/g, "৪")
+        .replace(/5/g, "৫")
+        .replace(/6/g, "৬")
+        .replace(/7/g, "৭")
+        .replace(/8/g, "৮")
+        .replace(/9/g, "৯");
+
+    const bnHour = engToBn(hour);
+    const bnMinute = engToBn(minute.toString().padStart(2, "0"));
+
+    return `${bnHour}:${bnMinute} ${period}`;
+  };
+
+  const getClassSchedule = (schedule) => {
+    console.log(schedule);
+    if (schedule.scheduleType == "SIX_DAYS") {
+      return `শনি - বৃহ: ${formatTimeToBangla(schedule.startTime)}`;
+    } else if (schedule.type == "THREE_DAYS_A") {
+      return `শনি, সোম, বুধ: ${formatTimeToBangla(schedule.startTime)}`;
+    } else if (schedule.type == "THREE_DAYS_B") {
+      return `রবি, মঙ্গল, বৃহ: ${formatTimeToBangla(schedule?.startTime)}`;
+    } else {
+      return `অন্য সময়: ${formatTimeToBangla(schedule?.startTime)}`;
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -51,7 +95,7 @@ const BatchList = ({ onEdit, onAdd }) => {
 
       {/* Search */}
       <div className="form-control mb-6">
-        <div className="input-group">
+        <div className="input-group flex items-center gap-3">
           <span className="bg-base-200">
             <Search className="w-5 h-5" />
           </span>
@@ -101,7 +145,7 @@ const BatchList = ({ onEdit, onAdd }) => {
                         {course?.title}
                       </div>
                     </td>
-                    <td className="text-sm">{batch.schedule}</td>
+                    <td className="text-sm">{getClassSchedule(batch)}</td>
                     <td>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold">

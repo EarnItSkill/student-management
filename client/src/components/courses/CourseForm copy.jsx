@@ -15,9 +15,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
         duration: course.duration,
         fee: course.fee,
         image: course.image,
-        instructorName: course.instructorName || "",
-        instructorDesignation: course.instructorDesignation || "",
-        instructorImage: course.instructorImage || "",
         classes: course.classes || [],
       };
     }
@@ -27,9 +24,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
       duration: "",
       fee: "",
       image: "",
-      instructorName: "",
-      instructorDesignation: "",
-      instructorImage: "",
       classes: [],
     };
   };
@@ -53,73 +47,15 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
     name: "classes",
   });
 
-  // Random image generator function
-  const getRandomCourseImage = () => {
-    const randomImages = [
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
-      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800",
-      "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800",
-      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800",
-    ];
-    return randomImages[Math.floor(Math.random() * randomImages.length)];
-  };
-
-  const getRandomInstructorImage = () => {
-    const randomImages = [
-      "https://i.pravatar.cc/300?img=12",
-      "https://i.pravatar.cc/300?img=13",
-      "https://i.pravatar.cc/300?img=33",
-      "https://i.pravatar.cc/300?img=60",
-      "https://i.pravatar.cc/300?img=68",
-    ];
-    return randomImages[Math.floor(Math.random() * randomImages.length)];
-  };
-
   useEffect(() => {
     reset(getDefaultValues());
   }, [course, reset]);
-
-  // const onSubmit = async (data) => {
-  //   try {
-  //     const courseData = {
-  //       ...data,
-  //       fee: parseFloat(data.fee),
-  //       classes: data.classes.map((classItem, classIndex) => ({
-  //         id: classIndex + 1,
-  //         topic: classItem.topic || [],
-  //         quesAns: (classItem.quesAns || []).map((qa, index) => ({
-  //           ...qa,
-  //           id: index + 1,
-  //         })),
-  //         homeWork: (classItem.homeWork || []).map((hw, index) => ({
-  //           ...hw,
-  //           id: index + 1,
-  //         })),
-  //         someWord: classItem.someWord || [],
-  //       })),
-  //     };
-
-  //     if (isEdit) {
-  //       updateCourse(course._id, courseData);
-  //     } else {
-  //       addCourse(courseData);
-  //     }
-  //     onSuccess?.();
-  //     onClose();
-  //   } catch (error) {
-  //     console.error("Error saving course:", error);
-  //   }
-  // };
 
   const onSubmit = async (data) => {
     try {
       const courseData = {
         ...data,
         fee: parseFloat(data.fee),
-        // যদি image না দেওয়া হয় তাহলে random image
-        image: data.image || getRandomCourseImage(),
-        instructorImage: data.instructorImage || getRandomInstructorImage(),
         classes: data.classes.map((classItem, classIndex) => ({
           id: classIndex + 1,
           topic: classItem.topic || [],
@@ -172,115 +108,81 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Info */}
-          <div className="card bg-base-200 shadow-xl border-2 border-primary/20">
+          <div className="card bg-base-200 shadow-lg">
             <div className="card-body">
-              <h4 className="font-bold text-xl mb-6 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-primary" />
-                Basic Information
-              </h4>
+              <h4 className="font-bold text-lg mb-4">Basic Information</h4>
 
-              {/* Course Title & Description */}
-              <div className="space-y-6">
-                <div className="form-control">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">
+                    Course Title *
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., এডভান্সড অফিস কোর্স"
+                  className={`input input-bordered ${
+                    errors.title ? "input-error" : ""
+                  }`}
+                  {...register("title", {
+                    required: "Title is required",
+                    minLength: {
+                      value: 5,
+                      message: "Title must be at least 5 characters",
+                    },
+                  })}
+                />
+                {errors.title && (
                   <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Title *
+                    <span className="label-text-alt text-error">
+                      {errors.title.message}
                     </span>
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., এডভান্সড অফিস কোর্স"
-                    className={`input input-bordered w-full ${
-                      errors.title ? "input-error" : ""
-                    }`}
-                    {...register("title", {
-                      required: "Title is required",
-                      minLength: {
-                        value: 5,
-                        message: "Title must be at least 5 characters",
-                      },
-                    })}
-                  />
-                  {errors.title && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.title.message}
-                      </span>
-                    </label>
-                  )}
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Description *
-                    </span>
-                  </label>
-                  <textarea
-                    placeholder="Course এর বিস্তারিত বর্ণনা লিখুন..."
-                    className={`textarea textarea-bordered w-full h-28 ${
-                      errors.description ? "textarea-error" : ""
-                    }`}
-                    {...register("description", {
-                      required: "Description is required",
-                      minLength: {
-                        value: 20,
-                        message: "Description must be at least 20 characters",
-                      },
-                    })}
-                  />
-                  {errors.description && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.description.message}
-                      </span>
-                    </label>
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* Divider */}
-              <div className="divider divider-start text-base font-bold mt-6">
-                Course Details
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">
+                    Description *
+                  </span>
+                </label>
+                <textarea
+                  placeholder="Course description..."
+                  className={`textarea textarea-bordered h-20 ${
+                    errors.description ? "textarea-error" : ""
+                  }`}
+                  {...register("description", {
+                    required: "Description is required",
+                  })}
+                />
               </div>
 
-              {/* Duration, Fee, Image in Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Duration *
-                    </span>
+                    <span className="label-text font-semibold">Duration *</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., ৩ মাস"
-                    className={`input input-bordered w-full ${
+                    className={`input input-bordered ${
                       errors.duration ? "input-error" : ""
                     }`}
                     {...register("duration", {
                       required: "Duration is required",
                     })}
                   />
-                  {errors.duration && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.duration.message}
-                      </span>
-                    </label>
-                  )}
                 </div>
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Fee (৳) *
-                    </span>
+                    <span className="label-text font-semibold">Fee (৳) *</span>
                   </label>
                   <input
                     type="number"
                     placeholder="e.g., 8000"
-                    className={`input input-bordered w-full ${
+                    className={`input input-bordered ${
                       errors.fee ? "input-error" : ""
                     }`}
                     {...register("fee", {
@@ -288,136 +190,24 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
                       min: { value: 0, message: "Fee must be positive" },
                     })}
                   />
-                  {errors.fee && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.fee.message}
-                      </span>
-                    </label>
-                  )}
                 </div>
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Image URL
+                    <span className="label-text font-semibold">
+                      Image URL *
                     </span>
                   </label>
                   <input
                     type="url"
-                    placeholder="https://... (optional)"
-                    className="input input-bordered w-full"
-                    {...register("image")}
-                  />
-                  <label className="label">
-                    <span className="label-text-alt text-gray-500">
-                      Leave empty for random image
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="divider divider-start text-base font-bold mt-6">
-                Instructor Information
-              </div>
-
-              {/* Instructor Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Instructor Name *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Md. Abdul Karim"
-                    className={`input input-bordered w-full ${
-                      errors.instructorName ? "input-error" : ""
+                    placeholder="https://..."
+                    className={`input input-bordered ${
+                      errors.image ? "input-error" : ""
                     }`}
-                    {...register("instructorName", {
-                      required: "Instructor name is required",
-                      minLength: {
-                        value: 3,
-                        message: "Name must be at least 3 characters",
-                      },
+                    {...register("image", {
+                      required: "Image URL is required",
                     })}
                   />
-                  {errors.instructorName && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.instructorName.message}
-                      </span>
-                    </label>
-                  )}
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Designation *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Senior Instructor"
-                    className={`input input-bordered w-full ${
-                      errors.instructorDesignation ? "input-error" : ""
-                    }`}
-                    {...register("instructorDesignation", {
-                      required: "Designation is required",
-                    })}
-                  />
-                  {errors.instructorDesignation && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.instructorDesignation.message}
-                      </span>
-                    </label>
-                  )}
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Instructor Photo URL
-                    </span>
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://... (optional)"
-                    className="input input-bordered w-full"
-                    {...register("instructorImage")}
-                  />
-                  <label className="label">
-                    <span className="label-text-alt text-gray-500">
-                      Leave empty for random avatar
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Info Alert */}
-              <div className="alert alert-info mt-6">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  className="stroke-current shrink-0 w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                <div>
-                  <div className="text-sm">
-                    <strong>Note:</strong> If you don't provide images, random
-                    professional images will be automatically assigned.
-                  </div>
                 </div>
               </div>
             </div>

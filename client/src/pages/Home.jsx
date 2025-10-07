@@ -1,9 +1,8 @@
-import { Headset, Mail, MapPinHouse, Timer, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Eye, Headset, Mail, MapPinHouse, Timer } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/common/Footer";
 import Navbar from "../components/common/Navbar";
 import { useAppContext } from "../context/useAppContext";
-import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const { courses, batches } = useAppContext();
@@ -65,7 +64,7 @@ const Home = () => {
           আমাদের কোর্সসমূহ
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols md:grid-cols-2 lg:grid-cols-3 gap-8">
           {courses.map((course) => (
             <div
               key={course._id}

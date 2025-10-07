@@ -1,45 +1,19 @@
 import { Award, CheckCircle, Send, X } from "lucide-react";
 import { useState } from "react";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
-  const { currentUser, submitQuiz, enrollments } = useAppContext();
+  const { currentUser, submitQuiz } = useAppContext();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
 
-  // Get batchId from enrollments based on courseId
-  const enrollment = enrollments.find((e) => e.studentId === currentUser._id);
-  const batchId = enrollment?.batchId || null;
-
   const handleAnswerSelect = (questionIndex, optionIndex) => {
-    const question = quiz.questions[questionIndex];
-    const currentAnswers = answers[questionIndex] || [];
-
-    // Check if this question has multiple correct answers
-    const hasMultipleAnswers = question.correctAnswers.length > 1;
-
-    if (hasMultipleAnswers) {
-      // Toggle selection for multiple answers
-      let newAnswers;
-      if (currentAnswers.includes(optionIndex)) {
-        newAnswers = currentAnswers.filter((idx) => idx !== optionIndex);
-      } else {
-        newAnswers = [...currentAnswers, optionIndex];
-      }
-
-      setAnswers({
-        ...answers,
-        [questionIndex]: newAnswers.length > 0 ? newAnswers : undefined,
-      });
-    } else {
-      // Single answer selection
-      setAnswers({
-        ...answers,
-        [questionIndex]: [optionIndex],
-      });
-    }
+    setAnswers({
+      ...answers,
+      [questionIndex]: optionIndex,
+    });
   };
 
   const handleNext = () => {
@@ -57,54 +31,20 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   const handleSubmit = () => {
     // Calculate score
     let totalScore = 0;
-    const marksPerQuestion = quiz.totalMarks / quiz.questions.length;
-
     quiz.questions.forEach((question, index) => {
-      const userAnswers = answers[index] || [];
-      const correctAnswers = question.correctAnswers;
-
-      // Check if arrays are equal (same elements, order doesn't matter)
-      const isCorrect =
-        userAnswers.length === correctAnswers.length &&
-        userAnswers
-          .sort()
-          .every((val, idx) => val === correctAnswers.sort()[idx]);
-
-      if (isCorrect) {
-        totalScore += marksPerQuestion;
+      if (answers[index] === question.correctAnswer) {
+        totalScore += quiz.totalMarks / quiz.questions.length;
       }
     });
 
     const finalScore = Math.round(totalScore);
     setScore(finalScore);
-    const quizId = quiz._id;
 
-    // Prepare submission data
-    const submissionData = {
-      // quizId: quiz._id,
-      studentId: currentUser._id,
-      batchId: batchId,
-      score: finalScore,
-      answers: answers, // User's selected answers
-      submittedAt: new Date().toISOString(),
-    };
-
-    // Submit quiz result
-    submitQuiz(quizId, submissionData);
+    // Submit quiz result with answers
+    submitQuiz(quiz._id, currentUser._id, finalScore, answers); // 👈 answers যোগ করুন
 
     setShowResult(true);
   };
-
-  const question = quiz.questions[currentQuestion];
-  const isAnswered =
-    answers[currentQuestion] !== undefined &&
-    answers[currentQuestion].length > 0;
-  const allAnswered = quiz.questions.every(
-    (_, idx) => answers[idx] !== undefined && answers[idx].length > 0
-  );
-  const percentage =
-    score > 0 ? ((score / quiz.totalMarks) * 100).toFixed(1) : 0;
-  const hasMultipleAnswers = question.correctAnswers.length > 1;
 
   const handleClose = () => {
     if (showResult) {
@@ -112,6 +52,12 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     }
     onClose();
   };
+
+  const question = quiz.questions[currentQuestion];
+  const isAnswered = answers[currentQuestion] !== undefined;
+  const allAnswered = Object.keys(answers).length === quiz.questions.length;
+  const percentage =
+    score > 0 ? ((score / quiz.totalMarks) * 100).toFixed(1) : 0;
 
   return (
     <div className="modal modal-open">
@@ -150,12 +96,8 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                   %
                 </span>
                 <span>
-                  Answered:{" "}
-                  {
-                    Object.keys(answers).filter((k) => answers[k]?.length > 0)
-                      .length
-                  }
-                  /{quiz.questions.length}
+                  Answered: {Object.keys(answers).length}/
+                  {quiz.questions.length}
                 </span>
               </div>
             </div>
@@ -163,58 +105,30 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
             {/* Question Card */}
             <div className="card bg-base-200 shadow-lg mb-6">
               <div className="card-body">
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-lg font-bold flex-1">
-                    {currentQuestion + 1}. {question.question}
-                  </h4>
-                  {hasMultipleAnswers && (
-                    <span className="badge badge-info">Multiple Answers</span>
-                  )}
-                </div>
-
-                {hasMultipleAnswers && (
-                  <div className="alert alert-info mb-4">
-                    <span className="text-sm">
-                      ℹ️ This question has multiple correct answers. Select all
-                      that apply.
-                    </span>
-                  </div>
-                )}
+                <h4 className="text-lg font-bold mb-4">
+                  {currentQuestion + 1}. {question.question}
+                </h4>
 
                 <div className="space-y-3">
-                  {question.options.map((option, index) => {
-                    const isSelected =
-                      answers[currentQuestion]?.includes(index);
-
-                    return (
-                      <button
-                        key={index}
-                        onClick={() =>
-                          handleAnswerSelect(currentQuestion, index)
-                        }
-                        className={`btn btn-block justify-start text-left h-auto py-4 ${
-                          isSelected ? "btn-primary" : "btn-outline"
-                        }`}
-                      >
-                        {hasMultipleAnswers ? (
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            readOnly
-                            className="checkbox checkbox-sm mr-3"
-                          />
-                        ) : (
-                          <span className="font-bold mr-3">
-                            {String.fromCharCode(65 + index)}.
-                          </span>
-                        )}
-                        <span className="flex-1">{option}</span>
-                        {isSelected && !hasMultipleAnswers && (
-                          <CheckCircle className="w-5 h-5" />
-                        )}
-                      </button>
-                    );
-                  })}
+                  {question.options.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleAnswerSelect(currentQuestion, index)}
+                      className={`btn btn-block justify-start text-left h-auto py-4 ${
+                        answers[currentQuestion] === index
+                          ? "btn-primary"
+                          : "btn-outline"
+                      }`}
+                    >
+                      <span className="font-bold mr-3">
+                        {String.fromCharCode(65 + index)}.
+                      </span>
+                      <span className="flex-1">{option}</span>
+                      {answers[currentQuestion] === index && (
+                        <CheckCircle className="w-5 h-5" />
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -230,11 +144,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
               </button>
 
               <div className="text-sm text-gray-600">
-                {isAnswered ? (
-                  <span className="text-success">✓ Answered</span>
-                ) : (
-                  <span className="text-warning">⚠ Not answered</span>
-                )}
+                {isAnswered ? "✓ Answered" : "⚠ Not answered"}
               </div>
 
               {currentQuestion === quiz.questions.length - 1 ? (
@@ -335,17 +245,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 <h4 className="font-bold text-lg mb-4">Answer Review:</h4>
                 <div className="space-y-3">
                   {quiz.questions.map((q, index) => {
-                    const userAnswers = answers[index] || [];
-                    const correctAnswers = q.correctAnswers;
-
-                    const isCorrect =
-                      userAnswers.length === correctAnswers.length &&
-                      userAnswers
-                        .sort()
-                        .every(
-                          (val, idx) => val === correctAnswers.sort()[idx]
-                        );
-
+                    const isCorrect = answers[index] === q.correctAnswer;
                     return (
                       <div
                         key={index}
@@ -365,32 +265,20 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                                 {index + 1}. {q.question}
                               </p>
                               <div className="text-xs mt-2">
-                                <div
+                                <span
                                   className={
                                     isCorrect ? "text-success" : "text-error"
                                   }
                                 >
                                   Your answer:{" "}
-                                  {userAnswers
-                                    .map(
-                                      (idx) =>
-                                        `${String.fromCharCode(65 + idx)}. ${
-                                          q.options[idx]
-                                        }`
-                                    )
-                                    .join(", ")}
-                                </div>
+                                  {String.fromCharCode(65 + answers[index])}.{" "}
+                                  {q.options[answers[index]]}
+                                </span>
                                 {!isCorrect && (
                                   <div className="text-success mt-1">
                                     Correct answer:{" "}
-                                    {correctAnswers
-                                      .map(
-                                        (idx) =>
-                                          `${String.fromCharCode(65 + idx)}. ${
-                                            q.options[idx]
-                                          }`
-                                      )
-                                      .join(", ")}
+                                    {String.fromCharCode(65 + q.correctAnswer)}.{" "}
+                                    {q.options[q.correctAnswer]}
                                   </div>
                                 )}
                               </div>

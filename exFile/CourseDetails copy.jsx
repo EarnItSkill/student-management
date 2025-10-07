@@ -10,10 +10,10 @@ import {
   List,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import DashboardLayout from "../components/common/DashboardLayout";
-import Footer from "../components/common/Footer";
-import Navbar from "../components/common/Navbar";
-import { useAppContext } from "../context/useAppContext";
+import DashboardLayout from "../client/src/components/common/DashboardLayout";
+import Footer from "../client/src/components/common/Footer";
+import Navbar from "../client/src/components/common/Navbar";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const CourseDetails = () => {
   const { id } = useParams();

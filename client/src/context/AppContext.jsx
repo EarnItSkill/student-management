@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 // Import local JSON data
 // import attendanceData from "../data/attendance.json";
@@ -167,14 +168,11 @@ export const AppProvider = ({ children }) => {
 
       // 🔹 Step 2: API থেকে আপডেটেড student অবজেক্ট নাও
       const updatedStudent = response.data;
-      console.log(updatedStudent);
       // 🔹 Step 3: লোকাল স্টেট আপডেট করো
       setStudents((prev) =>
         prev.map((s) => (s._id === id ? updatedStudent : s))
       );
-      console.log(students);
 
-      console.log(`Student with id ${id} updated successfully`);
       return updatedStudent;
     } catch (error) {
       console.error("Failed to update student:", error);
@@ -189,8 +187,6 @@ export const AppProvider = ({ children }) => {
 
       // 🔹 Step 2: Update local state after successful deletion
       setStudents((prev) => prev.filter((s) => s._id !== id));
-
-      console.log(`Student with id ${id} deleted successfully`);
     } catch (error) {
       console.error("Failed to delete student:", error);
       throw error;
@@ -208,6 +204,8 @@ export const AppProvider = ({ children }) => {
 
       setCourses([...courses, response.data]);
 
+      toast.success("সপলতার সহিত কোর্স তৈরী হয়েছে");
+
       return response.data;
     } catch (error) {
       console.error("Error adding course:", error);
@@ -217,14 +215,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateCourse = async (id, updatedData) => {
-    console.log(id);
-    console.log(updatedData);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/course/${id}`,
         updatedData
       );
-      console.log(response);
 
       const updatedCourseFromServer = response.data;
 
@@ -234,6 +229,8 @@ export const AppProvider = ({ children }) => {
         )
       );
 
+      toast.success("সপলতার সহিত কোর্স আপডেট হয়েছে।");
+
       return updatedCourseFromServer;
     } catch (error) {
       console.error("Error updating course:", error);
@@ -242,15 +239,28 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // const deleteCourse = async (id) => {
+  //   try {
+  //     await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${id}`);
+
+  //     setCourses(courses.filter((c) => c._id !== id));
+
+  //     toast.success("সপলতার সহিত কোর্স ডিলিট হয়েছে।");
+  //   } catch (error) {
+  //     console.error("Error deleting course:", error);
+
+  //     throw error;
+  //   }
+  // };
+
   const deleteCourse = async (id) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${id}`);
-
       setCourses(courses.filter((c) => c._id !== id));
+      toast.success("সফলতার সহিত কোর্স ডিলিট হয়েছে।");
     } catch (error) {
       console.error("Error deleting course:", error);
-
-      throw error;
+      toast.error("কোর্স ডিলিট করতে সমস্যা হয়েছে!");
     }
   };
 
@@ -262,7 +272,6 @@ export const AppProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/batches`,
         newBatch
       );
-      console.log(newBatch);
 
       const batchWithId = response.data;
 
@@ -326,8 +335,6 @@ export const AppProvider = ({ children }) => {
   // ============== Enrollment Functions ==============
 
   const enrollStudent = async (studentId, batchId) => {
-    console.log(studentId, batchId);
-
     const enrollmentData = {
       studentId,
       batchId,
@@ -438,6 +445,27 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const deletePayment = async (paymentId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/payments/${paymentId}`
+      );
+
+      setPayments((prevBatches) => {
+        return prevBatches.filter((payment) => payment._id !== paymentId);
+      });
+
+      return true;
+    } catch (error) {
+      console.error(
+        `API-এর মাধ্যমে ব্যাচ ID: ${paymentId} ডিলিট করার সময় ত্রুটি:`,
+        error
+      );
+
+      throw error;
+    }
+  };
+
   // ============== Attendance Functions ==============
 
   const addAttendance = async (newAttendance) => {
@@ -492,8 +520,6 @@ export const AppProvider = ({ children }) => {
   const updateQuiz = async (id, updatedData) => {
     const { results, ...dataToSend } = updatedData;
 
-    console.log("Updating quiz with ID:", id);
-
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/quizzes/${id}`,
@@ -534,15 +560,18 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const submitQuiz = async (quizId, studentId, score, answers) => {
-    const newResult = {
-      studentId: studentId,
-      score: score,
-      answers: answers,
+  // const submitQuiz = async (quizId, studentId, score, answers) => {
+  //   const newResult = {
+  //     studentId: studentId,
+  //     score: score,
+  //     answers: answers,
 
-      submittedAt: new Date().toISOString(),
-    };
+  //     submittedAt: new Date().toISOString(),
+  //   };
 
+  const submitQuiz = async (quizId, newResult) => {
+    console.log(quizId);
+    console.log(newResult);
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
@@ -604,6 +633,7 @@ export const AppProvider = ({ children }) => {
     unenrollStudent,
     addPayment,
     updatePayment,
+    deletePayment,
     addAttendance,
     updateAttendance,
     submitQuiz,

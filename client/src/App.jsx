@@ -1,3 +1,4 @@
+import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import { AppProvider } from "./context/AppContext";
@@ -8,6 +9,7 @@ function App() {
     <BrowserRouter>
       <AppProvider>
         <AppRoutes />
+        <Toaster />
       </AppProvider>
     </BrowserRouter>
   );

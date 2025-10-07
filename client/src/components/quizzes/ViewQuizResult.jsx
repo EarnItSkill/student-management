@@ -1,4 +1,4 @@
-import { Award, CheckCircle, X } from "lucide-react";
+import { Award, CheckCircle, X, XCircle } from "lucide-react";
 
 const ViewQuizResult = ({ quiz, studentId, onClose }) => {
   // Find student's result
@@ -8,13 +8,24 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
     return null;
   }
 
-  // Calculate which answers were correct
-  const userAnswers = {};
-  let correctCount = 0;
-
-  // We need to reconstruct the answers from the score
-  // Since we don't store individual answers, we'll show the review differently
   const percentage = ((myResult.score / quiz.totalMarks) * 100).toFixed(1);
+
+  // Calculate correct/incorrect answers count
+  let correctCount = 0;
+  quiz.questions.forEach((question, index) => {
+    const userAnswer = myResult.answers[index];
+    const correctAnswers = question.correctAnswers;
+
+    if (userAnswer && correctAnswers) {
+      // Check if arrays are equal (same length and same elements)
+      const isCorrect =
+        userAnswer.length === correctAnswers.length &&
+        userAnswer.every((ans) => correctAnswers.includes(ans));
+      if (isCorrect) correctCount++;
+    }
+  });
+
+  const incorrectCount = quiz.questions.length - correctCount;
 
   return (
     <div className="modal modal-open">
@@ -68,6 +79,15 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
               </div>
               <div className="stat-desc">{percentage}%</div>
             </div>
+            <div className="stat">
+              <div className="stat-title">Correct</div>
+              <div className="stat-value text-success">{correctCount}</div>
+              <div className="stat-desc">{quiz.questions.length} questions</div>
+            </div>
+            <div className="stat">
+              <div className="stat-title">Incorrect</div>
+              <div className="stat-value text-error">{incorrectCount}</div>
+            </div>
           </div>
 
           <p className="text-sm text-gray-600 mt-4">
@@ -105,48 +125,118 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
         <div className="mb-6">
           <h4 className="font-bold text-lg mb-4">Questions & Answers:</h4>
           <div className="space-y-4">
-            {quiz.questions.map((question, index) => (
-              <div key={question.id} className="card bg-base-200 shadow">
-                <div className="card-body p-4">
-                  <h5 className="font-semibold text-sm mb-3">
-                    {index + 1}. {question.question}
-                  </h5>
+            {quiz.questions.map((question, index) => {
+              const userAnswer = myResult.answers[index] || [];
+              const correctAnswers = question.correctAnswers || [];
 
-                  <div className="space-y-2">
-                    {question.options.map((option, optIndex) => {
-                      const isCorrectAnswer =
-                        optIndex === question.correctAnswer;
+              // Check if user's answer is correct
+              const isQuestionCorrect =
+                userAnswer.length === correctAnswers.length &&
+                userAnswer.every((ans) => correctAnswers.includes(ans));
 
-                      return (
-                        <div
-                          key={optIndex}
-                          className={`p-3 rounded-lg border-2 ${
-                            isCorrectAnswer
-                              ? "border-success bg-success/10"
-                              : "border-base-300 bg-base-100"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold">
-                              {String.fromCharCode(65 + optIndex)}.
-                            </span>
-                            <span className="flex-1">{option}</span>
-                            {isCorrectAnswer && (
-                              <div className="flex items-center gap-1 text-success">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="text-xs font-semibold">
-                                  Correct Answer
-                                </span>
-                              </div>
-                            )}
+              return (
+                <div
+                  key={question.id}
+                  className={`card shadow-lg border-2 ${
+                    isQuestionCorrect
+                      ? "bg-success/5 border-success/30"
+                      : "bg-error/5 border-error/30"
+                  }`}
+                >
+                  <div className="card-body p-4">
+                    {/* Question Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <h5 className="font-semibold flex-1">
+                        {index + 1}. {question.question}
+                      </h5>
+                      <div
+                        className={`badge ${
+                          isQuestionCorrect ? "badge-success" : "badge-error"
+                        } gap-1`}
+                      >
+                        {isQuestionCorrect ? (
+                          <>
+                            <CheckCircle className="w-3 h-3" />
+                            Correct
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-3 h-3" />
+                            Incorrect
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Options */}
+                    <div className="space-y-2">
+                      {question.options.map((option, optIndex) => {
+                        const isCorrect = correctAnswers.includes(optIndex);
+                        const isUserSelected = userAnswer.includes(optIndex);
+                        const isWrongSelection = isUserSelected && !isCorrect;
+
+                        return (
+                          <div
+                            key={optIndex}
+                            className={`p-3 rounded-lg border-2 transition-all ${
+                              isCorrect
+                                ? "border-success bg-success/20 font-semibold"
+                                : isWrongSelection
+                                ? "border-error bg-error/20"
+                                : "border-base-300 bg-base-100"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold">
+                                {String.fromCharCode(65 + optIndex)}.
+                              </span>
+                              <span className="flex-1">{option}</span>
+
+                              {/* Correct Answer Badge */}
+                              {isCorrect && (
+                                <div className="flex items-center gap-1 text-success">
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span className="text-xs font-semibold">
+                                    Correct Answer
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Wrong Selection Badge */}
+                              {isWrongSelection && (
+                                <div className="flex items-center gap-1 text-error">
+                                  <XCircle className="w-4 h-4" />
+                                  <span className="text-xs font-semibold">
+                                    Your Answer
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Correct Selection Badge */}
+                              {isUserSelected && isCorrect && (
+                                <div className="badge badge-success badge-sm gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Your Answer
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+
+                    {/* Multiple Answers Note */}
+                    {correctAnswers.length > 1 && (
+                      <div className="alert alert-info mt-3">
+                        <span className="text-xs">
+                          ℹ️ This question has multiple correct answers
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

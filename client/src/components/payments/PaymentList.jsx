@@ -6,6 +6,7 @@ import {
   Filter,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
@@ -181,13 +182,17 @@ const PaymentList = ({ onEdit, onAdd }) => {
                         {payment.status}
                       </span>
                     </td>
-                    <td>
+                    <td className="text-end">
                       <button
                         onClick={() => onEdit(payment)}
                         className="btn btn-info btn-sm gap-1"
                       >
                         <Edit className="w-4 h-4" />
                         Edit
+                      </button>
+                      <button className="btn btn-error btn-sm gap-1 ms-2">
+                        <Trash2 className="w-4 h-4" />
+                        Remove
                       </button>
                     </td>
                   </tr>

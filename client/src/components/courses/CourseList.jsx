@@ -123,6 +123,7 @@ const CourseList = ({ onEdit, onAdd }) => {
                   <button
                     onClick={() => handleDelete(course)}
                     className="btn btn-error btn-sm gap-2"
+                    disabled
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete

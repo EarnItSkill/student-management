@@ -1,6 +1,6 @@
 import { GraduationCap, Save, X } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const BatchForm = ({ batch, onClose, onSuccess }) => {
   const { courses, addBatch, updateBatch } = useAppContext();
@@ -14,7 +14,6 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     defaultValues: batch || {
       batchName: "",
       courseId: "",
-      batchCategory: "",
       startDate: "",
       endDate: "",
       schedule: "",
@@ -26,6 +25,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     try {
       const batchData = {
         ...data,
+        // courseId: parseInt(data.courseId),
         courseId: data.courseId,
         totalSeats: parseInt(data.totalSeats),
         enrolledStudents: 0,
@@ -111,33 +111,6 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
               <label className="label">
                 <span className="label-text-alt text-error">
                   {errors.courseId.message}
-                </span>
-              </label>
-            )}
-          </div>
-
-          {/* Batch Category */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Batch Category *</span>
-            </label>
-            <select
-              className={`select select-bordered ${
-                errors.batchCategory ? "select-error" : ""
-              }`}
-              {...register("batchCategory", {
-                required: "Batch category is required",
-              })}
-            >
-              <option value="">Choose a category</option>
-              <option value="ict">ICT</option>
-              <option value="excel">Excel</option>
-              <option value="office">Office</option>
-            </select>
-            {errors.batchCategory && (
-              <label className="label">
-                <span className="label-text-alt text-error">
-                  {errors.batchCategory.message}
                 </span>
               </label>
             )}

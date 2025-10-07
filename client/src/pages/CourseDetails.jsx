@@ -151,7 +151,7 @@ const CourseDetails = () => {
                                   >
                                     <div className="avatar placeholder">
                                       <div className="bg-primary text-white rounded-full w-8">
-                                        <span className="text-sm">
+                                        <span className="text-sm block h-8 text-center pt-1">
                                           {index + 1}
                                         </span>
                                       </div>

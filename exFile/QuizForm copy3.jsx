@@ -1,28 +1,26 @@
-import { Award, CheckCircle, Plus, Save, Trash2, X } from "lucide-react";
+import { Award, Plus, Save, Trash2, X } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const QuizForm = ({ quiz, onClose, onSuccess }) => {
-  const { courses, addQuiz, updateQuiz } = useAppContext();
+  const { batches, addQuiz, updateQuiz } = useAppContext();
   const isEdit = !!quiz;
 
   const {
     register,
     control,
     handleSubmit,
-    watch,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: quiz || {
-      courseId: "",
+      batchId: "",
       title: "",
       totalMarks: 0,
       questions: [
         {
           question: "",
           options: ["", "", "", ""],
-          correctAnswers: [0],
+          correctAnswer: 0,
         },
       ],
     },
@@ -33,40 +31,17 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
     name: "questions",
   });
 
-  const watchQuestions = watch("questions");
-
-  const toggleCorrectAnswer = (questionIndex, optionIndex) => {
-    const currentAnswers = watchQuestions[questionIndex]?.correctAnswers || [];
-    const isSelected = currentAnswers.includes(optionIndex);
-
-    let newAnswers;
-    if (isSelected) {
-      // Remove if already selected
-      newAnswers = currentAnswers.filter((idx) => idx !== optionIndex);
-    } else {
-      // Add if not selected
-      newAnswers = [...currentAnswers, optionIndex];
-    }
-
-    // Ensure at least one answer is selected
-    if (newAnswers.length === 0) {
-      return;
-    }
-
-    setValue(`questions.${questionIndex}.correctAnswers`, newAnswers.sort());
-  };
-
   const onSubmit = async (data) => {
     try {
       const quizData = {
         ...data,
-        courseId: data.courseId,
+        batchId: data.batchId,
         totalMarks: parseInt(data.totalMarks),
         questions: data.questions.map((q, index) => ({
           id: index + 1,
           question: q.question,
           options: q.options,
-          correctAnswers: q.correctAnswers || [0],
+          correctAnswer: parseInt(q.correctAnswer),
         })),
         results: quiz?.results || [],
       };
@@ -132,28 +107,28 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">
-                    Select Course *
+                    Select Batch *
                   </span>
                 </label>
                 <select
                   className={`select select-bordered ${
-                    errors.courseId ? "select-error" : ""
+                    errors.batchId ? "select-error" : ""
                   }`}
-                  {...register("courseId", {
-                    required: "Course is required",
+                  {...register("batchId", {
+                    required: "Batch is required",
                   })}
                 >
-                  <option value="">Choose a course</option>
-                  {courses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.title}
+                  <option value="">Choose a batch</option>
+                  {batches.map((batch) => (
+                    <option key={batch._id} value={batch._id}>
+                      {batch.batchName}
                     </option>
                   ))}
                 </select>
-                {errors.courseId && (
+                {errors.batchId && (
                   <label className="label">
                     <span className="label-text-alt text-error">
-                      {errors.courseId.message}
+                      {errors.batchId.message}
                     </span>
                   </label>
                 )}
@@ -237,120 +212,61 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                     )}
                   </div>
 
-                  {/* Options with Correct Answer Highlight */}
+                  {/* Options */}
                   <div className="space-y-3 mt-4">
                     <label className="label">
                       <span className="label-text font-semibold">
                         Options *
-                        <span className="text-xs text-success ml-2">
-                          (Green = Correct Answer)
-                        </span>
                       </span>
                     </label>
-                    {[0, 1, 2, 3].map((optionIndex) => {
-                      const isCorrect =
-                        watchQuestions[questionIndex]?.correctAnswers?.includes(
-                          optionIndex
-                        );
-                      return (
-                        <div key={optionIndex} className="form-control">
-                          <div className="input-group">
-                            <span
-                              className={`px-4 font-semibold ${
-                                isCorrect
-                                  ? "bg-success text-white"
-                                  : "bg-base-300"
-                              }`}
-                            >
-                              {isCorrect && (
-                                <CheckCircle className="w-4 h-4 inline mr-1" />
-                              )}
-                              {String.fromCharCode(65 + optionIndex)}
-                            </span>
-                            <input
-                              type="text"
-                              placeholder={`Option ${String.fromCharCode(
-                                65 + optionIndex
-                              )}`}
-                              className={`input input-bordered w-full ${
-                                isCorrect
-                                  ? "border-success border-2 bg-success/10"
-                                  : ""
-                              } ${
-                                errors.questions?.[questionIndex]?.options?.[
-                                  optionIndex
-                                ]
-                                  ? "input-error"
-                                  : ""
-                              }`}
-                              {...register(
-                                `questions.${questionIndex}.options.${optionIndex}`,
-                                {
-                                  required: "Option is required",
-                                }
-                              )}
-                            />
-                          </div>
+                    {[0, 1, 2, 3].map((optionIndex) => (
+                      <div key={optionIndex} className="form-control">
+                        <div className="input-group">
+                          <span className="bg-base-300 px-4 font-semibold">
+                            {String.fromCharCode(65 + optionIndex)}
+                          </span>
+                          <input
+                            type="text"
+                            placeholder={`Option ${String.fromCharCode(
+                              65 + optionIndex
+                            )}`}
+                            className={`input input-bordered w-full ${
+                              errors.questions?.[questionIndex]?.options?.[
+                                optionIndex
+                              ]
+                                ? "input-error"
+                                : ""
+                            }`}
+                            {...register(
+                              `questions.${questionIndex}.options.${optionIndex}`,
+                              {
+                                required: "Option is required",
+                              }
+                            )}
+                          />
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Correct Answers - Multiple Selection */}
+                  {/* Correct Answer */}
                   <div className="form-control mt-4">
                     <label className="label">
                       <span className="label-text font-semibold">
-                        Select Correct Answer(s) *
+                        Correct Answer *
                       </span>
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[0, 1, 2, 3].map((optionIndex) => {
-                        const isSelected =
-                          watchQuestions[
-                            questionIndex
-                          ]?.correctAnswers?.includes(optionIndex);
-                        return (
-                          <button
-                            key={optionIndex}
-                            type="button"
-                            onClick={() =>
-                              toggleCorrectAnswer(questionIndex, optionIndex)
-                            }
-                            className={`btn ${
-                              isSelected
-                                ? "btn-success text-white"
-                                : "btn-outline"
-                            }`}
-                          >
-                            {isSelected && (
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                            )}
-                            Option {String.fromCharCode(65 + optionIndex)}
-                          </button>
-                        );
+                    <select
+                      className="select select-bordered select-success"
+                      {...register(`questions.${questionIndex}.correctAnswer`, {
+                        required: "Correct answer is required",
                       })}
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      {watchQuestions[questionIndex]?.correctAnswers?.length >
-                        0 && (
-                        <div className="alert alert-success py-2">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-sm font-semibold">
-                            Selected:{" "}
-                            {watchQuestions[questionIndex].correctAnswers
-                              .map((idx) => String.fromCharCode(65 + idx))
-                              .join(", ")}
-                          </span>
-                        </div>
-                      )}
-                      {watchQuestions[questionIndex]?.correctAnswers?.length >
-                        1 && (
-                        <div className="badge badge-info badge-lg gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          Multiple Answers
-                        </div>
-                      )}
-                    </div>
+                    >
+                      <option value={0}>Option A</option>
+                      <option value={1}>Option B</option>
+                      <option value={2}>Option C</option>
+                      <option value={3}>Option D</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -364,7 +280,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
               append({
                 question: "",
                 options: ["", "", "", ""],
-                correctAnswers: [0],
+                correctAnswer: 0,
               })
             }
             className="btn btn-outline btn-primary w-full gap-2"

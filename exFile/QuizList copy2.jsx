@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Award,
   BookOpen,
-  CheckCircle,
   Edit,
   Eye,
   Grid,
@@ -12,8 +11,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { useAppContext } from "../../context/useAppContext";
-import ConfirmModal from "../common/ConfirmModal";
+import ConfirmModal from "../client/src/components/common/ConfirmModal";
+import { useAppContext } from "../client/src/context/useAppContext";
 
 const QuizList = ({ onEdit, onAdd }) => {
   const { quizzes, batches, courses, deleteQuiz } = useAppContext();
@@ -24,13 +23,9 @@ const QuizList = ({ onEdit, onAdd }) => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, quiz: null });
   const [viewModal, setViewModal] = useState({ isOpen: false, quiz: null });
 
-  // Group quizzes by batch with category matching
+  // Group quizzes by batch
   const batchesWithQuizzes = batches.map((batch) => {
-    // Find quizzes that match this batch's category
-    const batchQuizzes = quizzes.filter(
-      (quiz) => quiz.courseId === batch.courseId || quiz.batchId === batch._id // Also include specific batch quizzes
-      // quiz.quizCategory === batch.batchCategory || quiz.batchId === batch._id // Also include specific batch quizzes
-    );
+    const batchQuizzes = quizzes.filter((quiz) => quiz.batchId === batch._id);
     const course = courses.find((c) => c._id === batch.courseId);
     return {
       ...batch,
@@ -51,8 +46,7 @@ const QuizList = ({ onEdit, onAdd }) => {
   const filteredBatches = batchesWithQuizzes?.filter(
     (batch) =>
       batch?.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      batch?.course?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      batch?.batchCategory?.toLowerCase().includes(searchTerm.toLowerCase())
+      batch?.course?.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Get selected batch details
@@ -123,7 +117,7 @@ const QuizList = ({ onEdit, onAdd }) => {
             </span>
             <input
               type="text"
-              placeholder="Search batches, courses or categories..."
+              placeholder="Search batches or courses..."
               className="input input-bordered w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,9 +146,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                       <p className="text-sm text-gray-600 mt-1">
                         {batch.course?.title || "No Course"}
                       </p>
-                      <div className="badge badge-secondary badge-sm mt-2">
-                        {batch.batchCategory?.toUpperCase()}
-                      </div>
                     </div>
                     <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
                   </div>
@@ -202,13 +193,9 @@ const QuizList = ({ onEdit, onAdd }) => {
     );
   }
 
-  // Show Quiz List for Selected Batch (Category-based filtering)
-  const selectedCourse = selectedBatchData?.courseId;
+  // Show Quiz List for Selected Batch
   const batchQuizzes = quizzes
-    .filter(
-      (quiz) =>
-        quiz.courseId === selectedCourse || quiz.batchId === selectedBatch
-    )
+    .filter((quiz) => quiz.batchId === selectedBatch)
     .filter((quiz) =>
       quiz.title.toLowerCase().includes(quizSearchTerm.toLowerCase())
     );
@@ -232,9 +219,6 @@ const QuizList = ({ onEdit, onAdd }) => {
             <p className="text-sm text-gray-600">
               {selectedBatchData?.course?.title}
             </p>
-            <div className="badge badge-secondary badge-sm mt-1">
-              Category: {selectedBatchData?.batchCategory?.toUpperCase()}
-            </div>
           </div>
         </div>
         <button onClick={onAdd} className="btn btn-primary gap-2">
@@ -250,9 +234,8 @@ const QuizList = ({ onEdit, onAdd }) => {
             <Award className="w-8 h-8" />
           </div>
           <div className="stat-title">Total Quizzes</div>
-          <div className="stat-value text-primary">{batchQuizzes.length}</div>
-          <div className="stat-desc">
-            For {selectedCourse?.toUpperCase()} category
+          <div className="stat-value text-primary">
+            {quizzes.filter((q) => q.batchId === selectedBatch).length}
           </div>
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
@@ -261,7 +244,9 @@ const QuizList = ({ onEdit, onAdd }) => {
           </div>
           <div className="stat-title">Total Questions</div>
           <div className="stat-value text-success">
-            {batchQuizzes.reduce((sum, q) => sum + q.questions.length, 0)}
+            {quizzes
+              .filter((q) => q.batchId === selectedBatch)
+              .reduce((sum, q) => sum + q.questions.length, 0)}
           </div>
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
@@ -270,7 +255,9 @@ const QuizList = ({ onEdit, onAdd }) => {
           </div>
           <div className="stat-title">Total Submissions</div>
           <div className="stat-value text-info">
-            {batchQuizzes.reduce((sum, q) => sum + q.results.length, 0)}
+            {quizzes
+              .filter((q) => q.batchId === selectedBatch)
+              .reduce((sum, q) => sum + q.results.length, 0)}
           </div>
         </div>
       </div>
@@ -324,7 +311,7 @@ const QuizList = ({ onEdit, onAdd }) => {
           <p className="text-gray-500">
             {quizSearchTerm
               ? "No quizzes found matching your search"
-              : `No quizzes found for ${selectedCourse?.toUpperCase()} category`}
+              : "No quizzes found for this batch"}
           </p>
           {!quizSearchTerm && (
             <button
@@ -348,9 +335,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="card-title text-lg">{quiz.title}</h3>
-                    <div className="badge badge-accent badge-sm mt-2">
-                      {quiz.quizCategory?.toUpperCase()}
-                    </div>
                   </div>
                   <Award className="w-8 h-8 text-primary flex-shrink-0" />
                 </div>
@@ -409,7 +393,6 @@ const QuizList = ({ onEdit, onAdd }) => {
               <tr>
                 <th>#</th>
                 <th>Quiz Title</th>
-                <th>Category</th>
                 <th>Questions</th>
                 <th>Total Marks</th>
                 <th>Submissions</th>
@@ -425,11 +408,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                       <Award className="w-5 h-5 text-primary" />
                       <span className="font-semibold">{quiz.title}</span>
                     </div>
-                  </td>
-                  <td>
-                    <span className="badge badge-accent">
-                      {quiz.quizCategory?.toUpperCase()}
-                    </span>
                   </td>
                   <td>
                     <span className="badge badge-primary">
@@ -492,12 +470,9 @@ const QuizList = ({ onEdit, onAdd }) => {
       {/* View Quiz Modal */}
       {viewModal.isOpen && viewModal.quiz && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="modal-box max-w-3xl">
             <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="font-bold text-xl">{viewModal.quiz.title}</h3>
-                <p className="text-sm text-gray-600">Quiz Preview</p>
-              </div>
+              <h3 className="font-bold text-xl">{viewModal.quiz.title}</h3>
               <button
                 onClick={() => setViewModal({ isOpen: false, quiz: null })}
                 className="btn btn-sm btn-circle btn-ghost"
@@ -506,103 +481,37 @@ const QuizList = ({ onEdit, onAdd }) => {
               </button>
             </div>
 
-            {/* Quiz Stats */}
-            <div className="stats shadow mb-4 w-full">
-              <div className="stat">
-                <div className="stat-title">Total Questions</div>
-                <div className="stat-value text-primary">
-                  {viewModal.quiz.questions.length}
-                </div>
-              </div>
-              <div className="stat">
-                <div className="stat-title">Total Marks</div>
-                <div className="stat-value text-success">
-                  {viewModal.quiz.totalMarks}
-                </div>
-              </div>
-              <div className="stat">
-                <div className="stat-title">Submissions</div>
-                <div className="stat-value text-info">
-                  {viewModal.quiz.results?.length || 0}
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-4">
-              {viewModal.quiz.questions.map((q, index) => {
-                const correctAnswers = q.correctAnswers || [];
-                const hasMultipleCorrect = correctAnswers.length > 1;
-
-                return (
-                  <div key={q.id} className="card bg-base-200 shadow-lg">
-                    <div className="card-body p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-semibold text-lg flex-1">
-                          {index + 1}. {q.question}
-                        </h4>
-                        {hasMultipleCorrect && (
-                          <div className="badge badge-info badge-lg gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            Multiple Answers
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 mt-2">
-                        {q.options.map((option, optIndex) => {
-                          const isCorrect = correctAnswers.includes(optIndex);
-
-                          return (
-                            <div
-                              key={optIndex}
-                              className={`p-3 rounded-lg border-2 transition-all ${
-                                isCorrect
-                                  ? "bg-success text-white border-success font-semibold"
-                                  : "bg-base-100 border-base-300"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold">
-                                    {String.fromCharCode(65 + optIndex)}.
-                                  </span>
-                                  <span>{option}</span>
-                                </div>
-                                {isCorrect && (
-                                  <div className="flex items-center gap-1">
-                                    <CheckCircle className="w-5 h-5" />
-                                    <span className="text-sm font-bold">
-                                      Correct
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Show correct answers summary */}
-                      <div className="divider my-2"></div>
-                      <div className="alert alert-success py-2">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-sm font-semibold">
-                          Correct Answer{correctAnswers.length > 1 ? "s" : ""}:{" "}
-                          {correctAnswers
-                            .map((idx) => String.fromCharCode(65 + idx))
-                            .join(", ")}
-                        </span>
-                      </div>
+              {viewModal.quiz.questions.map((q, index) => (
+                <div key={q.id} className="card bg-base-200">
+                  <div className="card-body p-4">
+                    <h4 className="font-semibold">
+                      {index + 1}. {q.question}
+                    </h4>
+                    <div className="space-y-2 mt-2">
+                      {q.options.map((option, optIndex) => (
+                        <div
+                          key={optIndex}
+                          className={`p-2 rounded ${
+                            optIndex === q.correctAnswer
+                              ? "bg-success text-white"
+                              : "bg-base-100"
+                          }`}
+                        >
+                          {String.fromCharCode(65 + optIndex)}. {option}
+                          {optIndex === q.correctAnswer && " ✓"}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
             <div className="modal-action">
               <button
                 onClick={() => setViewModal({ isOpen: false, quiz: null })}
-                className="btn btn-primary"
+                className="btn"
               >
                 Close
               </button>

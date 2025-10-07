@@ -166,14 +166,6 @@ async function run() {
     //   }
     // });
 
-    // Delete a single cours
-    app.delete("/courses/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await coursesCollection.deleteOne(query);
-      res.send(result);
-    });
-
     // Update a single course
     app.put("/course/:id", async (req, res) => {
       const id = req.params.id;
@@ -188,6 +180,26 @@ async function run() {
 
       const result = await coursesCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
+
+    app.delete("/courses/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await coursesCollection.deleteOne(query);
+        console.log("Delete Result:", result);
+
+        if (result.deletedCount === 1) {
+          res
+            .status(200)
+            .send({ success: true, message: "Course deleted successfully" });
+        } else {
+          res.status(404).send({ success: false, message: "Course not found" });
+        }
+      } catch (error) {
+        console.error("Error deleting course:", error);
+        res.status(500).send({ success: false, message: "Server error" });
+      }
     });
 
     // =========================
@@ -472,6 +484,9 @@ async function run() {
       const quizId = req.params.id;
       const newResult = req.body; // ফ্রন্টএন্ড থেকে আসা নতুন রেজাল্ট অবজেক্ট
 
+      console.log("Received quizId:", quizId);
+      console.log("Is valid ObjectId:", ObjectId.isValid(quizId));
+
       try {
         const objectId = new ObjectId(quizId);
         const query = { _id: objectId };
@@ -485,7 +500,8 @@ async function run() {
         const result = await quizzesCollection.findOneAndUpdate(
           query,
           updateDoc,
-          { returnDocument: "after" } // আপডেটের পর নতুন ডকুমেন্টটি ফেরত দিন
+          // { returnDocument: "after" } // আপডেটের পর নতুন ডকুমেন্টটি ফেরত দিন
+          { returnOriginal: false }
         );
 
         if (result.value) {

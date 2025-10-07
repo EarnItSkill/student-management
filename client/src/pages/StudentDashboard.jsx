@@ -1,6 +1,7 @@
 import {
   Activity,
   AlertCircle,
+  ArrowLeft,
   Award,
   BookOpen,
   Calendar,
@@ -8,6 +9,9 @@ import {
   Clock,
   DollarSign,
   Eye,
+  Grid,
+  List as ListIcon,
+  Search,
   Target,
   TrendingUp,
   XCircle,
@@ -34,6 +38,13 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [quizModal, setQuizModal] = useState({ isOpen: false, quiz: null });
   const [resultModal, setResultModal] = useState({ isOpen: false, quiz: null });
+  const [selectedBatchForQuiz, setSelectedBatchForQuiz] = useState(null);
+  const [quizSearchTerm, setQuizSearchTerm] = useState("");
+  const [quizViewType, setQuizViewType] = useState("grid");
+  const [selectedBatchForAttendance, setSelectedBatchForAttendance] =
+    useState(null);
+  const [attendanceDateFilter, setAttendanceDateFilter] = useState("");
+  const [attendanceViewType, setAttendanceViewType] = useState("table");
 
   // Get student's data
   const myEnrollments = enrollments.filter(
@@ -48,8 +59,16 @@ const StudentDashboard = () => {
   const myAttendance = attendance.filter(
     (a) => a.studentId === currentUser?._id
   );
+  // const myQuizzes = quizzes.filter((quiz) =>
+  //   myEnrollments.some((e) => e.batchId === quiz.batchId)
+  // );
+
+  // Student এর enrolled courses থেকে courseIds বের করা
+  const enrolledCourseIds = myBatches.map((batch) => batch.courseId);
+
+  // শুধুমাত্র enrolled courses এর quizzes ফিল্টার করা
   const myQuizzes = quizzes.filter((quiz) =>
-    myEnrollments.some((e) => e.batchId === quiz.batchId)
+    enrolledCourseIds.includes(quiz.courseId)
   );
 
   // Calculate statistics
@@ -730,89 +749,418 @@ const StudentDashboard = () => {
         {/* Attendance Tab */}
         {activeTab === "attendance" && (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Attendance Record</h2>
+            {!selectedBatchForAttendance ? (
+              // Batch Selection View
+              <div>
+                <h2 className="text-2xl font-bold mb-6">
+                  Attendance Record - Select Batch
+                </h2>
 
-            {/* Attendance Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-primary">
-                  <Calendar className="w-8 h-8" />
-                </div>
-                <div className="stat-title">Attendance Rate</div>
-                <div className="stat-value text-primary">
-                  {attendancePercentage}%
-                </div>
-                <div className="stat-desc">
-                  {presentCount}/{myAttendance.length} classes
-                </div>
-              </div>
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-success">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <div className="stat-title">Present</div>
-                <div className="stat-value text-success">{presentCount}</div>
-              </div>
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-error">
-                  <XCircle className="w-8 h-8" />
-                </div>
-                <div className="stat-title">Absent</div>
-                <div className="stat-value text-error">{absentCount}</div>
-              </div>
-            </div>
-
-            {myAttendance.length === 0 ? (
-              <div className="text-center py-20">
-                <Calendar className="w-20 h-20 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  No Attendance Records
-                </h3>
-                <p className="text-gray-500">
-                  Your attendance hasn't been recorded yet
-                </p>
-              </div>
-            ) : (
-              <div className="card bg-base-200 shadow-xl">
-                <div className="card-body">
-                  <div className="overflow-x-auto">
-                    <table className="table table-zebra">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Batch</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {myAttendance.map((record) => {
-                          const batch = batches.find(
-                            (b) => b._id === record.batchId
-                          );
-                          return (
-                            <tr key={record._id}>
-                              <td className="font-semibold">{record.date}</td>
-                              <td>{batch?.batchName}</td>
-                              <td>
-                                {record.status === "present" ? (
-                                  <span className="badge badge-success gap-2">
-                                    <CheckCircle className="w-4 h-4" />
-                                    Present
-                                  </span>
-                                ) : (
-                                  <span className="badge badge-error gap-2">
-                                    <XCircle className="w-4 h-4" />
-                                    Absent
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                {/* Overall Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-primary">
+                      <BookOpen className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">My Batches</div>
+                    <div className="stat-value text-primary">
+                      {myBatches.length}
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-success">
+                      <Calendar className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Total Records</div>
+                    <div className="stat-value text-success">
+                      {myAttendance.length}
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-info">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Overall Rate</div>
+                    <div className="stat-value text-info">
+                      {attendancePercentage}%
+                    </div>
                   </div>
                 </div>
+
+                {/* Batch Cards */}
+                {myBatches.length === 0 ? (
+                  <div className="text-center py-20">
+                    <BookOpen className="w-20 h-20 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">
+                      No Batches Found
+                    </h3>
+                    <p className="text-gray-500">
+                      You are not enrolled in any batch yet
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {myBatches.map((batch) => {
+                      const course = courses.find(
+                        (c) => c._id === batch.courseId
+                      );
+                      const batchAttendance = myAttendance.filter(
+                        (a) => a.batchId === batch._id
+                      );
+                      const batchPresentCount = batchAttendance.filter(
+                        (a) => a.status === "present"
+                      ).length;
+                      const batchAbsentCount = batchAttendance.filter(
+                        (a) => a.status === "absent"
+                      ).length;
+                      const batchRate =
+                        batchAttendance.length > 0
+                          ? (
+                              (batchPresentCount / batchAttendance.length) *
+                              100
+                            ).toFixed(1)
+                          : 0;
+
+                      return (
+                        <div
+                          key={batch._id}
+                          onClick={() =>
+                            setSelectedBatchForAttendance(batch._id)
+                          }
+                          className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
+                        >
+                          <div className="card-body">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h3 className="card-title text-lg">
+                                  {batch.batchName}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {course?.title || "No Course"}
+                                </p>
+                              </div>
+                              <Calendar className="w-8 h-8 text-primary flex-shrink-0" />
+                            </div>
+
+                            <div className="divider my-2"></div>
+
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Schedule:</span>
+                                <span className="font-semibold text-xs">
+                                  {batch.schedule}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Total Records:
+                                </span>
+                                <span className="badge badge-primary">
+                                  {batchAttendance.length}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Present:</span>
+                                <span className="badge badge-success">
+                                  {batchPresentCount}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Absent:</span>
+                                <span className="badge badge-error">
+                                  {batchAbsentCount}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600">Rate:</span>
+                                <span className="font-bold text-info">
+                                  {batchRate}%
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 text-center">
+                              <button className="btn btn-primary btn-sm w-full">
+                                View Attendance
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Attendance List View for Selected Batch
+              <div>
+                {/* Header with Back Button */}
+                <div className=" mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {
+                        myBatches.find(
+                          (b) => b._id === selectedBatchForAttendance
+                        )?.batchName
+                      }
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {
+                        courses.find(
+                          (c) =>
+                            c._id ===
+                            myBatches.find(
+                              (b) => b._id === selectedBatchForAttendance
+                            )?.courseId
+                        )?.title
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Batch Attendance Stats */}
+                {(() => {
+                  const batchAttendance = myAttendance.filter(
+                    (a) => a.batchId === selectedBatchForAttendance
+                  );
+                  const batchPresentCount = batchAttendance.filter(
+                    (a) => a.status === "present"
+                  ).length;
+                  const batchAbsentCount = batchAttendance.filter(
+                    (a) => a.status === "absent"
+                  ).length;
+                  const batchRate =
+                    batchAttendance.length > 0
+                      ? (
+                          (batchPresentCount / batchAttendance.length) *
+                          100
+                        ).toFixed(1)
+                      : 0;
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="stat bg-base-200 rounded-lg shadow-lg">
+                        <div className="stat-figure text-primary">
+                          <Calendar className="w-8 h-8" />
+                        </div>
+                        <div className="stat-title">Attendance Rate</div>
+                        <div className="stat-value text-primary">
+                          {batchRate}%
+                        </div>
+                        <div className="stat-desc">
+                          {batchPresentCount}/{batchAttendance.length} classes
+                        </div>
+                      </div>
+                      <div className="stat bg-base-200 rounded-lg shadow-lg">
+                        <div className="stat-figure text-success">
+                          <CheckCircle className="w-8 h-8" />
+                        </div>
+                        <div className="stat-title">Present</div>
+                        <div className="stat-value text-success">
+                          {batchPresentCount}
+                        </div>
+                      </div>
+                      <div className="stat bg-base-200 rounded-lg shadow-lg">
+                        <div className="stat-figure text-error">
+                          <XCircle className="w-8 h-8" />
+                        </div>
+                        <div className="stat-title">Absent</div>
+                        <div className="stat-value text-error">
+                          {batchAbsentCount}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Date Filter and View Toggle */}
+                <div className="flex space-between gap-4 mb-6">
+                  <button
+                    onClick={() => {
+                      setSelectedBatchForAttendance(null);
+                      setAttendanceDateFilter("");
+                    }}
+                    className="btn btn-ghost btn-sm gap-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="form-control flex-1">
+                      <div className="input-group">
+                        <span className="bg-base-200">
+                          <Calendar className="w-5 h-5" />
+                        </span>
+                        <input
+                          type="date"
+                          className="input input-bordered w-full"
+                          value={attendanceDateFilter}
+                          onChange={(e) =>
+                            setAttendanceDateFilter(e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="btn-group">
+                      <button
+                        className={`btn ${
+                          attendanceViewType === "table" ? "btn-active" : ""
+                        }`}
+                        onClick={() => setAttendanceViewType("table")}
+                      >
+                        <ListIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        className={`btn ${
+                          attendanceViewType === "cards" ? "btn-active" : ""
+                        }`}
+                        onClick={() => setAttendanceViewType("cards")}
+                      >
+                        <Grid className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attendance Display */}
+                {(() => {
+                  const batchAttendance = myAttendance
+                    .filter((a) => a.batchId === selectedBatchForAttendance)
+                    .filter(
+                      (a) =>
+                        !attendanceDateFilter || a.date === attendanceDateFilter
+                    );
+
+                  if (batchAttendance.length === 0) {
+                    return (
+                      <div className="text-center py-20">
+                        <Calendar className="w-20 h-20 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">
+                          {attendanceDateFilter
+                            ? "No records found"
+                            : "No Attendance Records"}
+                        </h3>
+                        <p className="text-gray-500">
+                          {attendanceDateFilter
+                            ? `No attendance records for ${attendanceDateFilter}`
+                            : "Your attendance hasn't been recorded yet for this batch"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {attendanceDateFilter && (
+                        <div className="alert alert-info mb-4">
+                          <span>
+                            Found {batchAttendance.length} record(s) for{" "}
+                            {attendanceDateFilter}
+                          </span>
+                        </div>
+                      )}
+
+                      {attendanceViewType === "table" ? (
+                        // Table View
+                        <div className="card bg-base-200 shadow-xl">
+                          <div className="card-body">
+                            <div className="overflow-x-auto">
+                              <table className="table table-zebra">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {batchAttendance.map((record, index) => (
+                                    <tr key={record._id}>
+                                      <td>{index + 1}</td>
+                                      <td className="font-semibold">
+                                        {record.date}
+                                      </td>
+                                      <td>
+                                        {record.status === "present" ? (
+                                          <span className="badge badge-success gap-2">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Present
+                                          </span>
+                                        ) : (
+                                          <span className="badge badge-error gap-2">
+                                            <XCircle className="w-4 h-4" />
+                                            Absent
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        // Cards View
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {batchAttendance.map((record) => (
+                            <div
+                              key={record._id}
+                              className={`card shadow-xl transition-all ${
+                                record.status === "present"
+                                  ? "bg-gradient-to-br from-success/10 to-success/5 border-2 border-success/30"
+                                  : "bg-gradient-to-br from-error/10 to-error/5 border-2 border-error/30"
+                              }`}
+                            >
+                              <div className="card-body">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div>
+                                    <h3 className="font-bold text-lg">
+                                      {record.date}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                      {new Date(record.date).toLocaleDateString(
+                                        "en-US",
+                                        {
+                                          weekday: "long",
+                                          year: "numeric",
+                                          month: "long",
+                                          day: "numeric",
+                                        }
+                                      )}
+                                    </p>
+                                  </div>
+                                  <Calendar className="w-8 h-8 text-primary" />
+                                </div>
+
+                                <div className="divider my-2"></div>
+
+                                <div className="flex justify-center">
+                                  {record.status === "present" ? (
+                                    <div className="badge badge-success badge-lg gap-2 p-4">
+                                      <CheckCircle className="w-6 h-6" />
+                                      <span className="font-bold text-lg">
+                                        Present
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="badge badge-error badge-lg gap-2 p-4">
+                                      <XCircle className="w-6 h-6" />
+                                      <span className="font-bold text-lg">
+                                        Absent
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -820,172 +1168,551 @@ const StudentDashboard = () => {
 
         {activeTab === "quizzes" && (
           <div>
-            <h2 className="text-2xl font-bold mb-4">My Quizzes</h2>
+            {!selectedBatchForQuiz ? (
+              // Course Selection View
+              <div>
+                <h2 className="text-2xl font-bold mb-6">
+                  My Quizzes - Select Course
+                </h2>
 
-            {/* Quiz Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-primary">
-                  <Award className="w-8 h-8" />
+                {/* Overall Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-primary">
+                      <BookOpen className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">My Courses</div>
+                    <div className="stat-value text-primary">
+                      {enrolledCourseIds.length}
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-success">
+                      <Award className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Total Quizzes</div>
+                    <div className="stat-value text-success">
+                      {myQuizzes.length}
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-warning">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Completed</div>
+                    <div className="stat-value text-warning">
+                      {completedQuizzes}
+                    </div>
+                  </div>
                 </div>
-                <div className="stat-title">Total Quizzes</div>
-                <div className="stat-value text-primary">
-                  {myQuizzes.length}
-                </div>
-              </div>
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-success">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <div className="stat-title">Completed</div>
-                <div className="stat-value text-success">
-                  {completedQuizzes}
-                </div>
-              </div>
-              <div className="stat bg-base-200 rounded-lg shadow-lg">
-                <div className="stat-figure text-warning">
-                  <Clock className="w-8 h-8" />
-                </div>
-                <div className="stat-title">Pending</div>
-                <div className="stat-value text-warning">{pendingQuizzes}</div>
-              </div>
-            </div>
 
-            {myQuizzes.length === 0 ? (
-              <div className="text-center py-20">
-                <Award className="w-20 h-20 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  No Quizzes Available
-                </h3>
-                <p className="text-gray-500">
-                  No quizzes have been assigned yet
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {myQuizzes.map((quiz) => {
-                  const myResult = quiz.results.find(
-                    (r) => r.studentId === currentUser?._id
-                  );
-                  const batch = batches.find((b) => b._id === quiz.batchId);
-                  const percentage = myResult
-                    ? ((myResult.score / quiz.totalMarks) * 100).toFixed(1)
-                    : 0;
+                {/* Course Cards */}
+                {enrolledCourseIds.length === 0 ? (
+                  <div className="text-center py-20">
+                    <BookOpen className="w-20 h-20 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">
+                      No Courses Found
+                    </h3>
+                    <p className="text-gray-500">
+                      You are not enrolled in any course yet
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {enrolledCourseIds.map((courseId) => {
+                      const course = courses.find((c) => c._id === courseId);
+                      const courseQuizzes = myQuizzes.filter(
+                        (q) => q.courseId === courseId
+                      );
+                      const completedInCourse = courseQuizzes.filter((quiz) =>
+                        quiz.results.some(
+                          (r) => r.studentId === currentUser?._id
+                        )
+                      ).length;
 
-                  return (
-                    <div
-                      key={quiz._id}
-                      className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all"
-                    >
-                      <div className="card-body">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="card-title text-lg">{quiz.title}</h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Batch: {batch?.batchName}
-                            </p>
-                          </div>
-                          <Award className="w-8 h-8 text-primary flex-shrink-0" />
-                        </div>
+                      return (
+                        <div
+                          key={courseId}
+                          onClick={() => setSelectedBatchForQuiz(courseId)}
+                          className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
+                        >
+                          <div className="card-body">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h3 className="card-title text-lg">
+                                  {course?.title || "Unknown Course"}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {course?.description?.substring(0, 50)}...
+                                </p>
+                              </div>
+                              <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
+                            </div>
 
-                        <div className="divider my-2"></div>
+                            <div className="divider my-2"></div>
 
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Questions:</span>
-                            <span className="font-semibold">
-                              {quiz.questions.length}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Total Marks:</span>
-                            <span className="font-semibold">
-                              {quiz.totalMarks}
-                            </span>
-                          </div>
-                          {myResult && (
-                            <>
-                              <div className="flex justify-between text-sm">
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
                                 <span className="text-gray-600">
-                                  Your Score:
+                                  Total Quizzes:
                                 </span>
-                                <span className="font-bold text-primary">
-                                  {myResult.score}/{quiz.totalMarks}
+                                <span className="badge badge-primary">
+                                  {courseQuizzes.length}
                                 </span>
                               </div>
-                              <div className="flex justify-between text-sm">
+                              <div className="flex justify-between">
                                 <span className="text-gray-600">
-                                  Percentage:
+                                  Completed:
                                 </span>
-                                <span
-                                  className={`font-bold ${
-                                    percentage >= 80
-                                      ? "text-success"
-                                      : percentage >= 60
-                                      ? "text-warning"
-                                      : "text-error"
-                                  }`}
-                                >
-                                  {percentage}%
+                                <span className="badge badge-success">
+                                  {completedInCourse}
                                 </span>
                               </div>
-                            </>
-                          )}
-                        </div>
-
-                        {myResult ? (
-                          <div className="space-y-3 mt-4">
-                            <div
-                              className={`alert ${
-                                percentage >= 80
-                                  ? "alert-success"
-                                  : percentage >= 60
-                                  ? "alert-warning"
-                                  : "alert-error"
-                              }`}
-                            >
-                              <CheckCircle className="w-6 h-6" />
-                              <div>
-                                <div className="font-bold">
-                                  {percentage >= 80
-                                    ? "Excellent!"
-                                    : percentage >= 60
-                                    ? "Good Job!"
-                                    : "Need Improvement"}
-                                </div>
-                                <div className="text-sm">
-                                  Submitted:{" "}
-                                  {new Date(
-                                    myResult.submittedAt
-                                  ).toLocaleDateString()}
-                                </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Pending:</span>
+                                <span className="badge badge-warning">
+                                  {courseQuizzes.length - completedInCourse}
+                                </span>
                               </div>
                             </div>
 
-                            {/* 👇 View Result Button যোগ করুন */}
-                            <button
-                              onClick={() =>
-                                setResultModal({ isOpen: true, quiz })
-                              }
-                              className="btn btn-outline btn-primary btn-block gap-2"
-                            >
-                              <Eye className="w-5 h-5" />
-                              View Result & Answers
-                            </button>
+                            <div className="mt-4 text-center">
+                              <button className="btn btn-primary btn-sm w-full">
+                                View Quizzes
+                              </button>
+                            </div>
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => setQuizModal({ isOpen: true, quiz })}
-                            className="btn btn-primary btn-block mt-4 gap-2"
-                          >
-                            <Clock className="w-5 h-5" />
-                            Take Quiz
-                          </button>
-                        )}
-                      </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Quiz List View for Selected Course
+              <div>
+                {/* Header with Back Button */}
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={() => {
+                      setSelectedBatchForQuiz(null);
+                      setQuizSearchTerm("");
+                    }}
+                    className="btn btn-ghost btn-sm gap-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {
+                        courses.find((c) => c._id === selectedBatchForQuiz)
+                          ?.title
+                      }
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {
+                        courses.find((c) => c._id === selectedBatchForQuiz)
+                          ?.description
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Course Quiz Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-primary">
+                      <Award className="w-8 h-8" />
                     </div>
+                    <div className="stat-title">Total Quizzes</div>
+                    <div className="stat-value text-primary">
+                      {
+                        myQuizzes.filter(
+                          (q) => q.courseId === selectedBatchForQuiz
+                        ).length
+                      }
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-success">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Completed</div>
+                    <div className="stat-value text-success">
+                      {
+                        myQuizzes
+                          .filter((q) => q.courseId === selectedBatchForQuiz)
+                          .filter((quiz) =>
+                            quiz.results.some(
+                              (r) => r.studentId === currentUser?._id
+                            )
+                          ).length
+                      }
+                    </div>
+                  </div>
+                  <div className="stat bg-base-200 rounded-lg shadow-lg">
+                    <div className="stat-figure text-warning">
+                      <Clock className="w-8 h-8" />
+                    </div>
+                    <div className="stat-title">Pending</div>
+                    <div className="stat-value text-warning">
+                      {
+                        myQuizzes
+                          .filter((q) => q.courseId === selectedBatchForQuiz)
+                          .filter(
+                            (quiz) =>
+                              !quiz.results.some(
+                                (r) => r.studentId === currentUser?._id
+                              )
+                          ).length
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search and View Toggle */}
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  <div className="form-control flex-1">
+                    <div className="input-group">
+                      <span className="bg-base-200">
+                        <Search className="w-5 h-5" />
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Search quizzes..."
+                        className="input input-bordered w-full"
+                        value={quizSearchTerm}
+                        onChange={(e) => setQuizSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="btn-group">
+                    <button
+                      className={`btn ${
+                        quizViewType === "grid" ? "btn-active" : ""
+                      }`}
+                      onClick={() => setQuizViewType("grid")}
+                    >
+                      <Grid className="w-5 h-5" />
+                    </button>
+                    <button
+                      className={`btn ${
+                        quizViewType === "table" ? "btn-active" : ""
+                      }`}
+                      onClick={() => setQuizViewType("table")}
+                    >
+                      <ListIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quiz Display */}
+                {(() => {
+                  const courseQuizzes = myQuizzes
+                    .filter((q) => q.courseId === selectedBatchForQuiz)
+                    .filter((q) =>
+                      q.title
+                        .toLowerCase()
+                        .includes(quizSearchTerm.toLowerCase())
+                    );
+
+                  if (courseQuizzes.length === 0) {
+                    return (
+                      <div className="text-center py-20">
+                        <Award className="w-20 h-20 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">
+                          {quizSearchTerm
+                            ? "No quizzes found"
+                            : "No Quizzes Available"}
+                        </h3>
+                        <p className="text-gray-500">
+                          {quizSearchTerm
+                            ? `No quizzes matching "${quizSearchTerm}"`
+                            : "No quizzes have been assigned to this course yet"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {quizSearchTerm && (
+                        <div className="alert alert-info mb-4">
+                          <span>
+                            Found {courseQuizzes.length} quiz(es) matching "
+                            {quizSearchTerm}"
+                          </span>
+                        </div>
+                      )}
+
+                      {quizViewType === "grid" ? (
+                        // Grid View
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {courseQuizzes.map((quiz) => {
+                            const myResult = quiz.results.find(
+                              (r) => r.studentId === currentUser?._id
+                            );
+                            const course = courses.find(
+                              (c) => c._id === quiz.courseId
+                            );
+                            const percentage = myResult
+                              ? (
+                                  (myResult.score / quiz.totalMarks) *
+                                  100
+                                ).toFixed(1)
+                              : 0;
+
+                            return (
+                              <div
+                                key={quiz._id}
+                                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all"
+                              >
+                                <div className="card-body">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <h3 className="card-title text-lg">
+                                        {quiz.title}
+                                      </h3>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Course: {course?.title}
+                                      </p>
+                                    </div>
+                                    <Award className="w-8 h-8 text-primary flex-shrink-0" />
+                                  </div>
+
+                                  <div className="divider my-2"></div>
+
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">
+                                        Questions:
+                                      </span>
+                                      <span className="font-semibold">
+                                        {quiz.questions.length}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">
+                                        Total Marks:
+                                      </span>
+                                      <span className="font-semibold">
+                                        {quiz.totalMarks}
+                                      </span>
+                                    </div>
+                                    {myResult && (
+                                      <>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-600">
+                                            Your Score:
+                                          </span>
+                                          <span className="font-bold text-primary">
+                                            {myResult.score}/{quiz.totalMarks}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-600">
+                                            Percentage:
+                                          </span>
+                                          <span
+                                            className={`font-bold ${
+                                              percentage >= 80
+                                                ? "text-success"
+                                                : percentage >= 60
+                                                ? "text-warning"
+                                                : "text-error"
+                                            }`}
+                                          >
+                                            {percentage}%
+                                          </span>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  {myResult ? (
+                                    <div className="space-y-3 mt-4">
+                                      <div
+                                        className={`alert ${
+                                          percentage >= 80
+                                            ? "alert-success"
+                                            : percentage >= 60
+                                            ? "alert-warning"
+                                            : "alert-error"
+                                        }`}
+                                      >
+                                        <CheckCircle className="w-6 h-6" />
+                                        <div>
+                                          <div className="font-bold">
+                                            {percentage >= 80
+                                              ? "Excellent!"
+                                              : percentage >= 60
+                                              ? "Good Job!"
+                                              : "Need Improvement"}
+                                          </div>
+                                          <div className="text-sm">
+                                            Submitted:{" "}
+                                            {new Date(
+                                              myResult.submittedAt
+                                            ).toLocaleDateString()}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <button
+                                        onClick={() =>
+                                          setResultModal({ isOpen: true, quiz })
+                                        }
+                                        className="btn btn-outline btn-primary btn-block gap-2"
+                                      >
+                                        <Eye className="w-5 h-5" />
+                                        View Result & Answers
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setQuizModal({ isOpen: true, quiz })
+                                      }
+                                      className="btn btn-primary btn-block mt-4 gap-2"
+                                    >
+                                      <Clock className="w-5 h-5" />
+                                      Take Quiz
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        // Table View
+                        <div className="overflow-x-auto">
+                          <table className="table table-zebra w-full">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>Quiz Title</th>
+                                <th>Questions</th>
+                                <th>Total Marks</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {courseQuizzes.map((quiz, index) => {
+                                const myResult = quiz.results.find(
+                                  (r) => r.studentId === currentUser?._id
+                                );
+                                const percentage = myResult
+                                  ? (
+                                      (myResult.score / quiz.totalMarks) *
+                                      100
+                                    ).toFixed(1)
+                                  : 0;
+
+                                return (
+                                  <tr key={quiz._id} className="hover">
+                                    <td>{index + 1}</td>
+                                    <td>
+                                      <div className="flex items-center gap-2">
+                                        <Award className="w-5 h-5 text-primary" />
+                                        <span className="font-semibold">
+                                          {quiz.title}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge badge-primary">
+                                        {quiz.questions.length}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge badge-info">
+                                        {quiz.totalMarks}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      {myResult ? (
+                                        <span
+                                          className={`badge ${
+                                            percentage >= 80
+                                              ? "badge-success"
+                                              : percentage >= 60
+                                              ? "badge-warning"
+                                              : "badge-error"
+                                          }`}
+                                        >
+                                          Completed
+                                        </span>
+                                      ) : (
+                                        <span className="badge badge-ghost">
+                                          Pending
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td>
+                                      {myResult ? (
+                                        <div className="flex flex-col">
+                                          <span className="font-bold">
+                                            {myResult.score}/{quiz.totalMarks}
+                                          </span>
+                                          <span
+                                            className={`text-xs ${
+                                              percentage >= 80
+                                                ? "text-success"
+                                                : percentage >= 60
+                                                ? "text-warning"
+                                                : "text-error"
+                                            }`}
+                                          >
+                                            {percentage}%
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-gray-400">-</span>
+                                      )}
+                                    </td>
+                                    <td>
+                                      {myResult ? (
+                                        <button
+                                          onClick={() =>
+                                            setResultModal({
+                                              isOpen: true,
+                                              quiz,
+                                            })
+                                          }
+                                          className="btn btn-ghost btn-xs gap-1"
+                                          title="View Result"
+                                        >
+                                          <Eye className="w-4 h-4" />
+                                          View
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            setQuizModal({ isOpen: true, quiz })
+                                          }
+                                          className="btn btn-primary btn-xs gap-1"
+                                          title="Take Quiz"
+                                        >
+                                          <Clock className="w-4 h-4" />
+                                          Start
+                                        </button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             )}
           </div>

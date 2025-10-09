@@ -70,7 +70,6 @@ const BatchList = ({ onEdit, onAdd }) => {
   };
 
   const getClassSchedule = (schedule) => {
-    console.log(schedule);
     if (schedule.scheduleType == "SIX_DAYS") {
       return `শনি - বৃহ: ${formatTimeToBangla(schedule.startTime)}`;
     } else if (schedule.type == "THREE_DAYS_A") {

@@ -1,13 +1,151 @@
-import { Save, UserCheck, X } from "lucide-react";
-import { useForm } from "react-hook-form";
+import {
+  BookOpen,
+  Calendar,
+  ChevronDown,
+  Clock,
+  Save,
+  Search,
+  UserCheck,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
+
+// Searchable Select Component
+const SearchableSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+  renderOption,
+  error,
+  label,
+  required,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm) return options;
+    return options.filter((option) =>
+      renderOption(option).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [options, searchTerm, renderOption]);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearchTerm("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="form-control" ref={dropdownRef}>
+      <label className="label">
+        <span className="label-text font-semibold">{label}</span>
+        {required && <span className="label-text-alt text-error">*</span>}
+      </label>
+
+      <div className="relative">
+        <div
+          className={`input input-bordered w-full flex items-center justify-between cursor-pointer ${
+            error ? "input-error" : ""
+          } ${isOpen ? "border-primary" : ""}`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className={selectedOption ? "" : "text-gray-400"}>
+            {selectedOption ? renderOption(selectedOption) : placeholder}
+          </span>
+          <ChevronDown
+            className={`w-5 h-5 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </div>
+
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-base-100 border-2 border-primary rounded-lg shadow-xl max-h-80 overflow-hidden">
+            {/* Search Input */}
+            <div className="p-2 border-b sticky top-0 bg-base-100">
+              <div className="input-group">
+                <span className="bg-base-200 px-3">
+                  <Search className="w-4 h-4" />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Type to search..."
+                  className="input input-sm input-bordered w-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </div>
+
+            {/* Options List */}
+            <div className="overflow-y-auto max-h-60">
+              {filteredOptions.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  No results found
+                </div>
+              ) : (
+                filteredOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className={`p-3 cursor-pointer hover:bg-primary hover:text-white transition-colors ${
+                      option.value === value
+                        ? "bg-primary/20 font-semibold"
+                        : ""
+                    } ${
+                      option.disabled ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    onClick={() => {
+                      if (!option.disabled) {
+                        onChange(option.value);
+                        setIsOpen(false);
+                        setSearchTerm("");
+                      }
+                    }}
+                  >
+                    {renderOption(option)}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="p-2 border-t bg-base-200 text-xs text-gray-600 text-center">
+              {filteredOptions.length} result(s) found
+            </div>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <label className="label">
+          <span className="label-text-alt text-error">{error}</span>
+        </label>
+      )}
+    </div>
+  );
+};
 
 const EnrollmentForm = ({ onClose, onSuccess }) => {
   const { students, batches, courses, enrollStudent } = useAppContext();
 
   const {
-    register,
     handleSubmit,
+    control,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -18,18 +156,66 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
   });
 
   const selectedBatchId = watch("batchId");
-  const selectedBatch = batches.find((b) => b._id === selectedBatchId);
-  // const selectedBatch = batches.find(
-  //   (b) => b._id === parseInt(selectedBatchId)
-  // );
+  const selectedStudentId = watch("studentId");
 
+  // Prepare student options (sorted - latest first)
+  const studentOptions = useMemo(() => {
+    return [...students]
+      .sort((a, b) => b._id.localeCompare(a._id))
+      .map((student) => ({
+        value: student._id,
+        label: `${student.name} - ${student.email}`,
+        data: student,
+      }));
+  }, [students]);
+
+  // Prepare batch options (sorted - latest first)
+  const batchOptions = useMemo(() => {
+    return [...batches]
+      .sort((a, b) => b._id.localeCompare(a._id))
+      .map((batch) => {
+        const course = courses.find((c) => c._id === batch.courseId);
+        const isFull = batch.enrolledStudents >= batch.totalSeats;
+        return {
+          value: batch._id,
+          label: `${batch.batchName} - ${course?.title}${
+            isFull ? " (Full)" : ""
+          }`,
+          disabled: isFull,
+          data: batch,
+        };
+      });
+  }, [batches, courses]);
+
+  const selectedBatch = batches.find((b) => b._id === selectedBatchId);
   const selectedCourse = courses.find((c) => c._id === selectedBatch?.courseId);
-  console.log(selectedCourse);
+  const selectedStudent = students.find((s) => s._id === selectedStudentId);
+
+  // Get schedule display text
+  const getScheduleText = (scheduleType) => {
+    const scheduleMap = {
+      SIX_DAYS: "সপ্তাহে ৬ দিন (শনি-বৃহ)",
+      THREE_DAYS_A: "৩ দিন (শনি, সোম, বুধ)",
+      THREE_DAYS_B: "৩ দিন (রবি, মঙ্গল, বৃহ)",
+      WEEKEND: "সপ্তাহান্তে (শুক্র, শনি)",
+      CUSTOM: "কাস্টম শিডিউল",
+    };
+    return scheduleMap[scheduleType] || scheduleType;
+  };
+
+  // Format time
+  const formatTime = (time) => {
+    if (!time) return "";
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
 
   const onSubmit = async (data) => {
     try {
       enrollStudent(data.studentId, data.batchId);
-      // enrollStudent(parseInt(data.studentId), parseInt(data.batchId));
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -39,102 +225,215 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-2xl">
+      <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-2xl flex items-center gap-2">
-            <UserCheck className="w-6 h-6 text-primary" />
-            Enroll Student
-          </h3>
+        <div className="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-base-100 z-10">
+          <div>
+            <h3 className="font-bold text-2xl flex items-center gap-2">
+              <UserCheck className="w-7 h-7 text-primary" />
+              Enroll Student
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Add a student to a batch
+            </p>
+          </div>
           <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Student Selection */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Select Student *</span>
-            </label>
-            <select
-              className={`select select-bordered ${
-                errors.studentId ? "select-error" : ""
-              }`}
-              {...register("studentId", {
-                required: "Student is required",
-              })}
-            >
-              <option value="">Choose a student</option>
-              {students.map((student) => (
-                <option key={student._id} value={student._id}>
-                  {student.name} - {student.email}
-                </option>
-              ))}
-            </select>
-            {errors.studentId && (
-              <label className="label">
-                <span className="label-text-alt text-error">
-                  {errors.studentId.message}
-                </span>
-              </label>
-            )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Student Selection Section */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body">
+              <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Select Student
+              </h4>
+
+              {/* Searchable Student Select */}
+              <Controller
+                name="studentId"
+                control={control}
+                rules={{ required: "Student is required" }}
+                render={({ field }) => (
+                  <SearchableSelect
+                    options={studentOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Choose a student"
+                    renderOption={(option) => option.label}
+                    error={errors.studentId?.message}
+                    label="Student"
+                    required
+                  />
+                )}
+              />
+
+              {/* Selected Student Info */}
+              {selectedStudent && (
+                <div className="alert alert-info mt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="avatar">
+                      <div className="w-12 h-12 rounded-full">
+                        <img
+                          src={selectedStudent.image}
+                          alt={selectedStudent.name}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-bold">{selectedStudent.name}</div>
+                      <div className="text-sm">{selectedStudent.email}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Batch Selection */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Select Batch *</span>
-            </label>
-            <select
-              className={`select select-bordered ${
-                errors.batchId ? "select-error" : ""
-              }`}
-              {...register("batchId", {
-                required: "Batch is required",
-              })}
-            >
-              <option value="">Choose a batch</option>
-              {batches.map((batch) => {
-                const course = courses.find((c) => c._id === batch.courseId);
-                const isFull = batch.enrolledStudents >= batch.totalSeats;
-                return (
-                  <option key={batch._id} value={batch._id} disabled={isFull}>
-                    {batch.batchName} - {course?.title}
-                    {isFull && " (Full)"}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.batchId && (
-              <label className="label">
-                <span className="label-text-alt text-error">
-                  {errors.batchId.message}
-                </span>
-              </label>
-            )}
+          {/* Batch Selection Section */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body">
+              <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                Select Batch
+              </h4>
+
+              {/* Searchable Batch Select */}
+              <Controller
+                name="batchId"
+                control={control}
+                rules={{ required: "Batch is required" }}
+                render={({ field }) => (
+                  <SearchableSelect
+                    options={batchOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Choose a batch"
+                    renderOption={(option) => option.label}
+                    error={errors.batchId?.message}
+                    label="Batch"
+                    required
+                  />
+                )}
+              />
+            </div>
           </div>
 
           {/* Batch Details */}
-          {selectedBatch && (
-            <div className="alert alert-info">
-              <div>
-                <h4 className="font-bold">Batch Details:</h4>
-                <p className="text-sm">Course: {selectedCourse?.title}</p>
-                <p className="text-sm">Schedule: {selectedBatch.schedule}</p>
-                <p className="text-sm">
-                  Available Seats:{" "}
-                  {selectedBatch.totalSeats - selectedBatch.enrolledStudents}/
-                  {selectedBatch.totalSeats}
-                </p>
-                <p className="text-sm">Fee: ৳{selectedCourse?.fee}</p>
+          {selectedBatch && selectedCourse && (
+            <div className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg border-2 border-primary/20">
+              <div className="card-body">
+                <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  Batch Details
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <BookOpen className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="text-sm text-gray-600">Course</div>
+                        <div className="font-semibold">
+                          {selectedCourse.title}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="text-sm text-gray-600">Schedule</div>
+                        <div className="font-semibold">
+                          {getScheduleText(selectedBatch.scheduleType)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="text-sm text-gray-600">Class Time</div>
+                        <div className="font-semibold">
+                          {formatTime(selectedBatch.startTime)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="text-sm text-gray-600">Duration</div>
+                        <div className="font-semibold">
+                          {new Date(selectedBatch.startDate).toLocaleDateString(
+                            "en-GB"
+                          )}{" "}
+                          -{" "}
+                          {new Date(selectedBatch.endDate).toLocaleDateString(
+                            "en-GB"
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Users className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <div className="text-sm text-gray-600">
+                          Available Seats
+                        </div>
+                        <div className="font-semibold">
+                          {selectedBatch.totalSeats -
+                            selectedBatch.enrolledStudents}{" "}
+                          / {selectedBatch.totalSeats}
+                          <span className="badge badge-success badge-sm ml-2">
+                            {selectedBatch.totalSeats -
+                              selectedBatch.enrolledStudents}{" "}
+                            left
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 text-2xl mt-0.5">৳</div>
+                      <div>
+                        <div className="text-sm text-gray-600">Course Fee</div>
+                        <div className="font-semibold text-success text-lg">
+                          ৳{selectedCourse.fee}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedBatch.instructor && (
+                  <>
+                    <div className="divider my-2"></div>
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="w-5 h-5 text-primary" />
+                      <div>
+                        <span className="text-sm text-gray-600">
+                          Instructor:{" "}
+                        </span>
+                        <span className="font-semibold">
+                          {selectedBatch.instructor}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
 
           {/* Actions */}
-          <div className="modal-action">
+          <div className="flex justify-end gap-3 sticky bottom-0 bg-base-100 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}

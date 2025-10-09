@@ -52,7 +52,7 @@ const QuizList = ({ onEdit, onAdd }) => {
     (batch) =>
       batch?.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       batch?.course?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      batch?.batchCategory?.toLowerCase().includes(searchTerm.toLowerCase())
+      batch?.courseId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Get selected batch details
@@ -152,9 +152,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                       <p className="text-sm text-gray-600 mt-1">
                         {batch.course?.title || "No Course"}
                       </p>
-                      <div className="badge badge-secondary badge-sm mt-2">
-                        {batch.batchCategory?.toUpperCase()}
-                      </div>
                     </div>
                     <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
                   </div>

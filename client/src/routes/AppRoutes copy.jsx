@@ -50,11 +50,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* <Route index element={<StudentOverview />} />
-        <Route path="courses" element={<StudentCourses />} />
-        <Route path="payments" element={<StudentPayments />} />
-        <Route path="attendance" element={<StudentAttendance />} />
-        <Route path="quizzes" element={<StudentQuizzes />} /> */}
         <Route path="ranks" element={<RankPage />} />
       </Route>
 

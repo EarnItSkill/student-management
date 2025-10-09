@@ -223,7 +223,7 @@ const CourseDetails = () => {
                                         <h4 className="font-bold mb-2">
                                           {hw.title}
                                         </h4>
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-md text-gray-500">
                                           {hw.task}
                                         </p>
                                       </div>

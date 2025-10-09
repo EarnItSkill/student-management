@@ -6,6 +6,11 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
   const { courses, addBatch, updateBatch } = useAppContext();
   const isEdit = !!batch;
 
+  const findFee = (data) => {
+    const courseFee = courses.find((fee) => fee._id === data.courseId);
+    return courseFee.fee;
+  };
+
   const {
     register,
     handleSubmit,
@@ -29,6 +34,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
         totalSeats: parseInt(data.totalSeats),
         enrolledStudents: batch?.enrolledStudents || 0,
         instructor: "মো. মোজাম্মেল হক",
+        courseFee: findFee(data),
       };
 
       if (isEdit) {

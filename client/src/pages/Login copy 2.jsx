@@ -31,7 +31,6 @@ const Login = () => {
       // const result = await loginWithGoogle(); // তোমার context ফাংশন
       // if (result.success) navigate("/dashboard");
     } catch (err) {
-      console.log(err);
       setError("Google লগইনে সমস্যা হয়েছে");
     }
   };
@@ -41,7 +40,6 @@ const Login = () => {
       // const result = await loginWithGoogle(); // তোমার context ফাংশন
       // if (result.success) navigate("/dashboard");
     } catch (err) {
-      console.log(err);
       setError("Google লগইনে সমস্যা হয়েছে");
     }
   };
@@ -75,11 +73,19 @@ const Login = () => {
         setError(result.message || "লগইন ব্যর্থ হয়েছে");
       }
     } catch (err) {
-      console.log(err);
       setError("সার্ভারে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemo = (type) => {
+    setFormData(
+      type === "admin"
+        ? { email: "mrmozammal@gmail.com", password: "admin123" }
+        : { email: "karim@example.com", password: "student123" }
+    );
+    setError("");
   };
 
   return (

@@ -8,7 +8,6 @@ import {
   Home,
   LayoutDashboard,
   Settings,
-  Trophy,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -107,12 +106,6 @@ const Sidebar = () => {
       path: "/dashboard/student/quizzes",
       label: "Quizzes",
       icon: Award,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/student/ranks",
-      label: "Rankings",
-      icon: Trophy,
       isDash: false,
     },
   ];

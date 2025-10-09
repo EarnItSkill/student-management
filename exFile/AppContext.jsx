@@ -83,29 +83,29 @@ export const AppProvider = ({ children }) => {
     getData();
   }, []);
 
-  useEffect(() => {
-    const loadData = () => {
-      try {
-        // setAttendance(attendanceData);
+  // useEffect(() => {
+  //   const loadData = () => {
+  //     try {
+  //       // setAttendance(attendanceData);
 
-        // // Check if user is logged in (from localStorage)
-        // const savedUser = localStorage.getItem("currentUser");
-        // if (savedUser) {
-        //   const user = JSON.parse(savedUser);
-        //   setCurrentUser(user);
-        //   setIsAuthenticated(true);
-        // }
+  //       // // Check if user is logged in (from localStorage)
+  //       // const savedUser = localStorage.getItem("currentUser");
+  //       // if (savedUser) {
+  //       //   const user = JSON.parse(savedUser);
+  //       //   setCurrentUser(user);
+  //       //   setIsAuthenticated(true);
+  //       // }
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        setLoading(false);
-      }
-    };
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error);
+  //       setLoading(false);
+  //     }
+  //   };
 
-    // TODO: Replace with API later
-    loadData();
-  }, []);
+  //   // TODO: Replace with API later
+  //   loadData();
+  // }, []);
 
   // ============== Authentication Functions ==============
 

@@ -165,9 +165,23 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             <BookOpen className="w-6 h-6 text-primary" />
             {isEdit ? "Edit Course" : "Add New Course"}
           </h3>
-          <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
-            <X className="w-5 h-5" />
-          </button>
+          <div>
+            <button
+              type="button"
+              onClick={addNewClass}
+              className="btn btn-primary gap-2 mr-3"
+            >
+              <Plus className="w-4 h-4" />
+              Add Class
+            </button>
+
+            <button
+              onClick={onClose}
+              className="btn btn-sm btn-circle btn-ghost bg-pink-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -474,6 +488,7 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               className="btn btn-primary gap-2"

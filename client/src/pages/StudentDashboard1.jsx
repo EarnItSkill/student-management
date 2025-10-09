@@ -11,7 +11,6 @@ import {
   Eye,
   Grid,
   List as ListIcon,
-  Lock,
   Search,
   Target,
   TrendingUp,
@@ -23,12 +22,6 @@ import DashboardLayout from "../components/common/DashboardLayout";
 import TakeQuiz from "../components/quizzes/TakeQuiz";
 import ViewQuizResult from "../components/quizzes/ViewQuizResult";
 import { useAppContext } from "../context/useAppContext";
-import {
-  getClassUnlockDate,
-  getClassUnlockDates,
-  isClassUnlocked,
-  isQuizUnlocked,
-} from "../utils/scheduleHelper";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -77,55 +70,6 @@ const StudentDashboard = () => {
   const myQuizzes = quizzes.filter((quiz) =>
     enrolledCourseIds.includes(quiz.courseId)
   );
-
-  // Generate unlock dates for each batch
-  const batchUnlockDates = {};
-  myBatches.forEach((batch) => {
-    if (batch.course?.classes) {
-      batchUnlockDates[batch._id] = getClassUnlockDates(
-        batch.startDate,
-        batch.scheduleType,
-        batch.course.classes.length
-      );
-    }
-  });
-
-  // Filter and map quizzes with unlock status
-  const myQuizzesWithStatus = myQuizzes.map((quiz) => {
-    // Find which batch this quiz belongs to
-    const studentBatch = myBatches.find((b) => b.courseId === quiz.courseId);
-
-    if (!studentBatch) return { ...quiz, isUnlocked: false, unlockDate: null };
-
-    const unlockDates = batchUnlockDates[studentBatch._id] || [];
-
-    // Get all quizzes for this course (sorted by _id)
-    const courseQuizzes = myQuizzes
-      .filter((q) => q.courseId === quiz.courseId)
-      .sort((a, b) => a._id.localeCompare(b._id));
-
-    // Get student's quiz results for this course (in order)
-    const studentQuizResults = courseQuizzes.map((q) =>
-      q.results.find((r) => r.studentId === currentUser?._id)
-    );
-
-    const currentQuizIndex = courseQuizzes.findIndex((q) => q._id === quiz._id);
-
-    const isUnlocked = isQuizUnlocked(
-      currentQuizIndex,
-      unlockDates,
-      studentQuizResults
-    );
-
-    const unlockDate = getClassUnlockDate(currentQuizIndex, unlockDates);
-
-    return {
-      ...quiz,
-      isUnlocked,
-      unlockDate,
-      quizIndex: currentQuizIndex,
-    };
-  });
 
   // Calculate statistics
   const totalPaid = myPayments.reduce((sum, p) => sum + p.amount, 0);
@@ -628,191 +572,74 @@ const StudentDashboard = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {myBatches.map((batch) => {
-                  // Calculate class unlock dates for this batch
-                  const classUnlockDates = batch.course?.classes
-                    ? getClassUnlockDates(
-                        batch.startDate,
-                        batch.scheduleType,
-                        batch.course.classes.length
-                      )
-                    : [];
+                {myBatches.map((batch) => (
+                  <div
+                    key={batch._id}
+                    className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all"
+                  >
+                    <figure className="h-48">
+                      <img
+                        src={batch.course?.image}
+                        alt={batch.course?.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </figure>
+                    <div className="card-body">
+                      <h3 className="card-title text-xl">
+                        {batch.course?.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {batch.course?.description}
+                      </p>
 
-                  // Calculate unlocked classes count
-                  const today = new Date().toISOString().split("T")[0];
-                  const unlockedClassesCount =
-                    batch.course?.classes?.filter((_, index) =>
-                      isClassUnlocked(index, classUnlockDates, today)
-                    ).length || 0;
+                      <div className="divider my-2"></div>
 
-                  return (
-                    <div
-                      key={batch._id}
-                      className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all"
-                    >
-                      <figure className="h-48 relative">
-                        <img
-                          src={batch.course?.image}
-                          alt={batch.course?.title}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Unlock Badge on Image */}
-                        <div className="absolute top-2 right-2 badge badge-primary gap-1">
-                          <Lock className="w-3 h-3" />
-                          {unlockedClassesCount}/
-                          {batch.course?.classes?.length || 0}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span className="font-semibold">Batch:</span>
+                          <span>{batch.batchName}</span>
                         </div>
-                      </figure>
-                      <div className="card-body">
-                        <h3 className="card-title text-xl">
-                          {batch.course?.title}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {batch.course?.description}
-                        </p>
-
-                        <div className="divider my-2"></div>
-
-                        {/* Batch Info */}
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span className="font-semibold">Batch:</span>
-                            <span>{batch.batchName}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span className="font-semibold">Duration:</span>
-                            <span>
-                              {new Date(batch.startDate).toLocaleDateString(
-                                "en-GB"
-                              )}{" "}
-                              to{" "}
-                              {new Date(batch.endDate).toLocaleDateString(
-                                "en-GB"
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="w-4 h-4 text-primary" />
-                            <span className="font-semibold">Schedule:</span>
-                            <span>
-                              {batch.scheduleType === "SIX_DAYS" &&
-                                "শনি - বৃহস্পতিবার"}
-                              {batch.scheduleType === "THREE_DAYS_A" &&
-                                "শনি, সোম, বুধ"}
-                              {batch.scheduleType === "THREE_DAYS_B" &&
-                                "রবি, মঙ্গল, বৃহ"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <DollarSign className="w-4 h-4 text-primary" />
-                            <span className="font-semibold">Fee:</span>
-                            <span>৳{batch.course?.fee}</span>
-                          </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span className="font-semibold">Duration:</span>
+                          <span>
+                            {batch.startDate} to {batch.endDate}
+                          </span>
                         </div>
-
-                        {/* Class Progress */}
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span className="font-semibold">
-                              Class Progress
-                            </span>
-                            <span className="text-gray-600">
-                              {unlockedClassesCount} /{" "}
-                              {batch.course?.classes?.length || 0} Unlocked
-                            </span>
-                          </div>
-                          <progress
-                            className="progress progress-primary w-full"
-                            value={unlockedClassesCount}
-                            max={batch.course?.classes?.length || 1}
-                          ></progress>
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="w-4 h-4 text-primary" />
+                          <span className="font-semibold">Fee:</span>
+                          <span>৳{batch.course?.fee}</span>
                         </div>
-
-                        {/* Classes Grid Preview */}
-                        {batch.course?.classes &&
-                          batch.course.classes.length > 0 && (
-                            <div className="mt-3">
-                              <div className="text-xs font-semibold mb-2">
-                                Classes:
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {batch.course.classes
-                                  .slice(0, 5)
-                                  .map((classItem, index) => {
-                                    const isUnlocked = isClassUnlocked(
-                                      index,
-                                      classUnlockDates,
-                                      today
-                                    );
-                                    const unlockDate = getClassUnlockDate(
-                                      index,
-                                      classUnlockDates
-                                    );
-
-                                    return (
-                                      <div
-                                        key={classItem.id}
-                                        className={`tooltip ${
-                                          !isUnlocked
-                                            ? "tooltip-error"
-                                            : "tooltip-success"
-                                        }`}
-                                        data-tip={
-                                          isUnlocked
-                                            ? `Class ${index + 1} - Unlocked`
-                                            : `Unlocks on ${new Date(
-                                                unlockDate
-                                              ).toLocaleDateString("en-GB")}`
-                                        }
-                                      >
-                                        <div
-                                          className={`badge gap-1 ${
-                                            isUnlocked
-                                              ? "badge-success"
-                                              : "badge-ghost opacity-50"
-                                          }`}
-                                        >
-                                          {!isUnlocked && (
-                                            <Lock className="w-3 h-3" />
-                                          )}
-                                          Class {index + 1}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                {batch.course.classes.length > 5 && (
-                                  <div className="badge badge-neutral">
-                                    +{batch.course.classes.length - 5} more
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                        {/* Action Buttons */}
-                        <div className="flex justify-between mt-4">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span className="font-semibold">Schedule:</span>
+                          <span>{batch.schedule}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <div className="card-actions justify-end mt-4">
                           <button
                             onClick={() =>
                               navigate(`/course/${batch.courseId}`)
                             }
-                            className="btn btn-primary btn-sm gap-1"
+                            className="btn btn-success btn-sm gap-1"
                           >
                             <Eye className="w-4 h-4" />
-                            View Details
+                            View
                           </button>
+                        </div>
 
-                          <div className="flex items-center gap-2">
-                            <div className="badge badge-success">
-                              {batch.enrollment?.status}
-                            </div>
+                        <div className="card-actions justify-end mt-4">
+                          <div className="badge badge-success">
+                            {batch.enrollment?.status}
                           </div>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -1367,7 +1194,7 @@ const StudentDashboard = () => {
                     </div>
                     <div className="stat-title">Total Quizzes</div>
                     <div className="stat-value text-success">
-                      {myQuizzesWithStatus.length}
+                      {myQuizzes.length}
                     </div>
                   </div>
                   <div className="stat bg-base-200 rounded-lg shadow-lg">
@@ -1396,16 +1223,13 @@ const StudentDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {enrolledCourseIds.map((courseId) => {
                       const course = courses.find((c) => c._id === courseId);
-                      const courseQuizzes = myQuizzesWithStatus.filter(
+                      const courseQuizzes = myQuizzes.filter(
                         (q) => q.courseId === courseId
                       );
                       const completedInCourse = courseQuizzes.filter((quiz) =>
                         quiz.results.some(
                           (r) => r.studentId === currentUser?._id
                         )
-                      ).length;
-                      const unlockedCount = courseQuizzes.filter(
-                        (q) => q.isUnlocked
                       ).length;
 
                       return (
@@ -1439,12 +1263,6 @@ const StudentDashboard = () => {
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Unlocked:</span>
-                                <span className="badge badge-info">
-                                  {unlockedCount}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
                                 <span className="text-gray-600">
                                   Completed:
                                 </span>
@@ -1455,7 +1273,7 @@ const StudentDashboard = () => {
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Pending:</span>
                                 <span className="badge badge-warning">
-                                  {unlockedCount - completedInCourse}
+                                  {courseQuizzes.length - completedInCourse}
                                 </span>
                               </div>
                             </div>
@@ -1504,7 +1322,7 @@ const StudentDashboard = () => {
                 </div>
 
                 {/* Course Quiz Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="stat bg-base-200 rounded-lg shadow-lg">
                     <div className="stat-figure text-primary">
                       <Award className="w-8 h-8" />
@@ -1512,22 +1330,9 @@ const StudentDashboard = () => {
                     <div className="stat-title">Total Quizzes</div>
                     <div className="stat-value text-primary">
                       {
-                        myQuizzesWithStatus.filter(
+                        myQuizzes.filter(
                           (q) => q.courseId === selectedBatchForQuiz
                         ).length
-                      }
-                    </div>
-                  </div>
-                  <div className="stat bg-base-200 rounded-lg shadow-lg">
-                    <div className="stat-figure text-info">
-                      <Lock className="w-8 h-8" />
-                    </div>
-                    <div className="stat-title">Unlocked</div>
-                    <div className="stat-value text-info">
-                      {
-                        myQuizzesWithStatus
-                          .filter((q) => q.courseId === selectedBatchForQuiz)
-                          .filter((q) => q.isUnlocked).length
                       }
                     </div>
                   </div>
@@ -1538,7 +1343,7 @@ const StudentDashboard = () => {
                     <div className="stat-title">Completed</div>
                     <div className="stat-value text-success">
                       {
-                        myQuizzesWithStatus
+                        myQuizzes
                           .filter((q) => q.courseId === selectedBatchForQuiz)
                           .filter((quiz) =>
                             quiz.results.some(
@@ -1555,9 +1360,8 @@ const StudentDashboard = () => {
                     <div className="stat-title">Pending</div>
                     <div className="stat-value text-warning">
                       {
-                        myQuizzesWithStatus
+                        myQuizzes
                           .filter((q) => q.courseId === selectedBatchForQuiz)
-                          .filter((q) => q.isUnlocked)
                           .filter(
                             (quiz) =>
                               !quiz.results.some(
@@ -1608,7 +1412,7 @@ const StudentDashboard = () => {
 
                 {/* Quiz Display */}
                 {(() => {
-                  const courseQuizzes = myQuizzesWithStatus
+                  const courseQuizzes = myQuizzes
                     .filter((q) => q.courseId === selectedBatchForQuiz)
                     .filter((q) =>
                       q.title
@@ -1665,175 +1469,119 @@ const StudentDashboard = () => {
                             return (
                               <div
                                 key={quiz._id}
-                                className={`card shadow-xl hover:shadow-2xl transition-all ${
-                                  !quiz.isUnlocked
-                                    ? "bg-base-300 opacity-75"
-                                    : "bg-base-200"
-                                }`}
+                                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all"
                               >
                                 <div className="card-body">
                                   <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <h3 className="card-title text-lg">
-                                          {quiz.title}
-                                        </h3>
-                                        {!quiz.isUnlocked && (
-                                          <Lock className="w-5 h-5 text-error" />
-                                        )}
-                                      </div>
+                                      <h3 className="card-title text-lg">
+                                        {quiz.title}
+                                      </h3>
                                       <p className="text-sm text-gray-600 mt-1">
                                         Course: {course?.title}
                                       </p>
-                                      <div className="flex gap-2 mt-2">
-                                        {!quiz.isUnlocked && (
-                                          <div className="badge badge-error badge-sm gap-1">
-                                            <Lock className="w-3 h-3" />
-                                            Locked
-                                          </div>
-                                        )}
-                                        <div className="badge badge-neutral badge-sm">
-                                          Quiz #{quiz.quizIndex + 1}
-                                        </div>
-                                      </div>
                                     </div>
                                     <Award className="w-8 h-8 text-primary flex-shrink-0" />
                                   </div>
 
                                   <div className="divider my-2"></div>
 
-                                  {/* Show lock message if not unlocked */}
-                                  {!quiz.isUnlocked ? (
-                                    <div className="alert alert-warning">
-                                      <AlertCircle className="w-5 h-5" />
-                                      <div className="text-sm">
-                                        <div className="font-bold">
-                                          Quiz Locked
-                                        </div>
-                                        {quiz.quizIndex === 0 ? (
-                                          <div>
-                                            Unlocks on:{" "}
-                                            {new Date(
-                                              quiz.unlockDate
-                                            ).toLocaleDateString("en-GB", {
-                                              weekday: "short",
-                                              year: "numeric",
-                                              month: "short",
-                                              day: "numeric",
-                                            })}
-                                          </div>
-                                        ) : (
-                                          <div>
-                                            Complete Quiz #{quiz.quizIndex} to
-                                            unlock
-                                          </div>
-                                        )}
-                                      </div>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">
+                                        Questions:
+                                      </span>
+                                      <span className="font-semibold">
+                                        {quiz.questions.length}
+                                      </span>
                                     </div>
-                                  ) : (
-                                    <>
-                                      <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">
+                                        Total Marks:
+                                      </span>
+                                      <span className="font-semibold">
+                                        {quiz.totalMarks}
+                                      </span>
+                                    </div>
+                                    {myResult && (
+                                      <>
                                         <div className="flex justify-between text-sm">
                                           <span className="text-gray-600">
-                                            Questions:
+                                            Your Score:
                                           </span>
-                                          <span className="font-semibold">
-                                            {quiz.questions.length}
+                                          <span className="font-bold text-primary">
+                                            {myResult.score}/{quiz.totalMarks}
                                           </span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                           <span className="text-gray-600">
-                                            Total Marks:
+                                            Percentage:
                                           </span>
-                                          <span className="font-semibold">
-                                            {quiz.totalMarks}
-                                          </span>
-                                        </div>
-                                        {myResult && (
-                                          <>
-                                            <div className="flex justify-between text-sm">
-                                              <span className="text-gray-600">
-                                                Your Score:
-                                              </span>
-                                              <span className="font-bold text-primary">
-                                                {myResult.score}/
-                                                {quiz.totalMarks}
-                                              </span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                              <span className="text-gray-600">
-                                                Percentage:
-                                              </span>
-                                              <span
-                                                className={`font-bold ${
-                                                  percentage >= 80
-                                                    ? "text-success"
-                                                    : percentage >= 60
-                                                    ? "text-warning"
-                                                    : "text-error"
-                                                }`}
-                                              >
-                                                {percentage}%
-                                              </span>
-                                            </div>
-                                          </>
-                                        )}
-                                      </div>
-
-                                      {myResult ? (
-                                        <div className="space-y-3 mt-4">
-                                          <div
-                                            className={`alert ${
+                                          <span
+                                            className={`font-bold ${
                                               percentage >= 80
-                                                ? "alert-success"
+                                                ? "text-success"
                                                 : percentage >= 60
-                                                ? "alert-warning"
-                                                : "alert-error"
+                                                ? "text-warning"
+                                                : "text-error"
                                             }`}
                                           >
-                                            <CheckCircle className="w-6 h-6" />
-                                            <div>
-                                              <div className="font-bold">
-                                                {percentage >= 80
-                                                  ? "Excellent!"
-                                                  : percentage >= 60
-                                                  ? "Good Job!"
-                                                  : "Need Improvement"}
-                                              </div>
-                                              <div className="text-sm">
-                                                Submitted:{" "}
-                                                {new Date(
-                                                  myResult.submittedAt
-                                                ).toLocaleDateString()}
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          <button
-                                            onClick={() =>
-                                              setResultModal({
-                                                isOpen: true,
-                                                quiz,
-                                              })
-                                            }
-                                            className="btn btn-outline btn-primary btn-block gap-2"
-                                          >
-                                            <Eye className="w-5 h-5" />
-                                            View Result & Answers
-                                          </button>
+                                            {percentage}%
+                                          </span>
                                         </div>
-                                      ) : (
-                                        <button
-                                          onClick={() =>
-                                            setQuizModal({ isOpen: true, quiz })
-                                          }
-                                          className="btn btn-primary btn-block mt-4 gap-2"
-                                        >
-                                          <Clock className="w-5 h-5" />
-                                          Take Quiz
-                                        </button>
-                                      )}
-                                    </>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  {myResult ? (
+                                    <div className="space-y-3 mt-4">
+                                      <div
+                                        className={`alert ${
+                                          percentage >= 80
+                                            ? "alert-success"
+                                            : percentage >= 60
+                                            ? "alert-warning"
+                                            : "alert-error"
+                                        }`}
+                                      >
+                                        <CheckCircle className="w-6 h-6" />
+                                        <div>
+                                          <div className="font-bold">
+                                            {percentage >= 80
+                                              ? "Excellent!"
+                                              : percentage >= 60
+                                              ? "Good Job!"
+                                              : "Need Improvement"}
+                                          </div>
+                                          <div className="text-sm">
+                                            Submitted:{" "}
+                                            {new Date(
+                                              myResult.submittedAt
+                                            ).toLocaleDateString()}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <button
+                                        onClick={() =>
+                                          setResultModal({ isOpen: true, quiz })
+                                        }
+                                        className="btn btn-outline btn-primary btn-block gap-2"
+                                      >
+                                        <Eye className="w-5 h-5" />
+                                        View Result & Answers
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setQuizModal({ isOpen: true, quiz })
+                                      }
+                                      className="btn btn-primary btn-block mt-4 gap-2"
+                                    >
+                                      <Clock className="w-5 h-5" />
+                                      Take Quiz
+                                    </button>
                                   )}
                                 </div>
                               </div>
@@ -1868,18 +1616,10 @@ const StudentDashboard = () => {
                                   : 0;
 
                                 return (
-                                  <tr
-                                    key={quiz._id}
-                                    className={`hover ${
-                                      !quiz.isUnlocked ? "opacity-60" : ""
-                                    }`}
-                                  >
+                                  <tr key={quiz._id} className="hover">
                                     <td>{index + 1}</td>
                                     <td>
                                       <div className="flex items-center gap-2">
-                                        {!quiz.isUnlocked && (
-                                          <Lock className="w-4 h-4 text-error" />
-                                        )}
                                         <Award className="w-5 h-5 text-primary" />
                                         <span className="font-semibold">
                                           {quiz.title}
@@ -1897,12 +1637,7 @@ const StudentDashboard = () => {
                                       </span>
                                     </td>
                                     <td>
-                                      {!quiz.isUnlocked ? (
-                                        <span className="badge badge-error gap-1">
-                                          <Lock className="w-3 h-3" />
-                                          Locked
-                                        </span>
-                                      ) : myResult ? (
+                                      {myResult ? (
                                         <span
                                           className={`badge ${
                                             percentage >= 80
@@ -1921,15 +1656,7 @@ const StudentDashboard = () => {
                                       )}
                                     </td>
                                     <td>
-                                      {!quiz.isUnlocked ? (
-                                        <span className="text-gray-400 text-xs">
-                                          {quiz.quizIndex === 0
-                                            ? new Date(
-                                                quiz.unlockDate
-                                              ).toLocaleDateString("en-GB")
-                                            : `Complete Quiz #${quiz.quizIndex}`}
-                                        </span>
-                                      ) : myResult ? (
+                                      {myResult ? (
                                         <div className="flex flex-col">
                                           <span className="font-bold">
                                             {myResult.score}/{quiz.totalMarks}
@@ -1951,15 +1678,7 @@ const StudentDashboard = () => {
                                       )}
                                     </td>
                                     <td>
-                                      {!quiz.isUnlocked ? (
-                                        <button
-                                          className="btn btn-ghost btn-xs gap-1"
-                                          disabled
-                                        >
-                                          <Lock className="w-4 h-4" />
-                                          Locked
-                                        </button>
-                                      ) : myResult ? (
+                                      {myResult ? (
                                         <button
                                           onClick={() =>
                                             setResultModal({

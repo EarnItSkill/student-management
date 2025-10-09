@@ -12,21 +12,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
-import AttendanceForm from "./AttendanceForm";
 
-const AttendanceList = () => {
+const AttendanceList = ({ onAdd, onEdit }) => {
   const { attendance, students, batches, courses } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [dateFilter, setDateFilter] = useState("");
   const [studentSearchTerm, setStudentSearchTerm] = useState("");
-  const [viewType, setViewType] = useState("table");
-
-  // Modal state
-  const [attendanceModal, setAttendanceModal] = useState({
-    isOpen: false,
-    attendance: null,
-  });
+  const [viewType, setViewType] = useState("table"); // "table" or "cards"
 
   // Group attendance by batch
   const batchesWithAttendance = batches.map((batch) => {
@@ -54,10 +47,10 @@ const AttendanceList = () => {
   });
 
   // Filter batches based on search
-  const filteredBatches = batchesWithAttendance?.filter(
+  const filteredBatches = batchesWithAttendance.filter(
     (batch) =>
-      batch?.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      batch?.course?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+      batch.batchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      batch.course?.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Get selected batch details
@@ -72,22 +65,6 @@ const AttendanceList = () => {
     setStudentSearchTerm("");
   };
 
-  const handleAddAttendance = () => {
-    setAttendanceModal({ isOpen: true, attendance: null });
-  };
-
-  const handleEditAttendance = (record) => {
-    setAttendanceModal({ isOpen: true, attendance: record });
-  };
-
-  const handleCloseModal = () => {
-    setAttendanceModal({ isOpen: false, attendance: null });
-  };
-
-  const handleModalSuccess = () => {
-    setAttendanceModal({ isOpen: false, attendance: null });
-  };
-
   // Show Batch List View
   if (!selectedBatch) {
     return (
@@ -97,10 +74,7 @@ const AttendanceList = () => {
           <h2 className="text-2xl font-bold">
             Attendance Management - Select Batch
           </h2>
-          <button
-            onClick={handleAddAttendance}
-            className="btn btn-primary gap-2"
-          >
+          <button onClick={onAdd} className="btn btn-primary gap-2">
             <Plus className="w-5 h-5" />
             Mark Attendance
           </button>
@@ -226,15 +200,6 @@ const AttendanceList = () => {
             ))}
           </div>
         )}
-
-        {/* Attendance Form Modal */}
-        {attendanceModal.isOpen && (
-          <AttendanceForm
-            attendance={attendanceModal.attendance}
-            onClose={handleCloseModal}
-            onSuccess={handleModalSuccess}
-          />
-        )}
       </div>
     );
   }
@@ -283,7 +248,7 @@ const AttendanceList = () => {
             </p>
           </div>
         </div>
-        <button onClick={handleAddAttendance} className="btn btn-primary gap-2">
+        <button onClick={onAdd} className="btn btn-primary gap-2">
           <Plus className="w-5 h-5" />
           Mark Attendance
         </button>
@@ -320,7 +285,7 @@ const AttendanceList = () => {
       {/* Search, Filters and View Toggle */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="form-control flex-1">
-          <div className="input-group flex items-center gap-3">
+          <div className="input-group">
             <span className="bg-base-200">
               <Search className="w-5 h-5" />
             </span>
@@ -335,7 +300,7 @@ const AttendanceList = () => {
         </div>
 
         <div className="form-control">
-          <div className="input-group flex items-center gap-3">
+          <div className="input-group">
             <span className="bg-base-200">
               <Calendar className="w-5 h-5" />
             </span>
@@ -429,7 +394,7 @@ const AttendanceList = () => {
                     </td>
                     <td>
                       <button
-                        onClick={() => handleEditAttendance(record)}
+                        onClick={() => onEdit(record)}
                         className="btn btn-info btn-sm gap-1"
                       >
                         <Edit className="w-4 h-4" />
@@ -481,30 +446,11 @@ const AttendanceList = () => {
                       </div>
                     )}
                   </div>
-
-                  <div className="divider my-2"></div>
-
-                  <button
-                    onClick={() => handleEditAttendance(record)}
-                    className="btn btn-info btn-sm w-full gap-2"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit Attendance
-                  </button>
                 </div>
               </div>
             );
           })}
         </div>
-      )}
-
-      {/* Attendance Form Modal */}
-      {attendanceModal.isOpen && (
-        <AttendanceForm
-          attendance={attendanceModal.attendance}
-          onClose={handleCloseModal}
-          onSuccess={handleModalSuccess}
-        />
       )}
     </div>
   );

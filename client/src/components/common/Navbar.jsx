@@ -13,8 +13,12 @@ const Navbar = () => {
     <div className="navbar bg-base-100 shadow-lg sticky top-0 z-50">
       <div className="flex-1">
         <Link to="/" className="btn btn-ghost text-xl">
-          <GraduationCap className="w-6 h-6 mr-2" />
-          Training Center
+          <img
+            className="w-10 h-10 rounded-full"
+            src="https://office-course.vercel.app/assets/images/logo/logo.jpg"
+            alt=""
+          />
+          Earn IT Skill <span className="text-sm text-gray-600">(Offline)</span>
         </Link>
       </div>
 
@@ -57,7 +61,7 @@ const Navbar = () => {
                 </li>
                 <li className="menu-title text-xs">
                   <span className="badge badge-primary badge-sm">
-                    {currentUser?.role === "admin" ? "👨‍💼 Admin" : "🧑‍🎓 Student"}
+                    {currentUser?.role === "admin" ? "👨‍💼 Admin" : "Student"}
                   </span>
                 </li>
                 <div className="divider my-1"></div>

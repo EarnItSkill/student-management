@@ -1,4 +1,11 @@
-import { Eye, Headset, Mail, MapPinHouse, Timer } from "lucide-react";
+import {
+  Eye,
+  GraduationCap,
+  Headset,
+  Mail,
+  MapPinHouse,
+  Timer,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/common/Footer";
 import Navbar from "../components/common/Navbar";
@@ -114,7 +121,8 @@ const Home = () => {
       <div className="bg-base-100 py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">
-            চলমান ব্যাচসমূহ 🎓
+            চলমান ব্যাচসমূহ{" "}
+            <GraduationCap className="w-10 h-10 ms-2 inline-block" />
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -395,10 +395,11 @@ export const AppProvider = ({ children }) => {
 
   // ============== Enrollment Functions ==============
 
-  const enrollStudent = async (studentId, batchId) => {
+  const enrollStudent = async (studentId, batchId, courseId) => {
     const enrollmentData = {
       studentId,
       batchId,
+      courseId,
       enrollDate: new Date().toISOString().split("T")[0],
       status: "active",
     };

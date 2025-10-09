@@ -1,6 +1,5 @@
 import {
   Facebook,
-  GraduationCap,
   Instagram,
   Mail,
   MapPin,
@@ -21,8 +20,15 @@ const Footer = () => {
           {/* About Section */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <GraduationCap className="w-8 h-8 text-primary" />
-              <h3 className="text-xl font-bold">Training Center</h3>
+              <img
+                className="w-7 h-7 rounded-full"
+                src="https://office-course.vercel.app/assets/images/logo/logo.jpg"
+                alt=""
+              />
+              <h3 className="text-xl font-bold">
+                Earn It Skill{" "}
+                <span className="text-sm text-gray-600">Offline</span>
+              </h3>
             </div>
             <p className="text-sm text-gray-600 mb-4">
               আমরা মানসম্মত কম্পিউটার প্রশিক্ষণ প্রদান করি। আপনার ক্যারিয়ার
@@ -98,64 +104,65 @@ const Footer = () => {
 
           {/* Courses */}
           <div>
-            <h3 className="text-lg font-bold mb-4">Popular Courses</h3>
+            <h3 className="text-lg font-bold mb-4">জনপ্রিয় কোর্সসমূহ</h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                Microsoft Office
+                মাইক্রোসফ্ট অফিস
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                Graphic Design
+                এডভান্স এক্সেল
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                Web Development
+                ICT এইচএসসি, আলিম
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                Digital Marketing
+                ওয়েভ ডিজাইন
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                Programming
+                প্রোগ্রামিং
               </li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-bold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-bold mb-4">যোগাযোগ</h3>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <span>
-                  কুমিল্লা, চট্টগ্রাম
+                  হরিশ্চর, লালমাই, কুমিল্লা।
                   <br />
                   বাংলাদেশ
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>+880 1700-000000</span>
+                <span>+880 1914 708856</span>
+                <span>+880 1515 667293</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>info@training.com</span>
+                <span>earnitskill@gmail.com</span>
               </li>
             </ul>
 
             {/* Newsletter */}
             <div className="mt-6">
-              <h4 className="font-semibold mb-2">Newsletter</h4>
+              <h4 className="font-semibold mb-2">নিউজ লেটার</h4>
               <div className="join w-full">
                 <input
                   type="email"
-                  placeholder="Your email"
+                  placeholder="আপনার ইমেইল"
                   className="input input-bordered input-sm join-item w-full"
                 />
                 <button className="btn btn-primary btn-sm join-item">
-                  Subscribe
+                  সাবস্ক্রাইব
                 </button>
               </div>
             </div>

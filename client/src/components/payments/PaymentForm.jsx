@@ -69,6 +69,42 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
   const selectedStudent = students.find((s) => s._id === selectedStudentId);
 
   // Calculate payment details
+  // const paymentDetails = useMemo(() => {
+  //   if (!selectedStudentId || !selectedBatchId) {
+  //     return null;
+  //   }
+
+  //   const totalFee = selectedBatch?.courseFee || 0;
+
+  //   // Calculate total paid by this student for this batch
+  //   const previousPayments = payments.filter(
+  //     (p) =>
+  //       p.studentId === selectedStudentId &&
+  //       p.batchId === selectedBatchId &&
+  //       (!isEdit || p._id !== payment._id) // Exclude current payment if editing
+  //   );
+  //   console.log(previousPayments);
+
+  //   const totalPaid = previousPayments.reduce((sum, p) => sum + p.amount, 0);
+  //   const remaining = totalFee - totalPaid;
+  //   const isFullyPaid = remaining <= 0;
+
+  //   return {
+  //     totalFee,
+  //     totalPaid,
+  //     remaining: remaining > 0 ? remaining : 0,
+  //     isFullyPaid,
+  //     paymentCount: previousPayments.length,
+  //   };
+  // }, [
+  //   selectedStudentId,
+  //   selectedBatchId,
+  //   selectedBatch,
+  //   payments,
+  //   isEdit,
+  //   payment,
+  // ]);
+
   const paymentDetails = useMemo(() => {
     if (!selectedStudentId || !selectedBatchId) {
       return null;
@@ -77,12 +113,25 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
     const totalFee = selectedBatch?.courseFee || 0;
 
     // Calculate total paid by this student for this batch
-    const previousPayments = payments.filter(
-      (p) =>
-        p.studentId === selectedStudentId &&
-        p.batchId === selectedBatchId &&
-        (!isEdit || p._id !== payment._id) // Exclude current payment if editing
-    );
+    const previousPayments = payments.filter((p) => {
+      // Must match student and batch
+      const matchesStudentAndBatch =
+        p.studentId === selectedStudentId && p.batchId === selectedBatchId;
+
+      // If editing, exclude current payment
+      if (isEdit && payment?._id) {
+        // return matchesStudentAndBatch && p._id !== payment._id;
+        console.log(matchesStudentAndBatch, p._id !== payment._id);
+        return matchesStudentAndBatch && p._id !== payment._id;
+      }
+
+      // If adding new payment, include all
+      return matchesStudentAndBatch;
+    });
+
+    // console.log("Previous Payments:", previousPayments);
+    // console.log("Is Edit Mode:", isEdit);
+    // console.log("Current Payment ID:", payment?._id);
 
     const totalPaid = previousPayments.reduce((sum, p) => sum + p.amount, 0);
     const remaining = totalFee - totalPaid;

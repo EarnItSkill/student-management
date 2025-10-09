@@ -23,6 +23,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
       endDate: "",
       scheduleType: "",
       startTime: "",
+      gender: "",
       totalSeats: 20,
     },
   });
@@ -137,6 +138,35 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                     <label className="label">
                       <span className="label-text-alt text-error">
                         {errors.courseId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Gender */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold text-base">
+                      Gender
+                    </span>
+                    <span className="label-text-alt text-error">*</span>
+                  </label>
+                  <select
+                    className={`select select-bordered w-full ${
+                      errors.gender ? "select-error" : ""
+                    }`}
+                    {...register("gender", {
+                      required: "Gender is required",
+                    })}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male (ছেলে)</option>
+                    <option value="female">Female (মেয়ে)</option>
+                  </select>
+                  {errors.gender && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.gender.message}
                       </span>
                     </label>
                   )}

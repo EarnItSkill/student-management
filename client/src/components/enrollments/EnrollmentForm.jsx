@@ -213,11 +213,33 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  // const onSubmit = async (data) => {
+  //   try {
+  //     enrollStudent(data.studentId, data.batchId);
+  //     onSuccess?.();
+  //     onClose();
+  //   } catch (error) {
+  //     console.error("Error enrolling student:", error);
+  //   }
+  // };
+
   const onSubmit = async (data) => {
     try {
-      enrollStudent(data.studentId, data.batchId);
-      onSuccess?.();
-      onClose();
+      // নির্বাচিত ব্যাচ খুঁজে বের করা
+      const selectedBatch = batches.find((b) => b._id === data.batchId);
+
+      // ব্যাচের courseId বের করা
+      const courseId = selectedBatch?.courseId;
+
+      // যদি courseId পাওয়া যায়, তাহলে Enroll Student ফাংশনকে studentId, batchId, এবং courseId দিয়ে কল করা
+      if (courseId) {
+        enrollStudent(data.studentId, data.batchId, courseId);
+        onSuccess?.();
+        onClose();
+      } else {
+        // courseId না পাওয়া গেলে এরর হ্যান্ডলিং (ঐচ্ছিক)
+        console.error("Course ID not found for the selected batch.");
+      }
     } catch (error) {
       console.error("Error enrolling student:", error);
     }

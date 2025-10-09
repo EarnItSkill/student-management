@@ -187,7 +187,6 @@ async function run() {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
         const result = await coursesCollection.deleteOne(query);
-        console.log("Delete Result:", result);
 
         if (result.deletedCount === 1) {
           res
@@ -409,9 +408,6 @@ async function run() {
       const id = req.params.id;
       const updatedData = req.body;
 
-      console.log("PATCH request received for ID:", id);
-      console.log("Data to update:", updatedData);
-
       try {
         const objectId = new ObjectId(id);
 
@@ -483,9 +479,6 @@ async function run() {
     app.patch("/quizzes/:id/submit", async (req, res) => {
       const quizId = req.params.id;
       const newResult = req.body; // ফ্রন্টএন্ড থেকে আসা নতুন রেজাল্ট অবজেক্ট
-
-      console.log("Received quizId:", quizId);
-      console.log("Is valid ObjectId:", ObjectId.isValid(quizId));
 
       try {
         const objectId = new ObjectId(quizId);

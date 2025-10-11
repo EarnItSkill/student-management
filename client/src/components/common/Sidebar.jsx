@@ -1,5 +1,4 @@
 import {
-  Award,
   BookOpen,
   Calendar,
   ClipboardList,
@@ -85,30 +84,30 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       isDash: true,
     },
-    {
-      path: "/dashboard/student/courses",
-      label: "My Courses",
-      icon: BookOpen,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/student/payments",
-      label: "Payments",
-      icon: DollarSign,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/student/attendance",
-      label: "Attendance",
-      icon: Calendar,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/student/quizzes",
-      label: "Quizzes",
-      icon: Award,
-      isDash: false,
-    },
+    // {
+    //   path: "/dashboard/student/courses",
+    //   label: "My Courses",
+    //   icon: BookOpen,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/student/payments",
+    //   label: "Payments",
+    //   icon: DollarSign,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/student/attendance",
+    //   label: "Attendance",
+    //   icon: Calendar,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/student/quizzes",
+    //   label: "Quizzes",
+    //   icon: Award,
+    //   isDash: false,
+    // },
     {
       path: "/dashboard/student/ranks",
       label: "Rankings",

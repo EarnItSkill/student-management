@@ -16,6 +16,7 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
 import RankPage from "../pages/RankPage";
+import Registration from "../pages/Registration";
 import StudentDashboard from "../pages/StudentDashboard";
 
 // Protected Route Component
@@ -40,6 +41,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/course/:id" element={<CourseDetails />} />
+      <Route path="/registration" element={<Registration />} />
 
       {/* Protected Student Routes */}
       <Route
@@ -69,7 +71,6 @@ const AppRoutes = () => {
       >
         <Route path="students" element={<StudentList />} />
         <Route path="courses" element={<CourseList />} />
-
         <Route path="batches" element={<BatchList />} />
         <Route path="payments" element={<PaymentList />} />
         <Route path="attendance" element={<AttendanceList />} />

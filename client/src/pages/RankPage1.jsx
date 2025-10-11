@@ -11,12 +11,11 @@ import { useMemo, useState } from "react";
 import { useAppContext } from "../context/useAppContext";
 
 const RankPage = () => {
-  const { students, batches, courses, quizzes, currentUser } = useAppContext();
+  const { students, batches, courses, quizzes } = useAppContext();
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all"); // all, male, female
   const [timeFilter, setTimeFilter] = useState("all"); // all, month, year, all-time
-  const [eiinFilter, setEiinFilter] = useState("all"); // College Code filter
 
   // Calculate rankings
   const rankings = useMemo(() => {
@@ -35,7 +34,6 @@ const RankPage = () => {
             studentName: student.name,
             studentImage: student.image,
             gender: student.gender,
-            eiin: student.eiin,
             batchId: batch._id,
             batchName: batch.batchName,
             courseId: course._id,
@@ -69,11 +67,6 @@ const RankPage = () => {
       );
     }
 
-    // Filter by EIIN (College Code)
-    if (eiinFilter !== "all") {
-      filteredResults = filteredResults.filter((r) => r.eiin === eiinFilter);
-    }
-
     // Filter by time
     const now = new Date();
     if (timeFilter === "month") {
@@ -105,7 +98,6 @@ const RankPage = () => {
           studentName: result.studentName,
           studentImage: result.studentImage,
           gender: result.gender,
-          eiin: result.eiin,
           totalScore: 0,
           totalMarks: 0,
           quizCount: 0,
@@ -150,7 +142,6 @@ const RankPage = () => {
     selectedBatch,
     genderFilter,
     timeFilter,
-    eiinFilter,
   ]);
 
   // Get available courses for filter
@@ -169,23 +160,6 @@ const RankPage = () => {
     if (selectedCourse === "all") return batches;
     return batches.filter((batch) => batch.courseId === selectedCourse);
   }, [batches, selectedCourse]);
-
-  // Get unique EIINs from students
-  const availableEIINs = useMemo(() => {
-    const eiins = new Set();
-    students.forEach((student) => {
-      if (student.eiin) {
-        eiins.add(student.eiin);
-      }
-    });
-    return Array.from(eiins).sort();
-  }, [students]);
-
-  // Find current user's rank
-  const currentUserRank = useMemo(() => {
-    if (!currentUser) return null;
-    return rankings.find((r) => r.studentId === currentUser._id);
-  }, [rankings, currentUser]);
 
   // Get medal color
   const getMedalIcon = (rank) => {
@@ -229,7 +203,7 @@ const RankPage = () => {
             Filters
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Course Filter */}
             <div className="form-control">
               <label className="label">
@@ -303,66 +277,9 @@ const RankPage = () => {
                 <option value="year">This Year</option>
               </select>
             </div>
-
-            {/* EIIN (College Code) Filter */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">College (EIIN)</span>
-              </label>
-              <select
-                className="select select-bordered w-full"
-                value={eiinFilter}
-                onChange={(e) => setEiinFilter(e.target.value)}
-              >
-                <option value="all">All Colleges</option>
-                {availableEIINs.map((eiin) => (
-                  <option key={eiin} value={eiin}>
-                    {eiin}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         </div>
       </div>
-
-      {/* Current User's Rank */}
-      {currentUserRank && (
-        <div className="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-xl mb-6">
-          <div className="card-body">
-            {/* <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-              <Trophy className="w-6 h-6" />
-              আপনার র‍্যাঙ্কিং
-            </h3> */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  #{currentUserRank.rank}
-                </div>
-                <div className="text-sm opacity-80">র‍্যাঙ্ক</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {currentUserRank.percentage}%
-                </div>
-                <div className="text-sm opacity-80">পারসেন্টেজ</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {currentUserRank.totalScore}/{currentUserRank.totalMarks}
-                </div>
-                <div className="text-sm opacity-80">মোট স্কোর</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {currentUserRank.quizCount}
-                </div>
-                <div className="text-sm opacity-80">কুইজ সম্পন্ন</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -441,14 +358,7 @@ const RankPage = () => {
                 </thead>
                 <tbody>
                   {rankings.map((student) => (
-                    <tr
-                      key={student.studentId}
-                      className={`hover ${
-                        currentUser && student.studentId === currentUser._id
-                          ? "bg-primary/10"
-                          : ""
-                      }`}
-                    >
+                    <tr key={student.studentId} className="hover">
                       <td>
                         <div className="flex items-center gap-2">
                           {getMedalIcon(student.rank)}
@@ -470,12 +380,6 @@ const RankPage = () => {
                           <div>
                             <div className="font-bold">
                               {student.studentName}
-                              {currentUser &&
-                                student.studentId === currentUser._id && (
-                                  <span className="badge badge-sm badge-primary ml-2">
-                                    You
-                                  </span>
-                                )}
                             </div>
                             <div className="text-sm text-gray-500">
                               {student.gender === "male" ? "👦 Boy" : "👧 Girl"}

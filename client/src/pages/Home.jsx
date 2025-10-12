@@ -282,7 +282,9 @@ const Home = () => {
                               {enrolledCount}/{batch.totalSeats + enrolledCount}{" "}
                               (
                               <span className="text-success">
-                                {availableSeats} খালি
+                                {availableSeats === 0
+                                  ? " খালি নাই"
+                                  : availableSeats + " খালি"}
                               </span>
                               )
                             </div>
@@ -306,8 +308,12 @@ const Home = () => {
                       </div>
 
                       <div className="card-actions justify-end mt-4">
-                        <Link to="/login" className="btn btn-primary btn-block">
-                          এখনই ভর্তি হন
+                        <Link
+                          to="/login"
+                          disabled={availableSeats === 0}
+                          className="btn btn-primary btn-block"
+                        >
+                          {availableSeats === 0 ? "আসন পূর্ণ" : "এখনই ভর্তি হন"}
                         </Link>
                       </div>
                     </div>

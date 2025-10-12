@@ -20,7 +20,10 @@ import Registration from "../pages/Registration";
 import StudentDashboard from "../pages/StudentDashboard";
 import StudentDetails from "../pages/StudentDetails";
 import StudentProfile from "../pages/StudentProfilePage";
+import StudentQuizPage from "../pages/StudentQuizPage";
+import StudentQuizResults from "../pages/StudentQuizResults";
 import StudentSearch from "../pages/StudentSearch";
+import TestQuiz from "../pages/TestQuiz";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -62,6 +65,9 @@ const AppRoutes = () => {
         <Route path="quizzes" element={<StudentQuizzes />} /> */}
 
         <Route path="profile" element={<StudentProfile />} />
+        <Route path="test-quiz" element={<TestQuiz />} />
+        <Route path="practice-quiz" element={<StudentQuizPage />} />
+        <Route path="quiz-results" element={<StudentQuizResults />} />
         <Route path="ranks" element={<RankPage />} />
       </Route>
 

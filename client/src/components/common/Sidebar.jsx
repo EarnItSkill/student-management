@@ -117,6 +117,24 @@ const Sidebar = () => {
     //   isDash: false,
     // },
     {
+      path: "/dashboard/student/test-quiz",
+      label: "Test Quiz",
+      icon: BookOpen,
+      isDash: false,
+    },
+    {
+      path: "/dashboard/student/practice-quiz",
+      label: "Exam",
+      icon: BookOpen,
+      isDash: false,
+    },
+    {
+      path: "/dashboard/student/quiz-results",
+      label: "Quiz Results",
+      icon: Trophy,
+      isDash: false,
+    },
+    {
       path: "/dashboard/student/profile", // নতুন
       label: "My Profile", // নতুন
       icon: User, // নতুন (User import করতে হবে)

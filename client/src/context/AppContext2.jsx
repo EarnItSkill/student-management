@@ -28,7 +28,6 @@ export const AppProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
-  const [mcqQuizzes, setMcqQuizzes] = useState([]);
 
   // Loading State
   const [loading, setLoading] = useState(true);
@@ -75,11 +74,6 @@ export const AppProvider = ({ children }) => {
           `${import.meta.env.VITE_API_URL}/quizzes`
         );
         setQuizzes(quizzes.data);
-
-        const mcqQuizzes = await axios.get(
-          `${import.meta.env.VITE_API_URL}/mcqquizzes`
-        );
-        setMcqQuizzes(mcqQuizzes?.data);
 
         // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem("currentUser");
@@ -664,54 +658,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ================================== mcq Quizzes
-  // Functions যোগ করুন (return এর আগে)
-  const checkQuizAttempt = async (studentId, batchId, chapter) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mcqquizzes/check`,
-        {
-          params: { studentId, batchId, chapter },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error checking quiz attempt:", error);
-      return { hasAttempted: false, attempt: null };
-    }
-  };
-
-  const submitQuizAttempt = async (attemptData) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/mcqquiz`,
-        attemptData
-      );
-
-      // Update local state
-      setMcqQuizzes([...mcqQuizzes, response.data.attempt]);
-
-      return response.data;
-    } catch (error) {
-      console.error("Error submitting quiz:", error);
-      throw error;
-    }
-  };
-
-  const getMcqAttemptsByStudent = async (studentId, batchId) => {
-    try {
-      const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
-        }/mcqquizzes/student/${studentId}/batch/${batchId}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching attempts:", error);
-      return [];
-    }
-  };
-
   // Context value
   const value = {
     // Dashboard
@@ -733,7 +679,6 @@ export const AppProvider = ({ children }) => {
     attendance,
     quizzes,
     loading,
-    mcqQuizzes,
 
     // CRUD Functions
     deleteQuiz,
@@ -756,11 +701,6 @@ export const AppProvider = ({ children }) => {
     addAttendance,
     updateAttendance,
     submitQuiz,
-
-    setMcqQuizzes,
-    checkQuizAttempt,
-    submitQuizAttempt,
-    getMcqAttemptsByStudent,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

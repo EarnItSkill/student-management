@@ -2,8 +2,6 @@ import { ArrowLeft, CheckCircle, Save, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import Footer from "../components/common/Footer";
-import Navbar from "../components/common/Navbar";
 import { useAppContext } from "../context/useAppContext";
 
 const Registration = () => {
@@ -78,7 +76,6 @@ const Registration = () => {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-base-200">
-        <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="card w-full max-w-md bg-base-100 shadow-2xl">
             <div className="card-body items-center text-center">
@@ -105,15 +102,12 @@ const Registration = () => {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-base-200">
-      <Navbar />
-
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Link to="/" className="btn btn-ghost gap-2 mb-6">

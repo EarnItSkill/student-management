@@ -235,20 +235,91 @@ async function run() {
       res.send(result);
     });
 
-    // Update a single course
+    // // Update a single course
+    // app.put("/batch/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const updatedData = req.body;
+
+    //   delete updatedData._id;
+
+    //   const query = { _id: new ObjectId(id) };
+    //   const updateDoc = {
+    //     $set: updatedData,
+    //   };
+
+    //   const result = await batchCollection.updateOne(query, updateDoc);
+    //   res.send(result);
+    // });
+
+    // // Update a single batch
+    // app.put("/batch/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const updateDoc = req.body; // ফ্রন্ট-এন্ড থেকে {$inc: {totalSeats: -1, enrolledStudents: 1}} আসবে
+
+    //   const query = { _id: new ObjectId(id) };
+
+    //   // ফ্রন্ট-এন্ড থেকে আসা updateDoc-এ যদি $inc থাকে, তবে সেটি সরাসরি ব্যবহার করুন
+    //   // অন্যথায়, পুরনো $set লজিক ব্যবহার করুন (যদি অন্যান্য ফিল্ড আপডেট করতে হয়)
+    //   const result = await batchCollection.updateOne(query, updateDoc);
+
+    //   // আপডেট হওয়ার পর সর্বশেষ ডকুমেন্টটি ফ্রন্ট-এন্ডে ফেরত পাঠানোর জন্য
+    //   const updatedBatch = await batchCollection.findOne(query);
+
+    //   if (result.matchedCount > 0) {
+    //     res.send(updatedBatch); // আপডেট করা ব্যাচ ফেরত পাঠান
+    //   } else {
+    //     res.status(404).send({ message: "Batch not found" });
+    //   }
+    // });
+
+    // Update a single batch
     app.put("/batch/:id", async (req, res) => {
       const id = req.params.id;
-      const updatedData = req.body;
-
-      delete updatedData._id;
+      const incomingData = req.body;
+      let updateDoc = {};
 
       const query = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: updatedData,
-      };
 
-      const result = await batchCollection.updateOne(query, updateDoc);
-      res.send(result);
+      // ১. incomingData-তে কোনো MongoDB অপারেটর (যেমন: $, $inc) আছে কি না তা পরীক্ষা করা।
+      const isUpdateOperator = Object.keys(incomingData).some((key) =>
+        key.startsWith("$")
+      );
+
+      if (isUpdateOperator) {
+        // ২. যদি অপারেটর থাকে, তবে এটি সরাসরি {$inc: { ... }} বা {$set: { ... }} হিসেবে ব্যবহার করা হবে।
+        // এই লজিকটি এনরোলমেন্ট ও আন-এনরোলমেন্টের জন্য ব্যবহৃত হবে।
+        updateDoc = incomingData;
+      } else {
+        // ৩. যদি কোনো অপারেটর না থাকে, তবে এটি একটি সাধারণ ব্যাচ আপডেট হিসেবে বিবেচিত হবে।
+        // এই ক্ষেত্রে, আপনার পুরনো লজিক অনুযায়ী ডেটাকে $set এর ভেতরে মোড়ানো হবে।
+
+        // _id রিমুভ করে নতুন একটি অবজেক্ট তৈরি করা
+        const updatedDataForSet = { ...incomingData };
+        delete updatedDataForSet._id;
+
+        updateDoc = {
+          $set: updatedDataForSet,
+        };
+      }
+
+      try {
+        // ৪. আপডেট অপারেশন চালানো।
+        const result = await batchCollection.updateOne(query, updateDoc);
+
+        // ৫. আপডেট নিশ্চিত হওয়ার পর সর্বশেষ ডকুমেন্টটি ফ্রন্ট-এন্ডে ফেরত পাঠানো।
+        // এটি AppContext.jsx-এর setBatches লজিকের জন্য প্রয়োজনীয়।
+        if (result.matchedCount > 0) {
+          const updatedBatch = await batchCollection.findOne(query);
+          res.send(updatedBatch);
+        } else {
+          res.status(404).send({ message: "Batch not found" });
+        }
+      } catch (error) {
+        console.error(`Error updating batch ID: ${id}:`, error);
+        res
+          .status(500)
+          .send({ message: "Failed to update batch", error: error.message });
+      }
     });
 
     // =========================

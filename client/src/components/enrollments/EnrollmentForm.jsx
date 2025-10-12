@@ -141,7 +141,8 @@ const SearchableSelect = ({
 };
 
 const EnrollmentForm = ({ onClose, onSuccess }) => {
-  const { students, batches, courses, enrollStudent } = useAppContext();
+  const { students, batches, courses, enrollStudent, updateBatch } =
+    useAppContext();
 
   const {
     handleSubmit,
@@ -215,9 +216,21 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
 
   // const onSubmit = async (data) => {
   //   try {
-  //     enrollStudent(data.studentId, data.batchId);
-  //     onSuccess?.();
-  //     onClose();
+  //     // নির্বাচিত ব্যাচ খুঁজে বের করা
+  //     const selectedBatch = batches.find((b) => b._id === data.batchId);
+
+  //     // ব্যাচের courseId বের করা
+  //     const courseId = selectedBatch?.courseId;
+
+  //     // যদি courseId পাওয়া যায়, তাহলে Enroll Student ফাংশনকে studentId, batchId, এবং courseId দিয়ে কল করা
+  //     if (courseId) {
+  //       enrollStudent(data.studentId, data.batchId, courseId);
+  //       onSuccess?.();
+  //       onClose();
+  //     } else {
+  //       // courseId না পাওয়া গেলে এরর হ্যান্ডলিং (ঐচ্ছিক)
+  //       console.error("Course ID not found for the selected batch.");
+  //     }
   //   } catch (error) {
   //     console.error("Error enrolling student:", error);
   //   }
@@ -228,16 +241,32 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
       // নির্বাচিত ব্যাচ খুঁজে বের করা
       const selectedBatch = batches.find((b) => b._id === data.batchId);
 
-      // ব্যাচের courseId বের করা
-      const courseId = selectedBatch?.courseId;
+      if (selectedBatch) {
+        // ১. MongoDB-তে ব্যাচ আপডেটের জন্য ডাটা প্রস্তুত করা
+        const batchUpdateData = {
+          // $inc অপারেটর ব্যবহার করতে হলে সার্ভারে একটি নির্দিষ্ট structure পাঠাতে হবে।
+          // তবে যেহেতু আপনি ফ্রন্ট-এন্ড থেকে একটি সম্পূর্ণ অবজেক্ট updateDoc হিসেবে পাঠাচ্ছেন,
+          // আমরা ফ্রন্ট-এন্ডেই local update করে MongoDB-কে $set ব্যবহার করতে বলতে পারি,
+          // অথবা সবচেয়ে ভালো হয়, সার্ভারেই $inc ব্যবহার করা।
+          // আমরা এখানে সার্ভারে $inc ব্যবহারের জন্য একটি নির্দেশ পাঠাবো।
+          // Enrollment-এর জন্য: totalSeats -1 এবং enrolledStudents +1
+          $inc: {
+            totalSeats: -1,
+            enrolledStudents: 1,
+          },
+        };
 
-      // যদি courseId পাওয়া যায়, তাহলে Enroll Student ফাংশনকে studentId, batchId, এবং courseId দিয়ে কল করা
-      if (courseId) {
-        enrollStudent(data.studentId, data.batchId, courseId);
+        // ২. স্টুডেন্টকে এনরোল করা (আপনার বিদ্যমান লজিক)
+        const courseId = selectedBatch.courseId;
+        await enrollStudent(data.studentId, data.batchId, courseId); // ধরে নিচ্ছি এটি একটি async ফাংশন
+
+        // ৩. ব্যাচের সিট কাউন্ট আপডেট করা
+        // এখানে আমরা সার্ভারে একটি বিশেষ অনুরোধ পাঠাচ্ছি $inc ব্যবহার করার জন্য
+        await updateBatch(data.batchId, batchUpdateData);
+
         onSuccess?.();
         onClose();
       } else {
-        // courseId না পাওয়া গেলে এরর হ্যান্ডলিং (ঐচ্ছিক)
         console.error("Course ID not found for the selected batch.");
       }
     } catch (error) {

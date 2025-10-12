@@ -206,7 +206,9 @@ const Home = () => {
                 const enrolledCount = enrollments.filter(
                   (e) => e.batchId === batch._id
                 ).length;
-                const availableSeats = batch.totalSeats - enrolledCount;
+
+                const availableSeats =
+                  batch.totalSeats + enrolledCount - enrolledCount;
 
                 return (
                   <div
@@ -277,7 +279,8 @@ const Home = () => {
                               আসন সংখ্যা
                             </div>
                             <div className="font-semibold">
-                              {enrolledCount}/{batch.totalSeats} (
+                              {enrolledCount}/{batch.totalSeats + enrolledCount}{" "}
+                              (
                               <span className="text-success">
                                 {availableSeats} খালি
                               </span>

@@ -4,8 +4,14 @@ import { useAppContext } from "../../context/useAppContext";
 import ConfirmModal from "../common/ConfirmModal";
 
 const EnrollmentList = ({ onAdd }) => {
-  const { enrollments, students, batches, courses, unenrollStudent } =
-    useAppContext();
+  const {
+    enrollments,
+    students,
+    batches,
+    courses,
+    unenrollStudent,
+    updateBatch,
+  } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [batchFilter, setBatchFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -37,10 +43,37 @@ const EnrollmentList = ({ onAdd }) => {
     setDeleteModal({ isOpen: true, enrollment });
   };
 
-  const confirmDelete = () => {
+  // const confirmDelete = () => {
+  //   if (deleteModal.enrollment) {
+  //     unenrollStudent(deleteModal.enrollment._id);
+  //     setDeleteModal({ isOpen: false, enrollment: null });
+  //   }
+  // };
+
+  const confirmDelete = async () => {
     if (deleteModal.enrollment) {
-      unenrollStudent(deleteModal.enrollment._id);
-      setDeleteModal({ isOpen: false, enrollment: null });
+      const batchId = deleteModal.enrollment.batchId; // এনরোলমেন্ট ডাটা থেকে ব্যাচ ID নিন
+
+      // ১. MongoDB-তে ব্যাচ আপডেটের জন্য ডাটা প্রস্তুত করা
+      const batchUpdateData = {
+        // Unenrollment-এর জন্য: totalSeats +1 এবং enrolledStudents -1
+        $inc: {
+          totalSeats: 1,
+          enrolledStudents: -1,
+        },
+      };
+
+      try {
+        // ২. ব্যাচের সিট কাউন্ট আপডেট করা
+        await updateBatch(batchId, batchUpdateData);
+
+        // ৩. স্টুডেন্টকে আন-এনরোল করা (আপনার বিদ্যমান লজিক)
+        unenrollStudent(deleteModal.enrollment._id);
+        setDeleteModal({ isOpen: false, enrollment: null });
+      } catch (error) {
+        console.error("Error during unenrollment batch update:", error);
+        // ত্রুটি হ্যান্ডলিং এখানে যোগ করতে পারেন
+      }
     }
   };
 

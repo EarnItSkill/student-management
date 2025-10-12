@@ -18,6 +18,9 @@ import NotFound from "../pages/NotFound";
 import RankPage from "../pages/RankPage";
 import Registration from "../pages/Registration";
 import StudentDashboard from "../pages/StudentDashboard";
+import StudentDetails from "../pages/StudentDetails";
+import StudentProfile from "../pages/StudentProfilePage";
+import StudentSearch from "../pages/StudentSearch";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -57,6 +60,8 @@ const AppRoutes = () => {
         <Route path="payments" element={<StudentPayments />} />
         <Route path="attendance" element={<StudentAttendance />} />
         <Route path="quizzes" element={<StudentQuizzes />} /> */}
+
+        <Route path="profile" element={<StudentProfile />} />
         <Route path="ranks" element={<RankPage />} />
       </Route>
 
@@ -77,7 +82,25 @@ const AppRoutes = () => {
         <Route path="enrollments" element={<EnrollmentList />} />
         <Route path="quizzes" element={<QuizList />} />
         <Route path="settings" element={<Settings />} />
+        <Route
+          path="/dashboard/admin/students/search"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <StudentSearch />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/admin/students/:id"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <StudentDetails />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+
       {/* <Route
         path="/dashboard/admin"
         element={

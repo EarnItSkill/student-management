@@ -329,6 +329,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateBatch = async (batchId, updatedBatchData) => {
+    console.log(batchId, updatedBatchData);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/batch/${batchId}`,
@@ -336,6 +337,7 @@ export const AppProvider = ({ children }) => {
       );
 
       const updatedBatch = response.data;
+      console.log(updatedBatch);
 
       setBatches((prevBatches) => {
         return prevBatches.map((batch) =>

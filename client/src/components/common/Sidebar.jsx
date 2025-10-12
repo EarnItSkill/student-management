@@ -6,8 +6,10 @@ import {
   GraduationCap,
   Home,
   LayoutDashboard,
+  Search,
   Settings,
   Trophy,
+  User,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -69,6 +71,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/students/search", // পরিবর্তিত
+      label: "Students Search", // পরিবর্তিত
+      icon: Search, // পরিবর্তিত
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,
@@ -108,6 +116,12 @@ const Sidebar = () => {
     //   icon: Award,
     //   isDash: false,
     // },
+    {
+      path: "/dashboard/student/profile", // নতুন
+      label: "My Profile", // নতুন
+      icon: User, // নতুন (User import করতে হবে)
+      isDash: false,
+    },
     {
       path: "/dashboard/student/ranks",
       label: "Rankings",

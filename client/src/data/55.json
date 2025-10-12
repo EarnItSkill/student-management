@@ -1,0 +1,126 @@
+[
+  {
+    "_id": "68e638bf396291a422a19fc2",
+    "courseId": "68e609e49e158e162999fa2c",
+    "title": "সংখ্যা পদ্ধতি ০১",
+    "totalMarks": 10,
+    "questions": [
+      {
+        "id": 1,
+        "question": "৩৮৫৯ সংখ্যাটিতে ৫ এর স্বকীয় মান কত?",
+        "options": ["50", "5", "59", "জানা নাই।"],
+        "correctAnswers": [1]
+      },
+      {
+        "id": 2,
+        "question": "কোন সংখ্যা পদ্ধতির স্থানীয় মান নাই?",
+        "options": ["বাইনারি", "অক্টাল", "রোমান", "হেক্সাডেসিমাল"],
+        "correctAnswers": [2]
+      },
+      {
+        "id": 3,
+        "question": "হায়ারোগ্লিফিক্সে  আঙ্গুল দ্বারা কত সংখ্যা বুঝায়?",
+        "options": ["১০", "১০০", "১০০০", "১০০০০"],
+        "correctAnswers": [3]
+      },
+      {
+        "id": 4,
+        "question": "রেডিক্স পয়েন্ট এর কাজ কি?",
+        "options": [
+          "সংখ্যা আলাদা করা ",
+          "ভগ্নাংশ সংখ্যা বুঝায়",
+          "পূর্ণাংশ আলাদা করে",
+          "ভগ্নাংশ ও পূর্ণাংশ আলাদা করে"
+        ],
+        "correctAnswers": [3]
+      },
+      {
+        "id": 5,
+        "question": "০.৩৪৫ এখানে সর্বডানের ডিজিটটিকে কি বলে?",
+        "options": ["Fraction", "LSD", "Integer", "MSD"],
+        "correctAnswers": [1]
+      },
+      {
+        "id": 6,
+        "question": "বেজ দিয়ে সংখ্যাটির কি প্রকাশ পায়?",
+        "options": ["পরিমাণ", "সংখ্যা", "কোন পদ্ধতির সংখ্যা", "ডেসিমাল সংখ্যা"],
+        "correctAnswers": [2]
+      },
+      {
+        "id": 7,
+        "question": "বাইনারি সংখ্যা পদ্ধতিতে রেডিক্স পয়েন্টকে কি বলে?",
+        "options": [
+          "Point",
+          "Radix Point",
+          "Binary Radix Point",
+          "Binary Point"
+        ],
+        "correctAnswers": [3]
+      },
+      {
+        "id": 8,
+        "question": "সংখ্যার মধ্যে প্রতিটি চিহ্নকে কি বলে?",
+        "options": ["অংক", "প্রতীক", "চিহ্ন", "digit"],
+        "correctAnswers": [0, 3]
+      },
+      {
+        "id": 9,
+        "question": "ভিত্তির উপর নির্ভর করে সংখ্যা পদ্ধতি কত প্রকার?",
+        "options": ["2", "3", "4", "5"],
+        "correctAnswers": [2]
+      },
+      {
+        "id": 10,
+        "question": "সংখ্যা পদ্ধতিকে প্রধানত কতভাগে ভাগ করা হয়েছে?",
+        "options": ["2", "3", "4", "5"],
+        "correctAnswers": [0]
+      }
+    ],
+    "results": [],
+    "chapter": "3"
+  },
+  {
+    "_id": "68e6799692aeab8079e7c705",
+    "courseId": "68e609e49e158e162999fa2c",
+    "title": "সংখ্যা পদ্ধতি ০২",
+    "totalMarks": 10,
+    "questions": [
+      {
+        "id": 1,
+        "question": "২ এর বাইনারি মান কত?",
+        "options": ["0", "1", "10", "11"],
+        "correctAnswers": [2]
+      }
+    ],
+    "results": [
+      {
+        "studentId": "68e640f3396291a422a19fc4",
+        "batchId": "68e62838396291a422a19fc1",
+        "score": 10,
+        "answers": {
+          "0": [2]
+        },
+        "submittedAt": "2025-10-08T14:52:50.001Z"
+      },
+      {
+        "studentId": "68e7d329d4404d9892685508",
+        "batchId": "68e62838396291a422a19fc1",
+        "score": 10,
+        "answers": {
+          "0": [2]
+        },
+        "submittedAt": "2025-10-09T15:37:13.186Z"
+      },
+      {
+        "studentId": "68e64095396291a422a19fc3",
+        "batchId": "68e64255396291a422a19fc6",
+        "score": 10,
+        "answers": {
+          "0": [2]
+        },
+        "submittedAt": "2025-10-11T05:49:25.177Z"
+      }
+    ],
+    "chapter": "3"
+  }
+]

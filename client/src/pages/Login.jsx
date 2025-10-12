@@ -1,6 +1,6 @@
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"; // lucide-react আইকন
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
 
 const Login = () => {
@@ -116,7 +116,7 @@ const Login = () => {
             <input
               type={showPassword ? "text" : "password"}
               name="password"
-              placeholder="••••••••"
+              placeholder="••••••"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               value={formData.password}
               onChange={handleChange}
@@ -147,22 +147,6 @@ const Login = () => {
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* Demo Buttons */}
-        {/* <div className="space-y-2">
-          <button
-            onClick={() => fillDemo("admin")}
-            className="w-full border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg py-2 transition"
-          >
-            👨‍💼 Admin হিসেবে লগইন
-          </button>
-          <button
-            onClick={() => fillDemo("student")}
-            className="w-full border border-green-600 text-green-600 hover:bg-green-50 rounded-lg py-2 transition"
-          >
-            🧑‍🎓 Student হিসেবে লগইন
-          </button>
-        </div> */}
-
         {/* Social Login Buttons */}
         <div className="space-y-2">
           <button
@@ -192,10 +176,14 @@ const Login = () => {
           </button>
         </div>
 
-        <div className="text-center mt-6 text-sm">
+        <div className="text-center mt-6 text-sm gap-4">
           <a href="/" className="text-indigo-600 hover:underline">
-            ← হোমপেজে ফিরে যান
+            ← হোমপেজে
           </a>
+          <span className="font-bold text-sm text-blue-500 px-4">অথবা</span>
+          <Link className="text-indigo-600 hover:underline" to="/registration">
+            রেজিস্ট্রেশন →
+          </Link>
         </div>
       </div>
     </div>

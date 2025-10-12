@@ -55,49 +55,19 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
   //       data: student,
   //     }));
   // }, [students]);
-
-  // const studentOptions = useMemo(() => {
-  //   // Get all enrolled student IDs
-  //   const enrolledStudentIds = enrollments.map((e) => e.studentId);
-
-  //   return [...students]
-  //     .filter((student) => enrolledStudentIds.includes(student._id))
-  //     .sort((a, b) => b._id.localeCompare(a._id))
-  //     .map((student) => ({
-  //       value: student._id,
-  //       label: `${student.name} - ${student.studentId}`,
-  //       data: student,
-  //     }));
-  // }, [students, enrollments]); // enrollments dependency যোগ করুন
-
-  // Prepare student options (filtered by selected batch if any)
   const studentOptions = useMemo(() => {
-    let filteredStudents = students;
+    // Get all enrolled student IDs
+    const enrolledStudentIds = enrollments.map((e) => e.studentId);
 
-    // If batch is selected, show only students enrolled in that batch
-    if (selectedBatchId) {
-      const enrolledStudentIds = enrollments
-        .filter((e) => e.batchId === selectedBatchId)
-        .map((e) => e.studentId);
-      filteredStudents = students.filter((s) =>
-        enrolledStudentIds.includes(s._id)
-      );
-    } else {
-      // If no batch selected, show only enrolled students (any batch)
-      const enrolledStudentIds = enrollments.map((e) => e.studentId);
-      filteredStudents = students.filter((s) =>
-        enrolledStudentIds.includes(s._id)
-      );
-    }
-
-    return [...filteredStudents]
+    return [...students]
+      .filter((student) => enrolledStudentIds.includes(student._id))
       .sort((a, b) => b._id.localeCompare(a._id))
       .map((student) => ({
         value: student._id,
         label: `${student.name} - ${student.studentId}`,
         data: student,
       }));
-  }, [students, enrollments, selectedBatchId]); // selectedBatchId dependency যোগ
+  }, [students, enrollments]); // enrollments dependency যোগ করুন
 
   // Prepare batch options (sorted - latest first)
   // const batchOptions = useMemo(() => {
@@ -113,32 +83,8 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
   //     });
   // }, [batches, courses]);
 
-  // const batchOptions = useMemo(() => {
-  //   return [...batches]
-  //     .sort((a, b) => b._id.localeCompare(a._id))
-  //     .map((batch) => {
-  //       const course = courses.find((c) => c._id === batch.courseId);
-  //       return {
-  //         value: batch._id,
-  //         label: `${batch.batchName} - ${batch.sBatchId} - ${course?.title}`,
-  //         data: batch,
-  //       };
-  //     });
-  // }, [batches, courses]);
-
-  // Prepare batch options (filtered by selected student if any)
   const batchOptions = useMemo(() => {
-    let filteredBatches = batches;
-
-    // If student is selected, show only batches where student is enrolled
-    if (selectedStudentId) {
-      const enrolledBatchIds = enrollments
-        .filter((e) => e.studentId === selectedStudentId)
-        .map((e) => e.batchId);
-      filteredBatches = batches.filter((b) => enrolledBatchIds.includes(b._id));
-    }
-
-    return [...filteredBatches]
+    return [...batches]
       .sort((a, b) => b._id.localeCompare(a._id))
       .map((batch) => {
         const course = courses.find((c) => c._id === batch.courseId);
@@ -148,7 +94,7 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
           data: batch,
         };
       });
-  }, [batches, courses, enrollments, selectedStudentId]); // selectedStudentId dependency যোগ
+  }, [batches, courses]);
 
   const selectedBatch = batches.find((b) => b._id === selectedBatchId);
   const selectedCourse = courses.find((c) => c._id === selectedBatch?.courseId);

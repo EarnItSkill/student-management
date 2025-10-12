@@ -1,5 +1,5 @@
 import { Award, CheckCircle, Send, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
 
 const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
@@ -8,79 +8,13 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
-  const [shuffledQuiz, setShuffledQuiz] = useState(null);
-  const [optionMappings, setOptionMappings] = useState([]); // নতুন: mapping track করার জন্য
 
   // Get batchId from enrollments based on courseId
   const enrollment = enrollments.find((e) => e.studentId === currentUser._id);
   const batchId = enrollment?.batchId || null;
 
-  // Shuffle function
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
-  // Shuffle quiz options on component mount
-  useEffect(() => {
-    if (quiz) {
-      const mappings = []; // Store mappings for each question
-
-      const shuffledQuestions = quiz.questions.map((question) => {
-        // Create array with options and their original indices
-        const optionsWithIndex = question.options.map((opt, idx) => ({
-          option: opt,
-          originalIndex: idx,
-        }));
-
-        // Shuffle the options
-        const shuffledOptions = shuffleArray(optionsWithIndex);
-
-        // Store mapping: shuffled index -> original index
-        const mapping = shuffledOptions.map((item) => item.originalIndex);
-        mappings.push(mapping);
-
-        // Map correct answers to new positions
-        const newCorrectAnswers = question.correctAnswers.map((correctIdx) => {
-          return shuffledOptions.findIndex(
-            (item) => item.originalIndex === correctIdx
-          );
-        });
-
-        return {
-          ...question,
-          options: shuffledOptions.map((item) => item.option),
-          correctAnswers: newCorrectAnswers,
-        };
-      });
-
-      setOptionMappings(mappings);
-      setShuffledQuiz({
-        ...quiz,
-        questions: shuffledQuestions,
-      });
-    }
-  }, [quiz]);
-
-  // Loading state while shuffling
-  if (!shuffledQuiz) {
-    return (
-      <div className="modal modal-open">
-        <div className="modal-box">
-          <div className="flex justify-center items-center py-20">
-            <span className="loading loading-spinner loading-lg"></span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const handleAnswerSelect = (questionIndex, optionIndex) => {
-    const question = shuffledQuiz.questions[questionIndex];
+    const question = quiz.questions[questionIndex];
     const currentAnswers = answers[questionIndex] || [];
 
     // Check if this question has multiple correct answers
@@ -109,7 +43,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   };
 
   const handleNext = () => {
-    if (currentQuestion < shuffledQuiz.questions.length - 1) {
+    if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -123,10 +57,9 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   const handleSubmit = () => {
     // Calculate score
     let totalScore = 0;
-    const marksPerQuestion =
-      shuffledQuiz.totalMarks / shuffledQuiz.questions.length;
+    const marksPerQuestion = quiz.totalMarks / quiz.questions.length;
 
-    shuffledQuiz.questions.forEach((question, index) => {
+    quiz.questions.forEach((question, index) => {
       const userAnswers = answers[index] || [];
       const correctAnswers = question.correctAnswers;
 
@@ -146,24 +79,13 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     setScore(finalScore);
     const quizId = quiz._id;
 
-    // Prepare submission data with ORIGINAL indices
-    // Convert shuffled indices back to original indices
-    const originalAnswers = {};
-    Object.keys(answers).forEach((questionIdx) => {
-      const shuffledIndices = answers[questionIdx];
-      const mapping = optionMappings[questionIdx];
-
-      // Map shuffled indices back to original indices
-      originalAnswers[questionIdx] = shuffledIndices.map(
-        (shuffledIdx) => mapping[shuffledIdx]
-      );
-    });
-
+    // Prepare submission data
     const submissionData = {
+      // quizId: quiz._id,
       studentId: currentUser._id,
       batchId: batchId,
       score: finalScore,
-      answers: originalAnswers, // Send original indices
+      answers: answers, // User's selected answers
       submittedAt: new Date().toISOString(),
     };
 
@@ -173,15 +95,15 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     setShowResult(true);
   };
 
-  const question = shuffledQuiz.questions[currentQuestion];
+  const question = quiz.questions[currentQuestion];
   const isAnswered =
     answers[currentQuestion] !== undefined &&
     answers[currentQuestion].length > 0;
-  const allAnswered = shuffledQuiz.questions.every(
+  const allAnswered = quiz.questions.every(
     (_, idx) => answers[idx] !== undefined && answers[idx].length > 0
   );
   const percentage =
-    score > 0 ? ((score / shuffledQuiz.totalMarks) * 100).toFixed(1) : 0;
+    score > 0 ? ((score / quiz.totalMarks) * 100).toFixed(1) : 0;
   const hasMultipleAnswers = question.correctAnswers.length > 1;
 
   const handleClose = () => {
@@ -199,10 +121,9 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
+                <h3 className="font-bold text-2xl">{quiz.title}</h3>
                 <p className="text-sm text-gray-600">
-                  Question {currentQuestion + 1} of{" "}
-                  {shuffledQuiz.questions.length}
+                  Question {currentQuestion + 1} of {quiz.questions.length}
                 </p>
               </div>
               <button
@@ -218,14 +139,13 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
               <progress
                 className="progress progress-primary w-full"
                 value={currentQuestion + 1}
-                max={shuffledQuiz.questions.length}
+                max={quiz.questions.length}
               ></progress>
               <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>
                   Progress:{" "}
                   {Math.round(
-                    ((currentQuestion + 1) / shuffledQuiz.questions.length) *
-                      100
+                    ((currentQuestion + 1) / quiz.questions.length) * 100
                   )}
                   %
                 </span>
@@ -235,7 +155,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                     Object.keys(answers).filter((k) => answers[k]?.length > 0)
                       .length
                   }
-                  /{shuffledQuiz.questions.length}
+                  /{quiz.questions.length}
                 </span>
               </div>
             </div>
@@ -317,7 +237,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 )}
               </div>
 
-              {currentQuestion === shuffledQuiz.questions.length - 1 ? (
+              {currentQuestion === quiz.questions.length - 1 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={!allAnswered}
@@ -334,12 +254,11 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
             </div>
 
             {/* Submit Warning */}
-            {!allAnswered &&
-              currentQuestion === shuffledQuiz.questions.length - 1 && (
-                <div className="alert alert-warning mt-4">
-                  <span>⚠ Please answer all questions before submitting</span>
-                </div>
-              )}
+            {!allAnswered && currentQuestion === quiz.questions.length - 1 && (
+              <div className="alert alert-warning mt-4">
+                <span>⚠ Please answer all questions before submitting</span>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -380,7 +299,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                         : "text-error"
                     }`}
                   >
-                    {score}/{shuffledQuiz.totalMarks}
+                    {score}/{quiz.totalMarks}
                   </div>
                   <div className="stat-desc">{percentage}%</div>
                 </div>
@@ -411,11 +330,11 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 )}
               </div>
 
-              {/* Answer Review - Use SHUFFLED quiz for display */}
+              {/* Answer Review */}
               <div className="text-left mb-6">
                 <h4 className="font-bold text-lg mb-4">Answer Review:</h4>
                 <div className="space-y-3">
-                  {shuffledQuiz.questions.map((q, index) => {
+                  {quiz.questions.map((q, index) => {
                     const userAnswers = answers[index] || [];
                     const correctAnswers = q.correctAnswers;
 

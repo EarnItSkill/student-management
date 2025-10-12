@@ -3,12 +3,31 @@ import { useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
 
 const BatchForm = ({ batch, onClose, onSuccess }) => {
-  const { courses, addBatch, updateBatch } = useAppContext();
+  const { courses, addBatch, batches, updateBatch } = useAppContext();
   const isEdit = !!batch;
 
   const findFee = (data) => {
     const courseFee = courses.find((fee) => fee._id === data.courseId);
     return courseFee.fee;
+  };
+
+  // Generate unique Batch ID
+  const generateBatchId = () => {
+    if (batches.length === 0) {
+      return "BATCH-0001";
+    }
+
+    // Get all batch IDs and extract numbers
+    const ids = batches
+      .map((b) => b.batchId)
+      .filter((id) => id && id.startsWith("BATCH-"))
+      .map((id) => parseInt(id.split("-")[1]))
+      .filter((num) => !isNaN(num));
+
+    const maxId = ids.length > 0 ? Math.max(...ids) : 0;
+    const nextId = maxId + 1;
+
+    return `BATCH-${String(nextId).padStart(4, "0")}`;
   };
 
   const {
@@ -32,6 +51,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     try {
       const batchData = {
         ...data,
+        sBatchId: isEdit ? batch.batchId : generateBatchId(),
         totalSeats: parseInt(data.totalSeats),
         enrolledStudents: batch?.enrolledStudents || 0,
         instructor: "মো. মোজাম্মেল হক",

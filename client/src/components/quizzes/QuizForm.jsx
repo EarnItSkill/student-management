@@ -57,9 +57,11 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
   };
 
   const onSubmit = async (data) => {
+    console.log(data);
     try {
       const quizData = {
         ...data,
+        chapter: data.chapter,
         courseId: data.courseId,
         totalMarks: parseInt(data.totalMarks),
         questions: data.questions.map((q, index) => ({
@@ -101,7 +103,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Quiz Basic Info */}
           <div className="space-y-4">
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">
                 <span className="label-text font-semibold">Quiz Title *</span>
               </label>
@@ -126,6 +128,70 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                   </span>
                 </label>
               )}
+            </div> */}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Quiz Title */}
+              <div className="form-control flex-1">
+                <label className="label">
+                  <span className="label-text font-semibold">Quiz Title *</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Microsoft Word - Basic Quiz"
+                  className={`input input-bordered w-full ${
+                    errors.title ? "input-error" : ""
+                  }`}
+                  {...register("title", {
+                    required: "Title is required",
+                    minLength: {
+                      value: 5,
+                      message: "Title must be at least 5 characters",
+                    },
+                  })}
+                />
+                {errors.title && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      {errors.title.message}
+                    </span>
+                  </label>
+                )}
+              </div>
+
+              {/* Chapter Select */}
+              <div className="form-control w-full md:w-1/3">
+                <label className="label">
+                  <span className="label-text font-semibold">
+                    Select Chapter *
+                  </span>
+                </label>
+                <select
+                  className={`select select-bordered w-96 ${
+                    errors.chapter ? "select-error" : ""
+                  }`}
+                  {...register("chapter", {
+                    required: "Chapter selection is required",
+                  })}
+                >
+                  <option value="">-- অধ্যায় --</option>
+                  <option value="1">
+                    তথ্য ও যোগযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ প্রেক্ষিত
+                  </option>
+                  <option value="2">কমিউনিকেশন সিস্টেম ও নেটওয়ার্কিং</option>
+                  <option value="3">সংখ্যা পদ্ধতি এবং ডিজিটাল বর্তনী</option>
+                  <option value="4">ওয়েভ ডিজাইন পরিচিতি এবং HTML</option>
+                  <option value="5">প্রোগ্রামিং ভাষা</option>
+                  <option value="6">ডাটাবেজ ম্যানেজমেন্ট সিস্টেম</option>
+                </select>
+                {errors.chapter && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      {errors.chapter.message}
+                    </span>
+                  </label>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -136,7 +202,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                   </span>
                 </label>
                 <select
-                  className={`select select-bordered ${
+                  className={`select select-bordered w-full ${
                     errors.courseId ? "select-error" : ""
                   }`}
                   {...register("courseId", {
@@ -168,7 +234,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                 <input
                   type="number"
                   placeholder="e.g., 20"
-                  className={`input input-bordered ${
+                  className={`input input-bordered w-full ${
                     errors.totalMarks ? "input-error" : ""
                   }`}
                   {...register("totalMarks", {
@@ -219,7 +285,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                     </label>
                     <textarea
                       placeholder="Enter your question"
-                      className={`textarea textarea-bordered h-20 ${
+                      className={`textarea textarea-bordered h-20 w-full ${
                         errors.questions?.[questionIndex]?.question
                           ? "textarea-error"
                           : ""

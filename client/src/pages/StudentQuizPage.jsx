@@ -1,6 +1,5 @@
 import {
   AlertCircle,
-  ArrowLeft,
   BookOpen,
   CheckCircle,
   Clock,
@@ -333,14 +332,14 @@ const StudentQuizPage = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button
+          {/* <button
             onClick={() => navigate("/dashboard/student")}
             className="btn btn-ghost gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
             ড্যাশবোর্ডে ফিরুন
-          </button>
-          <h1 className="text-3xl font-bold">র‍্যান্ডম কুইজ অনুশীলন</h1>
+          </button> */}
+          <h1 className="text-3xl font-bold">র‍্যান্ডম MCQ টেস্ট</h1>
         </div>
 
         {/* Info Card */}

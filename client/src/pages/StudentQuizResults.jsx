@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   BookOpen,
   Calendar,
   CheckCircle,
@@ -85,14 +84,14 @@ const StudentQuizResults = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button
+          {/* <button
             onClick={() => navigate("/dashboard/student")}
             className="btn btn-ghost gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
             ড্যাশবোর্ডে ফিরুন
-          </button>
-          <h1 className="text-3xl font-bold">আমার কুইজ ফলাফল</h1>
+          </button> */}
+          <h1 className="text-3xl font-bold">আমার MCQ টেস্ট ফলাফল</h1>
         </div>
 
         {/* Overall Stats */}

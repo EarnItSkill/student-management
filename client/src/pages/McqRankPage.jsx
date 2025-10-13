@@ -182,7 +182,7 @@ const McqRankPage = () => {
         {currentUserRank && (
           <div className="card bg-gradient-to-br from-primary/20 to-secondary/20 shadow-xl mb-6 border-2 border-primary">
             <div className="card-body">
-              <h3 className="text-xl font-bold mb-3">Your Ranking</h3>
+              {/* <h3 className="text-xl font-bold mb-3">Your Ranking</h3> */}
               <div className="flex items-center gap-6">
                 <div className="avatar">
                   <div className="w-20 h-20 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">

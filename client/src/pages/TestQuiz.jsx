@@ -1,11 +1,9 @@
-import { ArrowLeft, BookOpen, Clock, Play, Target, Trophy } from "lucide-react";
+import { BookOpen, Clock, Play, Target, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import TakeQuizTest from "../components/quizzes/TakeQuizTest";
 import { useAppContext } from "../context/useAppContext";
 
 const TestQuiz = () => {
-  const navigate = useNavigate();
   const { quizzes } = useAppContext();
   const [selectedChapter, setSelectedChapter] = useState("");
   const [showQuiz, setShowQuiz] = useState(false);
@@ -127,14 +125,14 @@ const TestQuiz = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button
+          {/* <button
             onClick={() => navigate("/dashboard/student")}
             className="btn btn-ghost gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
             ড্যাশবোর্ডে ফিরুন
-          </button>
-          <h1 className="text-3xl font-bold">র‍্যান্ডম কুইজ অনুশীলন</h1>
+          </button> */}
+          <h1 className="text-3xl font-bold">র‍্যান্ডম MCQ অনুশীলন</h1>
         </div>
 
         {/* Info Card */}

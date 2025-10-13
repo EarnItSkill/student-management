@@ -19,7 +19,6 @@ import { useAppContext } from "../../context/useAppContext";
 const Sidebar = () => {
   const { currentUser, setIsSideMenu } = useAppContext();
   const location = useLocation();
-  console.log(currentUser);
 
   // Admin Menu Items
   const adminMenuItems = [
@@ -72,9 +71,9 @@ const Sidebar = () => {
       isDash: false,
     },
     {
-      path: "/dashboard/admin/students/search", // পরিবর্তিত
-      label: "Students Search", // পরিবর্তিত
-      icon: Search, // পরিবর্তিত
+      path: "/dashboard/admin/students/search",
+      label: "Students Search",
+      icon: Search,
       isDash: false,
     },
     {
@@ -148,32 +147,29 @@ const Sidebar = () => {
       isDash: false,
     },
     {
-      path: "/dashboard/student/practice-quiz",
-      label: "MCQ Exam",
-      icon: BookOpen,
+      path: "/dashboard/student/ranks",
+      label: "Classs Rankings",
+      icon: Trophy,
       isDash: false,
       display: { currentUser },
     },
     {
+      path: "/dashboard/student/practice-quiz",
+      label: "MCQ Exam",
+      icon: BookOpen,
+      isDash: false,
+    },
+    {
       path: "/dashboard/student/quiz-results",
-      label: "MCQ Results",
+      label: "MCQ Exam Results",
       icon: Trophy,
       isDash: false,
-      display: { currentUser },
     },
     {
       path: "/dashboard/student/rankings",
       label: "MCQ Exam Rankings",
       icon: Trophy,
       isDash: false,
-    },
-
-    {
-      path: "/dashboard/student/ranks",
-      label: "Classs Rankings",
-      icon: Trophy,
-      isDash: false,
-      display: { currentUser },
     },
   ];
 

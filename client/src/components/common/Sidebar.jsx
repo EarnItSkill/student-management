@@ -19,6 +19,7 @@ import { useAppContext } from "../../context/useAppContext";
 const Sidebar = () => {
   const { currentUser, setIsSideMenu } = useAppContext();
   const location = useLocation();
+  console.log(currentUser);
 
   // Admin Menu Items
   const adminMenuItems = [
@@ -77,6 +78,24 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/chapter-schedules",
+      label: "Quiz Schedules",
+      icon: Calendar,
+      isDash: false,
+    },
+    {
+      path: "/dashboard/admin/quiz-results",
+      label: "Quiz Results",
+      icon: Trophy,
+      isDash: false,
+    },
+    {
+      path: "/dashboard/admin/rankings",
+      label: "Rankings",
+      icon: Trophy,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,
@@ -117,34 +136,44 @@ const Sidebar = () => {
     //   isDash: false,
     // },
     {
+      path: "/dashboard/student/profile",
+      label: "My Profile",
+      icon: User,
+      isDash: false,
+    },
+    {
       path: "/dashboard/student/test-quiz",
-      label: "Test Quiz",
+      label: "Test Yourself",
       icon: BookOpen,
       isDash: false,
     },
     {
       path: "/dashboard/student/practice-quiz",
-      label: "Exam",
+      label: "MCQ Exam",
       icon: BookOpen,
       isDash: false,
+      display: { currentUser },
     },
     {
       path: "/dashboard/student/quiz-results",
-      label: "Quiz Results",
+      label: "MCQ Results",
+      icon: Trophy,
+      isDash: false,
+      display: { currentUser },
+    },
+    {
+      path: "/dashboard/student/rankings",
+      label: "MCQ Exam Rankings",
       icon: Trophy,
       isDash: false,
     },
-    {
-      path: "/dashboard/student/profile", // নতুন
-      label: "My Profile", // নতুন
-      icon: User, // নতুন (User import করতে হবে)
-      isDash: false,
-    },
+
     {
       path: "/dashboard/student/ranks",
-      label: "Rankings",
+      label: "Classs Rankings",
       icon: Trophy,
       isDash: false,
+      display: { currentUser },
     },
   ];
 

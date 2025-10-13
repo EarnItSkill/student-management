@@ -29,6 +29,7 @@ export const AppProvider = ({ children }) => {
   const [attendance, setAttendance] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
   const [mcqQuizzes, setMcqQuizzes] = useState([]);
+  const [chapterSchedules, setChapterSchedules] = useState([]);
 
   // Loading State
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,11 @@ export const AppProvider = ({ children }) => {
           `${import.meta.env.VITE_API_URL}/mcqquizzes`
         );
         setMcqQuizzes(mcqQuizzes?.data);
+
+        const schedules = await axios.get(
+          `${import.meta.env.VITE_API_URL}/chapter-schedules`
+        );
+        setChapterSchedules(schedules?.data);
 
         // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem("currentUser");
@@ -712,6 +718,87 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Chapter
+  // Functions (return এর আগে)
+  const getSchedulesByBatch = async (batchId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/chapter-schedules/batch/${batchId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+      return [];
+    }
+  };
+
+  const createSchedule = async (scheduleData) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/chapter-schedule`,
+        scheduleData
+      );
+      setChapterSchedules([...chapterSchedules, response.data.schedule]);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating schedule:", error);
+      throw error;
+    }
+  };
+
+  const updateSchedule = async (scheduleId, scheduleData) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/chapter-schedule/${scheduleId}`,
+        scheduleData
+      );
+
+      // Update local state
+      const updatedSchedules = chapterSchedules.map((s) =>
+        s._id === scheduleId ? { ...s, ...scheduleData } : s
+      );
+      setChapterSchedules(updatedSchedules);
+
+      return response.data;
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      throw error;
+    }
+  };
+
+  const deleteSchedule = async (scheduleId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/chapter-schedule/${scheduleId}`
+      );
+
+      // Update local state
+      setChapterSchedules(chapterSchedules.filter((s) => s._id !== scheduleId));
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      throw error;
+    }
+  };
+
+  const toggleScheduleStatus = async (scheduleId) => {
+    try {
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/chapter-schedule/${scheduleId}/toggle`
+      );
+
+      // Update local state
+      const updatedSchedules = chapterSchedules.map((s) =>
+        s._id === scheduleId ? { ...s, isActive: response.data.isActive } : s
+      );
+      setChapterSchedules(updatedSchedules);
+
+      return response.data;
+    } catch (error) {
+      console.error("Error toggling schedule:", error);
+      throw error;
+    }
+  };
+
   // Context value
   const value = {
     // Dashboard
@@ -761,6 +848,14 @@ export const AppProvider = ({ children }) => {
     checkQuizAttempt,
     submitQuizAttempt,
     getMcqAttemptsByStudent,
+
+    chapterSchedules,
+    setChapterSchedules,
+    getSchedulesByBatch,
+    createSchedule,
+    updateSchedule,
+    deleteSchedule,
+    toggleScheduleStatus,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

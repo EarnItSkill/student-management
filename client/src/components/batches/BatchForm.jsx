@@ -10,6 +10,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     const courseFee = courses.find((fee) => fee._id === data.courseId);
     return courseFee.fee;
   };
+  console.log(batches);
 
   // Generate unique Batch ID
   const generateBatchId = () => {
@@ -19,7 +20,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
 
     // Get all batch IDs and extract numbers
     const ids = batches
-      .map((b) => b.batchId)
+      .map((b) => b.sBatchId)
       .filter((id) => id && id.startsWith("BATCH-"))
       .map((id) => parseInt(id.split("-")[1]))
       .filter((num) => !isNaN(num));

@@ -21,14 +21,12 @@ const StudentQuizPage = () => {
     enrollments,
     checkQuizAttempt,
     submitQuizAttempt,
-    getSchedulesByBatch,
   } = useAppContext();
 
   const [selectedChapter, setSelectedChapter] = useState("");
   const [showQuiz, setShowQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
   const [chapterAttempts, setChapterAttempts] = useState({});
-  const [chapterSchedules, setChapterSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Get current student's enrollment
@@ -62,22 +60,6 @@ const StudentQuizPage = () => {
       return a.localeCompare(b);
     });
   }, [chapterGroups]);
-
-  // Fetch schedules for student's batch
-  useEffect(() => {
-    const fetchSchedules = async () => {
-      if (!studentEnrollment) return;
-
-      try {
-        const schedules = await getSchedulesByBatch(studentEnrollment.batchId);
-        setChapterSchedules(schedules);
-      } catch (error) {
-        console.error("Error fetching schedules:", error);
-      }
-    };
-
-    fetchSchedules();
-  }, [studentEnrollment, getSchedulesByBatch]);
 
   // Check attempts for all chapters
   useEffect(() => {
@@ -157,35 +139,6 @@ const StudentQuizPage = () => {
     return randomQuiz;
   };
 
-  // Check if chapter is available based on schedule
-  const isChapterAvailable = (chapter) => {
-    const schedule = chapterSchedules.find(
-      (s) => s.chapter === chapter && s.isActive
-    );
-
-    if (!schedule) {
-      return { available: false, reason: "No schedule set" };
-    }
-
-    const now = new Date();
-    const startDate = new Date(schedule.startDate);
-    const endDate = new Date(schedule.endDate);
-
-    if (now < startDate) {
-      return {
-        available: false,
-        reason: "Not started",
-        startDate: startDate.toLocaleDateString("bn-BD"),
-      };
-    }
-
-    if (now > endDate) {
-      return { available: false, reason: "Expired" };
-    }
-
-    return { available: true, reason: "Available" };
-  };
-
   // Handle start quiz
   const handleStartQuiz = () => {
     if (!selectedChapter) {
@@ -201,19 +154,6 @@ const StudentQuizPage = () => {
     // Check if already attempted
     if (chapterAttempts[selectedChapter]?.hasAttempted) {
       alert("আপনি ইতিমধ্যে এই অধ্যায়ের কুইজ সম্পন্ন করেছেন");
-      return;
-    }
-
-    // Check schedule availability
-    const availability = isChapterAvailable(selectedChapter);
-    if (!availability.available) {
-      if (availability.reason === "Not started") {
-        alert(`এই কুইজ ${availability.startDate} তারিখে শুরু হবে`);
-      } else if (availability.reason === "Expired") {
-        alert("এই কুইজের সময়সীমা শেষ হয়ে গেছে");
-      } else {
-        alert("এই কুইজ বর্তমানে উপলব্ধ নয়");
-      }
       return;
     }
 
@@ -393,8 +333,7 @@ const StudentQuizPage = () => {
                   const attemptInfo = chapterAttempts[chapter];
                   const isAttempted = attemptInfo?.hasAttempted;
                   const isSelected = selectedChapter === chapter;
-                  const availability = isChapterAvailable(chapter);
-                  const isDisabled = isAttempted || !availability.available;
+                  const isDisabled = isAttempted;
 
                   return (
                     <div
@@ -417,28 +356,17 @@ const StudentQuizPage = () => {
                           <h4 className="text-2xl font-bold">
                             অধ্যায় {chapter}
                           </h4>
-                          <div className="flex flex-col gap-1">
-                            {isSelected && !isDisabled && (
-                              <div className="badge badge-secondary">
-                                নির্বাচিত
-                              </div>
-                            )}
-                            {isAttempted && (
-                              <div className="badge badge-success gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                সম্পন্ন
-                              </div>
-                            )}
-                            {!isAttempted && !availability.available && (
-                              <div className="badge badge-warning">
-                                {availability.reason === "Not started"
-                                  ? "শীঘ্রই"
-                                  : availability.reason === "Expired"
-                                  ? "সময়সীমা শেষ"
-                                  : "বন্ধ"}
-                              </div>
-                            )}
-                          </div>
+                          {isSelected && !isDisabled && (
+                            <div className="badge badge-secondary">
+                              নির্বাচিত
+                            </div>
+                          )}
+                          {isAttempted && (
+                            <div className="badge badge-success gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              সম্পন্ন
+                            </div>
+                          )}
                         </div>
 
                         <div className="divider my-2"></div>
@@ -472,15 +400,6 @@ const StudentQuizPage = () => {
                               {Math.min(50, stats.totalQuestions)}
                             </span>
                           </div>
-                          {!isAttempted &&
-                            availability.reason === "Not started" && (
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">শুরু হবে:</span>
-                                <span className="font-bold text-info">
-                                  {availability.startDate}
-                                </span>
-                              </div>
-                            )}
                           {isAttempted && attemptInfo.attempt && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">
@@ -507,7 +426,6 @@ const StudentQuizPage = () => {
             <button
               onClick={handleStartQuiz}
               className="btn btn-primary btn-lg gap-3 px-8"
-              disabled={!isChapterAvailable(selectedChapter).available}
             >
               <Play className="w-6 h-6" />
               কুইজ শুরু করুন (৫০ মিনিট)

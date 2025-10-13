@@ -1,7 +1,7 @@
 import { ArrowLeft, BookOpen, Clock, Play, Target, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import TakeQuiz from "../components/quizzes/TakeQuiz";
+import TakeQuizTest from "../components/quizzes/TakeQuizTest";
 import { useAppContext } from "../context/useAppContext";
 
 const TestQuiz = () => {
@@ -10,6 +10,7 @@ const TestQuiz = () => {
   const [selectedChapter, setSelectedChapter] = useState("");
   const [showQuiz, setShowQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
+  const [iNumber, setINumber] = useState("");
 
   // Group quizzes by chapter
   const chapterGroups = useMemo(() => {
@@ -69,7 +70,7 @@ const TestQuiz = () => {
     const shuffledQuestions = shuffleArray(allQuestions);
     const selectedQuestions = shuffledQuestions.slice(
       0,
-      Math.min(2, allQuestions.length)
+      Math.min(iNumber || 6, allQuestions.length)
     );
 
     // Create a new quiz object
@@ -258,7 +259,24 @@ const TestQuiz = () => {
 
         {/* Start Button */}
         {selectedChapter && (
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-4">
+            <div>
+              <input
+                className="btn border border-gray-400"
+                type="number"
+                placeholder="সংখ্যা লিখুন"
+                value={iNumber}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (
+                    value === "" ||
+                    (Number(value) <= 20 && Number(value) >= 1)
+                  ) {
+                    setINumber(value);
+                  }
+                }}
+              />
+            </div>
             <button
               onClick={handleStartQuiz}
               className="btn btn-primary btn-lg gap-3 px-8"
@@ -272,7 +290,7 @@ const TestQuiz = () => {
 
       {/* Quiz Modal */}
       {showQuiz && generatedQuiz && (
-        <TakeQuiz
+        <TakeQuizTest
           quiz={generatedQuiz}
           onClose={() => setShowQuiz(false)}
           onSuccess={handleQuizComplete}

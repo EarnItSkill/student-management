@@ -10,10 +10,13 @@ import PaymentList from "../components/payments/PaymentList";
 import QuizList from "../components/quizzes/QuizList";
 import Settings from "../components/settings/settings";
 import StudentList from "../components/students/StudentList";
+import AdminQuizResults from "../pages/admin/AdminQuizResults";
+import AdminChapterSchedule from "../pages/admin/toggleScheduleStatus";
 import AdminDashboard from "../pages/AdminDashboard";
 import CourseDetails from "../pages/CourseDetails";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
+import McqRankPage from "../pages/McqRankPage";
 import NotFound from "../pages/NotFound";
 import RankPage from "../pages/RankPage";
 import Registration from "../pages/Registration";
@@ -68,6 +71,7 @@ const AppRoutes = () => {
         <Route path="test-quiz" element={<TestQuiz />} />
         <Route path="practice-quiz" element={<StudentQuizPage />} />
         <Route path="quiz-results" element={<StudentQuizResults />} />
+        <Route path="rankings" element={<McqRankPage />} />
         <Route path="ranks" element={<RankPage />} />
       </Route>
 
@@ -87,6 +91,9 @@ const AppRoutes = () => {
         <Route path="attendance" element={<AttendanceList />} />
         <Route path="enrollments" element={<EnrollmentList />} />
         <Route path="quizzes" element={<QuizList />} />
+        <Route path="chapter-schedules" element={<AdminChapterSchedule />} />
+        <Route path="quiz-results" element={<AdminQuizResults />} />
+        <Route path="rankings" element={<McqRankPage />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

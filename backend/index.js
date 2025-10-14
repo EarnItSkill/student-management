@@ -84,10 +84,82 @@ async function run() {
     // =========================
 
     // CREATE (Add a new Student)
+    // app.post("/student", async (req, res) => {
+    //   const newStudent = req.body;
+    //   const result = await studentCollection.insertOne(newStudent);
+    //   res.send(result);
+    // });
+
+    // app.post("/student", async (req, res) => {
+    //   try {
+    //     const newStudent = req.body;
+
+    //     // ইমেল আছে কিনা চেক করুন
+    //     const existingStudent = await studentCollection.findOne({
+    //       email: newStudent.email,
+    //     });
+
+    //     if (existingStudent) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message: "এই ইমেইল দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
+    //       });
+    //     }
+
+    //     // ২️⃣ নতুন ছাত্র সেভ করুন
+    //     const result = await studentCollection.insertOne(newStudent);
+
+    //     res.send({
+    //       success: true,
+    //       message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
+    //       data: result,
+    //     });
+    //   } catch (error) {
+    //     console.error("Student Insert Error:", error);
+    //     res.status(500).send({
+    //       success: false,
+    //       message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
+    //     });
+    //   }
+    // });
+
     app.post("/student", async (req, res) => {
-      const newStudent = req.body;
-      const result = await studentCollection.insertOne(newStudent);
-      res.send(result);
+      try {
+        const newStudent = req.body;
+
+        // ইমেল আছে কিনা চেক করুন
+        // const existingStudent = await studentCollection.findOne({
+        //  email: newStudent.email,
+        //  });
+
+        // ✅ Email অথবা Phone ইতিমধ্যে আছে কি না চেক
+        const existingStudent = await studentCollection.findOne({
+          $or: [{ email: newStudent.email }, { phone: newStudent.phone }],
+        });
+
+        if (existingStudent) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
+          });
+        }
+
+        // ✅ নতুন স্টুডেন্ট সেভ করা
+        const result = await studentCollection.insertOne(newStudent);
+
+        res.send({
+          success: true,
+          message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        console.error("Student Insert Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
+        });
+      }
     });
 
     // READ (Get all Students)

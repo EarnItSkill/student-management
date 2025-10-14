@@ -4,13 +4,11 @@ import TakeQuizTest from "../components/quizzes/TakeQuizTest";
 import { useAppContext } from "../context/useAppContext";
 
 const TestQuiz = () => {
-  const { quizzes, currentUser } = useAppContext();
+  const { quizzes } = useAppContext();
   const [selectedChapter, setSelectedChapter] = useState("");
   const [showQuiz, setShowQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
   const [iNumber, setINumber] = useState("");
-
-  console.log(currentUser);
 
   // Group quizzes by chapter
   const chapterGroups = useMemo(() => {

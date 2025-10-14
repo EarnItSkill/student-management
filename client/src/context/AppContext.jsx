@@ -161,7 +161,9 @@ export const AppProvider = ({ children }) => {
         role: "student",
         image:
           newStudent.image ||
-          `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+          (newStudent.gender === "male"
+            ? "https://i.ibb.co/LbG04VL/male.jpg"
+            : "https://i.ibb.co/gFdhJ5Js/female.jpg"),
       };
 
       const response = await axios.post(
@@ -179,11 +181,13 @@ export const AppProvider = ({ children }) => {
 
       return createdStudent;
     } catch (error) {
-      console.error("Failed to add student:", error);
-      toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
-        icon: <XCircle className="text-red-500" />,
-      });
-      throw error;
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
+          icon: <XCircle className="text-red-500" />,
+        });
+      }
     }
   };
 

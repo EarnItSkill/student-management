@@ -53,6 +53,7 @@ const StudentForm = ({ student, onClose, onSuccess }) => {
   }, [isEdit, setValue]);
 
   const onSubmit = async (data) => {
+    console.log(data);
     try {
       if (isEdit) {
         updateStudent(student._id, data);

@@ -104,29 +104,45 @@ const McqRankPage = () => {
     });
 
     // Assign ranks (with tie handling)
-    let currentRank = 1;
+    // let currentRank = 1;
+    // let displayRank = 1;
+    // let previousScore = null;
+
+    // filtered.forEach((item, index) => {
+    //   if (previousScore !== null && item.averageScore < previousScore) {
+    //     currentRank = index + 1;
+    //     displayRank = index + 1;
+    //   } else if (
+    //     previousScore !== null &&
+    //     item.averageScore === previousScore
+    //   ) {
+    //     // Same score, keep display rank same but increment current rank
+    //     currentRank = index + 1;
+    //   }
+
+    //   item.serialNumber = index + 1; // Sequential serial
+    //   item.rank = displayRank; // Rank with ties
+
+    //   previousScore = item.averageScore;
+    // });
+
     let displayRank = 1;
     let previousScore = null;
 
     filtered.forEach((item, index) => {
-      if (previousScore !== null && item.averageScore < previousScore) {
-        currentRank = index + 1;
-        displayRank = index + 1;
-      } else if (
-        previousScore !== null &&
-        item.averageScore === previousScore
-      ) {
-        // Same score, keep display rank same but increment current rank
-        currentRank = index + 1;
+      if (index > 0 && item.averageScore < previousScore) {
+        // Score is different from previous, increment rank
+        displayRank++;
       }
+      // If same score, displayRank stays same
 
-      item.serialNumber = index + 1; // Sequential serial
-      item.rank = displayRank; // Rank with ties
+      item.serialNumber = index + 1; // Sequential serial (1, 2, 3, 4...)
+      item.rank = displayRank; // Rank with ties (1, 1, 2, 3, 4, 4, 4, 5...)
 
       previousScore = item.averageScore;
     });
 
-    // Limit to top 50
+    // Limit to top 50 by serial number
     return filtered.slice(0, 50);
   }, [
     mcqQuizzes,

@@ -32,6 +32,7 @@ import {
   isClassUnlocked,
   isQuizUnlocked,
 } from "../utils/scheduleHelper";
+import NotEnrolledPage from "./NotEnrolledPage";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -171,54 +172,58 @@ const StudentDashboard = () => {
   return (
     <DashboardLayout>
       {/* Welcome Card  */}
-      <div className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-xl mb-6">
-        <div className="card-body">
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-            {/* Avatar */}
-            <div className="avatar">
-              <div className="w-32 h-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                <img src={student.image} alt={student.name} />
-              </div>
-            </div>
-
-            {/* Student Info */}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h2 className="text-3xl font-bold">{student.name}</h2>
-                <div className="badge badge-primary badge-lg">
-                  {student.studentId}
-                </div>
-                <div
-                  className={`badge badge-lg ${
-                    student.gender === "male" ? "badge-info" : "badge-secondary"
-                  }`}
-                >
-                  {student.gender === "male" ? "ছেলে" : "মেয়ে"}
+      {enrolledCourseIds.length !== 0 && (
+        <div className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-xl mb-6">
+          <div className="card-body">
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+              {/* Avatar */}
+              <div className="avatar">
+                <div className="w-32 h-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                  <img src={student.image} alt={student.name} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-primary" />
-                  <span>{student.email}</span>
+              {/* Student Info */}
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <h2 className="text-3xl font-bold">{student.name}</h2>
+                  <div className="badge badge-primary badge-lg">
+                    {student.studentId}
+                  </div>
+                  <div
+                    className={`badge badge-lg ${
+                      student.gender === "male"
+                        ? "badge-info"
+                        : "badge-secondary"
+                    }`}
+                  >
+                    {student.gender === "male" ? "ছেলে" : "মেয়ে"}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>{student.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span>{student.address}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  <span>EIIN: {student.eiin}</span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span>{student.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="w-4 h-4 text-primary" />
+                    <span>{student.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span>{student.address}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    <span>EIIN: {student.eiin}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Stats Cards */}
       {enrolledCourseIds.length !== 0 && (
@@ -2104,7 +2109,7 @@ const StudentDashboard = () => {
           )}
         </div>
       ) : (
-        <h2>দয়া করে এনরোল করুন।</h2>
+        <NotEnrolledPage />
       )}
     </DashboardLayout>
   );

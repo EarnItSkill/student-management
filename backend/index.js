@@ -75,6 +75,10 @@ async function run() {
       .db(process.env.DB_NAME)
       .collection("chapterSchedules");
 
+    const cqQuestionsCollection = client
+      .db(process.env.DB_NAME)
+      .collection("cqQuestions");
+
     // =========================
     // About Students
     // =========================
@@ -957,6 +961,166 @@ async function run() {
       } catch (error) {
         console.error("Error toggling schedule:", error);
         res.status(500).send({ error: "Failed to toggle schedule" });
+      }
+    });
+
+    // =================================================================
+
+    // CREATE - Add a new CQ Question
+    app.post("/cq-question", async (req, res) => {
+      try {
+        const {
+          courseId,
+          chapter,
+          stimulusType, // "text" or "image"
+          stimulusContent, // text content or image URL
+          questions, // Array of 2 questions
+        } = req.body;
+
+        // Validation
+        if (
+          !courseId ||
+          !chapter ||
+          !stimulusType ||
+          !stimulusContent ||
+          !questions
+        ) {
+          return res.status(400).send({ error: "Missing required fields" });
+        }
+
+        if (questions.length !== 2) {
+          return res
+            .status(400)
+            .send({ error: "Exactly 2 questions are required" });
+        }
+
+        // Create new CQ
+        const newCQ = {
+          courseId,
+          chapter,
+          stimulusType,
+          stimulusContent,
+          questions, // [{ question: "...", marks: 5 }, { question: "...", marks: 5 }]
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const result = await cqQuestionsCollection.insertOne(newCQ);
+        res.send({
+          success: true,
+          message: "CQ question created successfully",
+          cqId: result.insertedId,
+          cq: { ...newCQ, _id: result.insertedId },
+        });
+      } catch (error) {
+        console.error("Error creating CQ:", error);
+        res.status(500).send({ error: "Failed to create CQ question" });
+      }
+    });
+
+    // READ - Get all CQ Questions
+    app.get("/cq-questions", async (req, res) => {
+      try {
+        const cursor = cqQuestionsCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching CQ questions:", error);
+        res.status(500).send({ error: "Failed to fetch CQ questions" });
+      }
+    });
+
+    // READ - Get CQ Questions by Course ID
+    app.get("/cq-questions/course/:courseId", async (req, res) => {
+      try {
+        const { courseId } = req.params;
+        const cursor = cqQuestionsCollection.find({ courseId });
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching CQ questions:", error);
+        res.status(500).send({ error: "Failed to fetch CQ questions" });
+      }
+    });
+
+    // READ - Get CQ Questions by Chapter
+    app.get("/cq-questions/chapter/:chapter", async (req, res) => {
+      try {
+        const { chapter } = req.params;
+        const cursor = cqQuestionsCollection.find({ chapter });
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching CQ questions:", error);
+        res.status(500).send({ error: "Failed to fetch CQ questions" });
+      }
+    });
+
+    // READ - Get single CQ Question by ID
+    app.get("/cq-question/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const cq = await cqQuestionsCollection.findOne(query);
+
+        if (!cq) {
+          return res.status(404).send({ error: "CQ question not found" });
+        }
+
+        res.send(cq);
+      } catch (error) {
+        console.error("Error fetching CQ question:", error);
+        res.status(500).send({ error: "Failed to fetch CQ question" });
+      }
+    });
+
+    // UPDATE - Update a CQ Question
+    app.put("/cq-question/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updatedData = req.body;
+
+        delete updatedData._id;
+
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: { ...updatedData, updatedAt: new Date().toISOString() },
+        };
+
+        const result = await cqQuestionsCollection.updateOne(query, updateDoc);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "CQ question not found" });
+        }
+
+        res.send({
+          success: true,
+          message: "CQ question updated successfully",
+        });
+      } catch (error) {
+        console.error("Error updating CQ question:", error);
+        res.status(500).send({ error: "Failed to update CQ question" });
+      }
+    });
+
+    // DELETE - Delete a CQ Question
+    app.delete("/cq-question/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await cqQuestionsCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "CQ question not found" });
+        }
+
+        res.send({
+          success: true,
+          message: "CQ question deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting CQ question:", error);
+        res.status(500).send({ error: "Failed to delete CQ question" });
       }
     });
 

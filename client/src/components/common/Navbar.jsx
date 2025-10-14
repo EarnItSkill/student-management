@@ -1,9 +1,12 @@
 import { GraduationCap, Home, LogIn, LogOut, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 
 const Navbar = () => {
   const { isAuthenticated, currentUser, logout } = useAppContext();
+  const location = useLocation();
+
+  const path = location.pathname;
 
   const handleLogout = () => {
     logout();
@@ -24,10 +27,10 @@ const Navbar = () => {
 
       <div className="flex-none gap-2">
         {/* Home Link */}
-        {isAuthenticated && (
+        {isAuthenticated && path !== "/" && (
           <Link to="/" className="btn btn-ghost btn-sm">
             <Home className="w-4 h-4 mr-1" />
-            Home
+            হোম
           </Link>
         )}
 

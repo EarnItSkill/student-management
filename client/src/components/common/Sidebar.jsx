@@ -1,24 +1,26 @@
 import {
   BookOpen,
   Calendar,
-  ClipboardList,
-  DollarSign,
-  GraduationCap,
+  FileText,
   Home,
   LayoutDashboard,
   Search,
   Settings,
   Trophy,
   User,
-  UserCheck,
-  Users,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 
 const Sidebar = () => {
-  const { currentUser, setIsSideMenu } = useAppContext();
+  const { currentUser, setIsSideMenu, enrollments } = useAppContext();
   const location = useLocation();
+
+  const isEnrolled =
+    currentUser?.role === "student" &&
+    enrollments?.some(
+      (enrollment) => enrollment.studentId === currentUser?._id
+    );
 
   // Admin Menu Items
   const adminMenuItems = [
@@ -28,48 +30,48 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       isDash: true,
     },
-    {
-      path: "/dashboard/admin/students",
-      label: "Students",
-      icon: Users,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/courses",
-      label: "Courses",
-      icon: BookOpen,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/batches",
-      label: "Batches",
-      icon: GraduationCap,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/enrollments",
-      label: "Enrollments",
-      icon: UserCheck,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/payments",
-      label: "Payments",
-      icon: DollarSign,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/attendance",
-      label: "Attendance",
-      icon: Calendar,
-      isDash: false,
-    },
-    {
-      path: "/dashboard/admin/quizzes",
-      label: "Quizzes",
-      icon: ClipboardList,
-      isDash: false,
-    },
+    // {
+    //   path: "/dashboard/admin/students",
+    //   label: "Students",
+    //   icon: Users,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/courses",
+    //   label: "Courses",
+    //   icon: BookOpen,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/batches",
+    //   label: "Batches",
+    //   icon: GraduationCap,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/enrollments",
+    //   label: "Enrollments",
+    //   icon: UserCheck,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/payments",
+    //   label: "Payments",
+    //   icon: DollarSign,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/attendance",
+    //   label: "Attendance",
+    //   icon: Calendar,
+    //   isDash: false,
+    // },
+    // {
+    //   path: "/dashboard/admin/quizzes",
+    //   label: "Quizzes",
+    //   icon: ClipboardList,
+    //   isDash: false,
+    // },
     {
       path: "/dashboard/admin/students/search",
       label: "Students Search",
@@ -95,6 +97,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/cq",
+      label: "CQ Questions",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,
@@ -106,9 +114,10 @@ const Sidebar = () => {
   const studentMenuItems = [
     {
       path: "/dashboard/student",
-      label: "Dashboard",
+      label: "ডেশবোর্ড",
       icon: LayoutDashboard,
       isDash: true,
+      requiredEnrollment: false,
     },
     // {
     //   path: "/dashboard/student/courses",
@@ -136,45 +145,67 @@ const Sidebar = () => {
     // },
     {
       path: "/dashboard/student/profile",
-      label: "My Profile",
+      label: "আমার প্রোপাইল",
       icon: User,
       isDash: false,
-    },
-    {
-      path: "/dashboard/student/test-quiz",
-      label: "Test Yourself",
-      icon: BookOpen,
-      isDash: false,
+      requiredEnrollment: false,
     },
     {
       path: "/dashboard/student/ranks",
-      label: "Classs Rankings",
+      label: "ক্লাস MCQ অবস্থান",
       icon: Trophy,
       isDash: false,
-      display: { currentUser },
+      requiredEnrollment: true,
+    },
+    {
+      path: "/dashboard/student/cq",
+      label: "সৃজনশীল প্রশ্ন",
+      icon: FileText,
+      isDash: false,
+      requiredEnrollment: true,
+    },
+    {
+      path: "/dashboard/student/test-quiz",
+      label: "আমাকে যাচাই করি",
+      icon: BookOpen,
+      isDash: false,
+      requiredEnrollment: false,
     },
     {
       path: "/dashboard/student/practice-quiz",
-      label: "MCQ Exam",
+      label: "MCQ পরীক্ষা",
       icon: BookOpen,
       isDash: false,
+      requiredEnrollment: true,
     },
     {
       path: "/dashboard/student/quiz-results",
-      label: "MCQ Exam Results",
+      label: "MCQ রেজাল্ট",
       icon: Trophy,
       isDash: false,
+      requiredEnrollment: true,
     },
     {
       path: "/dashboard/student/rankings",
-      label: "MCQ Exam Rankings",
+      label: "MCQ পরীক্ষার অবস্থান",
       icon: Trophy,
       isDash: false,
+      requiredEnrollment: true,
     },
   ];
 
-  const menuItems =
+  let menuItems =
     currentUser?.role === "admin" ? adminMenuItems : studentMenuItems;
+
+  if (currentUser?.role === "student") {
+    menuItems = studentMenuItems.filter((item) => {
+      // যদি item-এর requiredEnrollment: true থাকে এবং isEnrolled: false হয়, তবে এটিকে বাদ দিন
+      if (item.requiredEnrollment && !isEnrolled) {
+        return false;
+      }
+      return true;
+    });
+  }
 
   return (
     <div className="drawer-side">
@@ -185,11 +216,11 @@ const Sidebar = () => {
           <Link to="/" className="flex items-center gap-2">
             <Home className="w-6 h-6" />
             <div>
-              <h2 className="font-bold text-lg">Training Center</h2>
+              <h2 className="font-bold text-lg">আর্ন IT স্কিল</h2>
               <p className="text-xs opacity-80">
                 {currentUser?.role === "admin"
-                  ? "Admin Panel"
-                  : "Student Panel"}
+                  ? "এডমিন প্যানেল"
+                  : "ছাত্র/ছাত্রী প্যানেল"}
               </p>
             </div>
           </Link>

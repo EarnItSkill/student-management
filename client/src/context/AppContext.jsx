@@ -30,6 +30,7 @@ export const AppProvider = ({ children }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [mcqQuizzes, setMcqQuizzes] = useState([]);
   const [chapterSchedules, setChapterSchedules] = useState([]);
+  const [cqQuestions, setCqQuestions] = useState([]);
 
   // Loading State
   const [loading, setLoading] = useState(true);
@@ -86,6 +87,11 @@ export const AppProvider = ({ children }) => {
           `${import.meta.env.VITE_API_URL}/chapter-schedules`
         );
         setChapterSchedules(schedules?.data);
+
+        const cqs = await axios.get(
+          `${import.meta.env.VITE_API_URL}/cq-questions`
+        );
+        setCqQuestions(cqs?.data);
 
         // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem("currentUser");
@@ -799,6 +805,63 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // CQ ==============================================
+  const getCqQuestionsByCourse = async (courseId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/cq-questions/course/${courseId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching CQ questions:", error);
+      return [];
+    }
+  };
+
+  const addCqQuestion = async (cqData) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/cq-question`,
+        cqData
+      );
+      setCqQuestions([...cqQuestions, response.data.cq]);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding CQ question:", error);
+      throw error;
+    }
+  };
+
+  const updateCqQuestion = async (cqId, cqData) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/cq-question/${cqId}`,
+        cqData
+      );
+
+      const updatedCqs = cqQuestions.map((cq) =>
+        cq._id === cqId ? { ...cq, ...cqData } : cq
+      );
+      setCqQuestions(updatedCqs);
+
+      return response.data;
+    } catch (error) {
+      console.error("Error updating CQ question:", error);
+      throw error;
+    }
+  };
+
+  const deleteCqQuestion = async (cqId) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/cq-question/${cqId}`);
+
+      setCqQuestions(cqQuestions.filter((cq) => cq._id !== cqId));
+    } catch (error) {
+      console.error("Error deleting CQ question:", error);
+      throw error;
+    }
+  };
+
   // Context value
   const value = {
     // Dashboard
@@ -821,6 +884,8 @@ export const AppProvider = ({ children }) => {
     quizzes,
     loading,
     mcqQuizzes,
+    chapterSchedules,
+    cqQuestions,
 
     // CRUD Functions
     deleteQuiz,
@@ -849,13 +914,18 @@ export const AppProvider = ({ children }) => {
     submitQuizAttempt,
     getMcqAttemptsByStudent,
 
-    chapterSchedules,
     setChapterSchedules,
     getSchedulesByBatch,
     createSchedule,
     updateSchedule,
     deleteSchedule,
     toggleScheduleStatus,
+
+    setCqQuestions,
+    getCqQuestionsByCourse,
+    addCqQuestion,
+    updateCqQuestion,
+    deleteCqQuestion,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

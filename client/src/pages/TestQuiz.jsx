@@ -4,11 +4,13 @@ import TakeQuizTest from "../components/quizzes/TakeQuizTest";
 import { useAppContext } from "../context/useAppContext";
 
 const TestQuiz = () => {
-  const { quizzes } = useAppContext();
+  const { quizzes, currentUser } = useAppContext();
   const [selectedChapter, setSelectedChapter] = useState("");
   const [showQuiz, setShowQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
   const [iNumber, setINumber] = useState("");
+
+  console.log(currentUser);
 
   // Group quizzes by chapter
   const chapterGroups = useMemo(() => {
@@ -262,7 +264,7 @@ const TestQuiz = () => {
               <input
                 className="btn border border-gray-400"
                 type="number"
-                placeholder="সংখ্যা লিখুন"
+                placeholder="সংখ্যা লিখুন ১ থেকে ২০"
                 value={iNumber}
                 onChange={(e) => {
                   const value = e.target.value;

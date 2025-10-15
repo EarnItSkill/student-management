@@ -95,9 +95,13 @@ const NotEnrolledPage = () => {
               </div>
 
               {/* Contact Section */}
-              <div className="divider">যোগাযোগ করুন</div>
+              <div className="divider">
+                <span className="badge badge-info text-white">
+                  যোগাযোগ করুন
+                </span>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 {/* Phone */}
                 <a
                   href={`tel:${contactInfo.phone}`}

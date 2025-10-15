@@ -16,6 +16,7 @@ import {
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
+import { parseSpecialToJSX } from "../utils/parseSpecialToJSX";
 
 const StudentCqPage = () => {
   const navigate = useNavigate();
@@ -123,7 +124,7 @@ const StudentCqPage = () => {
             ) : (
               <div className="p-4 bg-base-100 rounded-lg">
                 <p className="whitespace-pre-wrap text-lg">
-                  {cq.stimulusContent}
+                  {parseSpecialToJSX(cq.stimulusContent)}
                 </p>
               </div>
             )}
@@ -354,7 +355,7 @@ const StudentCqPage = () => {
                       ) : (
                         <div className="h-32">
                           <p className="text-sm text-gray-600 line-clamp-5">
-                            {cq.stimulusContent}
+                            {parseSpecialToJSX(cq.stimulusContent)}
                           </p>
                         </div>
                       )}
@@ -370,7 +371,7 @@ const StudentCqPage = () => {
                           >
                             <span className="badge badge-sm">{idx + 1}</span>
                             <p className="text-gray-600 line-clamp-2 flex-1">
-                              {q.question}
+                              {parseSpecialToJSX(q.question)}
                             </p>
                           </div>
                         ))}
@@ -428,7 +429,7 @@ const StudentCqPage = () => {
                                 উদ্দীপক:
                               </p>
                               <p className="text-sm line-clamp-3">
-                                {cq.stimulusContent}
+                                {parseSpecialToJSX(cq.stimulusContent)}
                               </p>
                             </div>
                           )}
@@ -446,7 +447,9 @@ const StudentCqPage = () => {
                                   <span className="badge badge-sm">
                                     {idx + 1}
                                   </span>
-                                  <p className="text-sm flex-1">{q.question}</p>
+                                  <p className="text-sm flex-1">
+                                    {parseSpecialToJSX(q.question)}
+                                  </p>
                                   <span className="badge badge-ghost badge-sm">
                                     {q.marks} নম্বর
                                   </span>

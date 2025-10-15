@@ -7,11 +7,10 @@ const Login = () => {
   const { login, isAuthenticated, currentUser } = useAppContext();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ identifier: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  let [count, setCount] = useState(0);
 
   // Redirect if already logged in
   if (isAuthenticated) {
@@ -56,16 +55,15 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setCount(() => count++);
 
-    if (!formData.identifier || !formData.password) {
+    if (!formData.email || !formData.password) {
       setError("সব ফিল্ড পূরণ করুন");
       setLoading(false);
       return;
     }
 
     try {
-      const result = await login(formData.identifier, formData.password);
+      const result = await login(formData.email, formData.password);
 
       if (result.success) {
         if (result.user.role === "admin") {
@@ -97,33 +95,17 @@ const Login = () => {
             ⚠️ {error}
           </div>
         )}
-        {count > 3 && (
-          <Link
-            to="/forgot"
-            className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg block text-sm font-medium"
-          >
-            Forgot UID or Password!
-          </Link>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 my-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
             <label className="block text-gray-700 mb-1">ইমেইল</label>
-            {/* <input
+            <input
               type="email"
               name="email"
               placeholder="your@email.com"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               value={formData.email}
-              onChange={handleChange}
-            /> */}
-            <input
-              type="text"
-              name="identifier"
-              placeholder="ইমেইল অথবা ফোন দিন"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              value={formData.identifier}
               onChange={handleChange}
             />
           </div>

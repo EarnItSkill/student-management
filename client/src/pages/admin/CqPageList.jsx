@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CqDetailModal from "../../components/cq/CqDetailModal";
 import { useAppContext } from "../../context/useAppContext";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const CqPageList = () => {
   const navigate = useNavigate();
@@ -131,7 +132,7 @@ const CqPageList = () => {
                 </button>
 
                 <div className="form-control flex-1">
-                  <div className="input-group">
+                  <div className="input-group flex items-center gap-3">
                     <span className="bg-base-200">
                       <Search className="w-5 h-5" />
                     </span>
@@ -207,7 +208,7 @@ const CqPageList = () => {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-600 line-clamp-3">
-                        {cq.stimulusContent}
+                        {parseSpecialToJSX(cq.stimulusContent)}
                       </p>
                     )}
 
@@ -217,7 +218,7 @@ const CqPageList = () => {
                       <p className="font-semibold">Questions:</p>
                       {cq.questions.map((q, idx) => (
                         <p key={idx} className="text-gray-600 line-clamp-1">
-                          {idx + 1}. {q.question}
+                          {idx + 1}. {parseSpecialToJSX(q.question)}
                         </p>
                       ))}
                     </div>

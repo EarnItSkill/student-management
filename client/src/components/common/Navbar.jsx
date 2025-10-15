@@ -44,7 +44,7 @@ const Navbar = () => {
                     src={currentUser?.image}
                     alt={currentUser?.name}
                     onError={(e) => {
-                      e.target.src = "https://i.pravatar.cc/150?img=68";
+                      e.target.src = "#";
                     }}
                   />
                 </div>

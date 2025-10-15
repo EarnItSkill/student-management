@@ -15,7 +15,9 @@ import AdminQuizResults from "../pages/admin/AdminQuizResults";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
 import AdminDashboard from "../pages/AdminDashboard";
+import Code from "../pages/Code";
 import CourseDetails from "../pages/CourseDetails";
+import ForgotCredentials from "../pages/ForgotCredentials";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import McqRankPage from "../pages/McqRankPage";
@@ -54,6 +56,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/course/:id" element={<CourseDetails />} />
       <Route path="/registration" element={<Registration />} />
+      <Route path="/forgot" element={<ForgotCredentials />} />
+      <Route path="/code" element={<Code />} />
 
       {/* Protected Student Routes */}
       <Route

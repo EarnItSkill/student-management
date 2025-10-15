@@ -225,7 +225,10 @@ const Registration = () => {
                 {/* Email */}
                 <div className="form-control flex flex-col">
                   <label className="label">
-                    <span className="label-text font-semibold">ইমেইল *</span>
+                    <span className="label-text font-semibold">
+                      ইমেইল{" "}
+                      <span className="text-gray-600 text-sm">(অপশনাল)</span>{" "}
+                    </span>
                   </label>
                   <input
                     type="email"
@@ -234,7 +237,7 @@ const Registration = () => {
                       errors.email ? "input-error" : ""
                     }`}
                     {...register("email", {
-                      required: "ইমেইল বাধ্যতামূলক",
+                      // required: "ইমেইল বাধ্যতামূলক",
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                         message: "Invalid email address",

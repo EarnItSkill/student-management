@@ -1,6 +1,7 @@
 import { Edit, FileText, Image as ImageIcon, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const CqDetailModal = ({ cq, onClose }) => {
   const navigate = useNavigate();
@@ -62,7 +63,9 @@ const CqDetailModal = ({ cq, onClose }) => {
               </div>
             ) : (
               <div className="p-4 bg-base-100 rounded-lg">
-                <p className="whitespace-pre-wrap">{cq.stimulusContent}</p>
+                <p className="whitespace-pre-wrap">
+                  {parseSpecialToJSX(cq.stimulusContent)}
+                </p>
               </div>
             )}
           </div>
@@ -84,7 +87,9 @@ const CqDetailModal = ({ cq, onClose }) => {
                         {question.marks} Marks
                       </div>
                     </div>
-                    <p className="text-lg">{question.question}</p>
+                    <p className="text-lg">
+                      {parseSpecialToJSX(question.question)}
+                    </p>
                   </div>
                 </div>
               </div>

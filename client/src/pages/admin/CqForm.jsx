@@ -29,8 +29,8 @@ const CqForm = () => {
       stimulusType: "text",
       stimulusContent: "",
       questions: [
-        { question: "", marks: 5 },
-        { question: "", marks: 5 },
+        { question: "", marks: 3 },
+        { question: "", marks: 4 },
       ],
     },
   });
@@ -233,7 +233,7 @@ const CqForm = () => {
                     ) : (
                       <textarea
                         placeholder="Enter stimulus text here..."
-                        className={`textarea textarea-bordered h-32 ${
+                        className={`textarea textarea-bordered h-20 w-full ${
                           errors.stimulusContent ? "textarea-error" : ""
                         }`}
                         {...field}
@@ -301,7 +301,7 @@ const CqForm = () => {
                         <>
                           <textarea
                             placeholder={`Enter question ${index + 1}...`}
-                            className={`textarea textarea-bordered h-24 ${
+                            className={`textarea textarea-bordered h-20 w-full ${
                               errors.questions?.[index]?.question
                                 ? "textarea-error"
                                 : ""

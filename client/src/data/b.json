@@ -1,0 +1,34 @@
+[
+  {
+    "_id": "68ea66906f4afcbeebf85f5e",
+    "batchType": "Ict",
+    "batchName": "ICT -  সকাল - ছেলে",
+    "courseId": "68e609e49e158e162999fa2c",
+    "startDate": "2025-10-13",
+    "endDate": "2025-10-31",
+    "scheduleType": "SIX_DAYS",
+    "startTime": "20:15",
+    "gender": "male",
+    "totalSeats": 18,
+    "sBatchId": "BATCH-0001",
+    "enrolledStudents": 2,
+    "instructor": "মো. মোজাম্মেল হক",
+    "courseFee": 4000
+  },
+  {
+    "_id": "68ea76ef6f4afcbeebf85f66",
+    "batchType": "Ict",
+    "batchName": "ICT -  সকাল - মেয়ে",
+    "courseId": "68e609e49e158e162999fa2c",
+    "startDate": "2025-10-10",
+    "endDate": "2025-10-18",
+    "scheduleType": "SIX_DAYS",
+    "startTime": "21:25",
+    "gender": "female",
+    "totalSeats": 18,
+    "sBatchId": "BATCH-0001",
+    "enrolledStudents": 2,
+    "instructor": "মো. মোজাম্মেল হক",
+    "courseFee": 4000
+  }
+]

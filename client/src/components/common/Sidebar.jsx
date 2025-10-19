@@ -85,6 +85,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/batch-details",
+      label: "Batch Details",
+      icon: Search,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/quiz-results",
       label: "Quiz Results",
       icon: Trophy,

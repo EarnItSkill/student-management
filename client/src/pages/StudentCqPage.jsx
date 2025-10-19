@@ -139,13 +139,15 @@ const StudentCqPage = () => {
               <div className="card-body">
                 <div className="flex items-start gap-4">
                   <div className="badge badge-primary badge-lg">
-                    {index + 1}
+                    {index + 3}
                   </div>
                   <div className="flex-1">
-                    <p className="text-lg mb-2">{question.question}</p>
-                    <div className="badge badge-ghost">
+                    <p className="text-lg mb-2">
+                      {parseSpecialToJSX(question.question)}
+                    </p>
+                    {/* <div className="badge badge-ghost">
                       নম্বর: {question.marks}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

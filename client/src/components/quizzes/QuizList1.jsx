@@ -11,146 +11,84 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
 import ConfirmModal from "../common/ConfirmModal";
 
 const QuizList = ({ onEdit, onAdd }) => {
   const { quizzes, batches, courses, deleteQuiz } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
-
-  // নেভিগেশন স্টেট: নির্বাচিত ব্যাচ টাইপ গ্রুপ (যেমন: "Ict") ধরে রাখার জন্য
-  const [selectedBatchTypeGroup, setSelectedBatchTypeGroup] = useState(null);
-
-  // নেভিগেশন স্টেট: নির্বাচিত চ্যাপ্টার নাম ধরে রাখার জন্য
+  // নতুন স্টেট: Chapter নির্বাচন
   const [selectedChapter, setSelectedChapter] = useState(null);
-
+  const [selectedBatch, setSelectedBatch] = useState(null);
   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-  const [viewType, setViewType] = useState("grid");
+  const [viewType, setViewType] = useState("grid"); // "grid" or "table"
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, quiz: null });
   const [viewModal, setViewModal] = useState({ isOpen: false, quiz: null });
 
-  // 1. Group quizzes by batch and calculate stats
-  // (এই অংশটি অপরিবর্তিত, কারণ এটি প্রতি ব্যাচের তথ্য ঠিকভাবে যোগ করে)
-  const batchesWithQuizzes = batches.map((batch) => {
-    const batchQuizzes = quizzes.filter(
-      (quiz) => quiz.courseId === batch.courseId || quiz.batchId === batch._id
-    );
-    const course = courses.find((c) => c._id === batch.courseId);
-    return {
-      ...batch,
-      quizzes: batchQuizzes,
-      course: course,
-      // এই সংখ্যাগুলো ঠিক আছে, কারণ এগুলো প্রতি ব্যাচের জন্য আলাদাভাবে গণনা করা হচ্ছে
-      totalQuestions: batchQuizzes.reduce(
-        (sum, q) => sum + q.questions.length,
-        0
-      ),
-      totalSubmissions: batchQuizzes.reduce(
-        (sum, q) => sum + q.results.length,
-        0
-      ),
-    };
-  });
-
-  // 👈 ফিক্সড লজিক: batchType অনুযায়ী গ্রুপ করা এবং ডুপ্লিকেট কুইজ গণনা এড়িয়ে যাওয়া (RENDER 1-এর জন্য)
-  const groupedBatches = batchesWithQuizzes.reduce((acc, batch) => {
-    const type = batch.batchType || "Others";
-    if (!acc[type]) {
-      acc[type] = {
-        batchType: type,
-        batches: [],
-        uniqueQuizIds: new Set(), // 👈 নতুন: ইউনিক কুইজ আইডি ট্র্যাক করার জন্য
-        totalQuizzes: 0,
-        totalQuestions: 0,
-        totalSubmissions: 0,
-      };
-    }
-    acc[type].batches.push(batch);
-
-    // ডুপ্লিকেট কুইজ এড়িয়ে সঠিক গণনা করা
-    batch.quizzes.forEach((quiz) => {
-      if (!acc[type].uniqueQuizIds.has(quiz._id)) {
-        acc[type].uniqueQuizIds.add(quiz._id);
-        // শুধুমাত্র ইউনিক কুইজের সংখ্যা এবং অন্যান্য ডেটা যোগ করা হলো
-        acc[type].totalQuizzes += 1;
-        acc[type].totalQuestions += quiz.questions.length;
-        acc[type].totalSubmissions += quiz.results.length; // সাবমিশন যেহেতু কুইজের সাথে যুক্ত, তাই এটিও ইউনিক হবে
-      }
-    });
-
-    return acc;
-  }, {});
-
-  const batchTypeGroups = Object.values(groupedBatches);
-
-  // RENDER 1-এর জন্য সার্চ লজিক
-  const filteredBatchTypeGroups = batchTypeGroups.filter((group) =>
-    group.batchType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // RENDER 2-এর জন্য ডেটা প্রসেসিং (Group থেকে Chapter List)
-  const groupData = selectedBatchTypeGroup
-    ? batchTypeGroups.find((g) => g.batchType === selectedBatchTypeGroup)
-    : null;
-
-  let chapterList = [];
-  let quizzesForSelectedGroup = [];
-  let currentBatchForQuizAdd = null;
-
-  if (groupData) {
-    // 👈 ফিক্সড লজিক: নির্বাচিত গ্রুপের সমস্ত ইউনিক কুইজ সংগ্রহ করা
-    const allQuizzesInGroup = groupData.batches.flatMap(
-      (batch) => batch.quizzes
-    );
-    const uniqueQuizMap = new Map();
-
-    allQuizzesInGroup.forEach((quiz) => {
-      uniqueQuizMap.set(quiz._id, quiz); // আইডি ব্যবহার করে ডুপ্লিকেট বাদ দেওয়া
-    });
-
-    quizzesForSelectedGroup = Array.from(uniqueQuizMap.values()); // ইউনিক কুইজের তালিকা
-
-    // ইউনিক কুইজ থেকে চ্যাপ্টার এবং কুইজগুলো গ্রুপ করা
-    const chaptersWithQuizzes = quizzesForSelectedGroup.reduce((acc, quiz) => {
-      const chapterName = quiz.chapter || "Uncategorized";
-      if (!acc[chapterName]) {
-        acc[chapterName] = {
-          name: chapterName,
+  // ------------------------------------------------------------------------------------------
+  // ১. সকল কুইজ থেকে অধ্যায় ভিত্তিক গ্রুপিং (ডাটা প্রসেসিং)
+  // ------------------------------------------------------------------------------------------
+  const chapterQuizzes = useMemo(() => {
+    // কুইজগুলিকে chapter ও courseId দ্বারা গ্রুপ করা
+    return quizzes.reduce((groups, quiz) => {
+      const chapter = quiz.chapter || "Others";
+      if (!groups[chapter]) {
+        groups[chapter] = {
+          chapter,
           quizzes: [],
           totalQuestions: 0,
           totalSubmissions: 0,
         };
       }
-      // চ্যাপ্টার লজিক ঠিক করতে কুইজের সাথে ডেটা যুক্ত করা হলো
-      acc[chapterName].quizzes.push(quiz);
-      acc[chapterName].totalQuestions += quiz.questions.length;
-      acc[chapterName].totalSubmissions += quiz.results.length;
-      return acc;
+      groups[chapter].quizzes.push(quiz);
+      groups[chapter].totalQuestions += quiz.questions.length;
+      groups[chapter].totalSubmissions += quiz.results.length;
+      return groups;
     }, {});
+  }, [quizzes]);
 
-    chapterList = Object.values(chaptersWithQuizzes).sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      })
-    );
+  const sortedChapterKeys = Object.keys(chapterQuizzes).sort((a, b) => {
+    if (a === "Others") return 1;
+    if (b === "Others") return -1;
+    return a.localeCompare(b, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  });
 
-    // কুইজ অ্যাড করার জন্য গ্রুপের প্রথম ব্যাচ আইডি নেওয়া
-    currentBatchForQuizAdd = groupData.batches[0]?._id;
-  }
+  // ------------------------------------------------------------------------------------------
+  // ২. ব্যাচ প্রসেসিং (পূর্বের লজিক, কিন্তু এখন চ্যাপ্টার ফিল্টারিংয়ের জন্য ব্যবহার হবে)
+  // ------------------------------------------------------------------------------------------
+  const batchesWithQuizzes = useMemo(() => {
+    return batches.map((batch) => {
+      const course = courses.find((c) => c._id === batch.courseId);
 
-  // RENDER 3-এর জন্য ডেটা প্রসেসিং (Chapter List থেকে Quiz List)
-  const chapterQuizzes =
-    selectedChapter && quizzesForSelectedGroup.length > 0
-      ? chapterList
-          .find((c) => c.name === selectedChapter)
-          ?.quizzes.filter((quiz) =>
-            quiz.title.toLowerCase().includes(quizSearchTerm.toLowerCase())
-          )
-      : [];
+      // কুইজ ফিল্টারিং লজিক
+      const batchQuizzes = quizzes.filter(
+        (quiz) => quiz.courseId === batch.courseId || quiz.batchId === batch._id
+      );
 
-  // নেভিগেশন এবং ইউটিলিটি ফাংশন (অপরিবর্তিত)
+      return {
+        ...batch,
+        quizzes: batchQuizzes,
+        course: course,
+        totalQuizzes: batchQuizzes.length,
+        totalQuestions: batchQuizzes.reduce(
+          (sum, q) => sum + q.questions.length,
+          0
+        ),
+        totalSubmissions: batchQuizzes.reduce(
+          (sum, q) => sum + q.results.length,
+          0
+        ),
+      };
+    });
+  }, [quizzes, batches, courses]);
+
+  // ------------------------------------------------------------------------------------------
+  // হ্যান্ডলার ফাংশন
+  // ------------------------------------------------------------------------------------------
   const handleDelete = (quiz) => {
     setDeleteModal({ isOpen: true, quiz });
   };
@@ -162,32 +100,32 @@ const QuizList = ({ onEdit, onAdd }) => {
     }
   };
 
-  const handleBackToGroups = () => {
-    setSelectedBatchTypeGroup(null);
-    setSelectedChapter(null);
-    setSearchTerm("");
-    setQuizSearchTerm("");
+  const handleBack = () => {
+    if (selectedBatch) {
+      setSelectedBatch(null);
+      setQuizSearchTerm("");
+      // Back to Batch List
+    } else if (selectedChapter) {
+      setSelectedChapter(null);
+      setSearchTerm("");
+      // Back to Chapter List
+    }
   };
 
-  const handleBackToChapters = () => {
-    setSelectedChapter(null);
-    setQuizSearchTerm("");
-  };
+  // ------------------------------------------------------------------------------------------
+  // ৩. শর্তসাপেক্ষ রেন্ডারিং (Conditional Rendering)
+  // ------------------------------------------------------------------------------------------
 
-  // --- RENDER LOGIC ---
-
-  // ====================================================================
-  // RENDER 1: Batch Type Group List View
-  // ====================================================================
-
-  if (!selectedBatchTypeGroup) {
-    const totalQuizzes = batchTypeGroups.reduce(
-      (sum, g) => sum + g.totalQuizzes,
-      0
-    );
-    const totalQuestions = batchTypeGroups.reduce(
-      (sum, g) => sum + g.totalQuestions,
-      0
+  // ***************************************************************
+  // ভিউ ১: চ্যাপ্টার নির্বাচন (Chapter Selection)
+  // ***************************************************************
+  if (!selectedChapter) {
+    const filteredChapters = sortedChapterKeys.filter(
+      (key) =>
+        key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        chapterQuizzes[key].quizzes.some((q) =>
+          q.title.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
 
     return (
@@ -195,38 +133,40 @@ const QuizList = ({ onEdit, onAdd }) => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h2 className="text-2xl font-bold">
-            Quizzes Management - Select Batch Type (Group View)
+            Quizzes Management - Select Chapter
           </h2>
         </div>
 
-        {/* Stats - Overall */}
+        {/* Overall Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-figure text-primary">
               <BookOpen className="w-8 h-8" />
             </div>
-            <div className="stat-title">Total Batch Types</div>
+            <div className="stat-title">Total Chapters</div>
             <div className="stat-value text-primary">
-              {batchTypeGroups.length}
+              {sortedChapterKeys.length}
             </div>
           </div>
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-figure text-success">
               <Award className="w-8 h-8" />
             </div>
-            <div className="stat-title">Total Unique Quizzes</div>
-            <div className="stat-value text-success">{totalQuizzes}</div>
+            <div className="stat-title">Total Quizzes</div>
+            <div className="stat-value text-success">{quizzes.length}</div>
           </div>
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-figure text-info">
               <Award className="w-8 h-8" />
             </div>
-            <div className="stat-title">Total Questions (Unique)</div>
-            <div className="stat-value text-info">{totalQuestions}</div>
+            <div className="stat-title">Total Questions</div>
+            <div className="stat-value text-info">
+              {quizzes.reduce((sum, q) => sum + q.questions.length, 0)}
+            </div>
           </div>
         </div>
 
-        {/* Search Input */}
+        {/* Search */}
         <div className="form-control mb-6">
           <div className="input-group">
             <span className="bg-base-200">
@@ -234,7 +174,7 @@ const QuizList = ({ onEdit, onAdd }) => {
             </span>
             <input
               type="text"
-              placeholder="Search by Batch Type (e.g. Ict, Office)..."
+              placeholder="Search chapters or quiz titles..."
               className="input input-bordered w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -242,66 +182,218 @@ const QuizList = ({ onEdit, onAdd }) => {
           </div>
         </div>
 
-        {/* Batch Type Group Cards */}
-        {filteredBatchTypeGroups.length === 0 ? (
+        {/* Chapters Grid */}
+        {filteredChapters.length === 0 ? (
           <div className="text-center py-12">
             <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">No batch types found.</p>
+            <p className="text-gray-500">No chapters found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBatchTypeGroups.map((group) => (
+            {filteredChapters.map((chapterKey) => {
+              const chapterData = chapterQuizzes[chapterKey];
+              return (
+                <div
+                  key={chapterKey}
+                  onClick={() => setSelectedChapter(chapterKey)}
+                  className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
+                >
+                  <div className="card-body">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <h3 className="card-title text-lg">
+                          Chapter {chapterKey}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Related Quizzes Overview
+                        </p>
+                      </div>
+                      <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
+                    </div>
+
+                    <div className="divider my-2"></div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Quizzes:</span>
+                        <span className="badge badge-primary">
+                          {chapterData.quizzes.length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Questions:</span>
+                        <span className="badge badge-success">
+                          {chapterData.totalQuestions}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">
+                          Total Submissions:
+                        </span>
+                        <span className="badge badge-info">
+                          {chapterData.totalSubmissions}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 text-center">
+                      <button className="btn btn-primary btn-sm w-full">
+                        View Batches
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ***************************************************************
+  // ভিউ ২: ব্যাচ নির্বাচন (Batch Selection - Chapter selected, no Batch)
+  // ***************************************************************
+  if (selectedChapter && !selectedBatch) {
+    // শুধুমাত্র সেই ব্যাচগুলি দেখাও যেখানে এই চ্যাপ্টারের কুইজ আছে
+    const chapterQuizzesList = chapterQuizzes[selectedChapter]?.quizzes || [];
+    const relatedCourseIds = [
+      ...new Set(chapterQuizzesList.map((q) => q.courseId)),
+    ];
+
+    // ব্যাচ ফিল্টারিং: চ্যাপ্টারের সাথে সম্পর্কিত কোর্সের ব্যাচ + সার্চ ফিল্টার
+    const filteredBatches = batchesWithQuizzes
+      .filter((batch) => relatedCourseIds.includes(batch.courseId))
+      .filter(
+        (batch) =>
+          batch?.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          batch?.course?.title
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          batch?.courseId?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+    const chapterDetails = chapterQuizzes[selectedChapter];
+
+    return (
+      <div>
+        {/* Header with Back Button */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2">
+              <ArrowLeft className="w-5 h-5" />
+              Back to Chapters
+            </button>
+            <div>
+              <h2 className="text-2xl font-bold">
+                Chapter {selectedChapter} - Select Batch
+              </h2>
+              <p className="text-sm text-gray-400">
+                Total Quizzes: {chapterDetails.quizzes.length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Chapter/Batch Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-figure text-primary">
+              <BookOpen className="w-8 h-8" />
+            </div>
+            <div className="stat-title">Related Batches</div>
+            <div className="stat-value text-primary">
+              {filteredBatches.length}
+            </div>
+          </div>
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-figure text-success">
+              <Award className="w-8 h-8" />
+            </div>
+            <div className="stat-title">Chapter Quizzes</div>
+            <div className="stat-value text-success">
+              {chapterDetails.quizzes.length}
+            </div>
+          </div>
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-figure text-info">
+              <Award className="w-8 h-8" />
+            </div>
+            <div className="stat-title">Total Questions</div>
+            <div className="stat-value text-info">
+              {chapterDetails.totalQuestions}
+            </div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="form-control mb-6">
+          <div className="input-group">
+            <span className="bg-base-200">
+              <Search className="w-5 h-5" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search batches, courses or categories..."
+              className="input input-bordered w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Batches Grid */}
+        {filteredBatches.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">No batches found for this chapter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBatches.map((batch) => (
               <div
-                key={group.batchType}
-                onClick={() => {
-                  setSelectedBatchTypeGroup(group.batchType);
-                  setSearchTerm("");
-                }}
-                className="card bg-gradient-to-br from-secondary/10 to-secondary/5 shadow-xl hover:shadow-2xl transition-all cursor-pointer border-2 border-secondary/20 hover:border-secondary/50"
+                key={batch._id}
+                onClick={() => setSelectedBatch(batch._id)}
+                className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
               >
                 <div className="card-body">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
-                      <h3 className="card-title text-2xl text-secondary">
-                        {group.batchType}
-                      </h3>
+                      <h3 className="card-title text-lg">{batch.batchName}</h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        Group of {group.batches.length} Batches
+                        {batch.course?.title || "No Course"}
                       </p>
                     </div>
-                    <BookOpen className="w-8 h-8 text-secondary flex-shrink-0" />
+                    <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
                   </div>
 
                   <div className="divider my-2"></div>
 
                   <div className="space-y-2 text-sm">
+                    {/* এখানে batch.quizzes.length হলো ঐ ব্যাচের জন্য সকল কুইজ, চ্যাপ্টারের কুইজ নয়। */}
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
-                        Total Unique Quizzes:
-                      </span>
+                      <span className="text-gray-600">Course Quizzes:</span>
                       <span className="badge badge-primary">
-                        {group.totalQuizzes}
+                        {batch.totalQuizzes}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">
-                        Total Unique Questions:
+                        Chapter {selectedChapter} Quizzes:
                       </span>
                       <span className="badge badge-success">
-                        {group.totalQuestions}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Submissions:</span>
-                      <span className="badge badge-info">
-                        {group.totalSubmissions}
+                        {
+                          batch.quizzes.filter(
+                            (q) => q.chapter === selectedChapter
+                          ).length
+                        }
                       </span>
                     </div>
                   </div>
 
                   <div className="mt-4 text-center">
-                    <button className="btn btn-secondary btn-sm w-full">
-                      View Chapters
+                    <button className="btn btn-primary btn-sm w-full">
+                      View Quizzes
                     </button>
                   </div>
                 </div>
@@ -313,241 +405,90 @@ const QuizList = ({ onEdit, onAdd }) => {
     );
   }
 
-  // ====================================================================
-  // RENDER 2: Chapter List View (Selected Batch Type Group)
-  // ====================================================================
+  // ***************************************************************
+  // ভিউ ৩: কুইজ তালিকা (Quiz List - Chapter and Batch selected)
+  // ***************************************************************
+  const selectedBatchData = batchesWithQuizzes.find(
+    (b) => b._id === selectedBatch
+  );
 
-  if (selectedBatchTypeGroup && !selectedChapter) {
-    // এই ভিউতে এখন সঠিক (Unique) ডেটা দেখাচ্ছে
-    const totalQuizzesInGroup = groupData.totalQuizzes;
-    const totalQuestionsInGroup = groupData.totalQuestions;
-    const totalSubmissionsInGroup = groupData.totalSubmissions;
-
-    return (
-      <div>
-        {/* Header with Back Button (to Batch Type Groups) */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleBackToGroups}
-              className="btn btn-ghost btn-sm gap-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back to Batch Types
-            </button>
-            <div>
-              <h2 className="text-2xl font-bold text-secondary">
-                Chapters for: {selectedBatchTypeGroup}
-              </h2>
-              <p className="text-sm text-gray-400">
-                {groupData.batches.length} Batches Covered (Unique Quizzes:{" "}
-                {groupData.totalQuizzes})
-              </p>
-            </div>
-          </div>
-          {/* Add Quiz Button - Enabled */}
-          <button
-            onClick={() => onAdd({ batchId: currentBatchForQuizAdd })}
-            className="btn btn-primary gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Add Quiz
-          </button>
-        </div>
-
-        {/* Stats for this Group */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="stat bg-base-100 rounded-lg shadow-lg">
-            <div className="stat-figure text-primary">
-              <BookOpen className="w-8 h-8" />
-            </div>
-            <div className="stat-title">Total Chapters</div>
-            <div className="stat-value text-primary">{chapterList.length}</div>
-          </div>
-          <div className="stat bg-base-100 rounded-lg shadow-lg">
-            <div className="stat-figure text-success">
-              <Award className="w-8 h-8" />
-            </div>
-            <div className="stat-title">Total Unique Quizzes</div>
-            <div className="stat-value text-success">{totalQuizzesInGroup}</div>
-          </div>
-          <div className="stat bg-base-100 rounded-lg shadow-lg">
-            <div className="stat-figure text-info">
-              <Award className="w-8 h-8" />
-            </div>
-            <div className="stat-title">Total Unique Questions</div>
-            <div className="stat-value text-info">{totalQuestionsInGroup}</div>
-          </div>
-        </div>
-
-        {/* Search Input for Chapters/Quizzes */}
-        <div className="form-control mb-6">
-          <div className="input-group">
-            <span className="bg-base-200">
-              <Search className="w-5 h-5" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search chapters or quizzes..."
-              className="input input-bordered w-full"
-              value={quizSearchTerm}
-              onChange={(e) => setQuizSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Chapter List Grid */}
-        {chapterList.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">
-              No quizzes or chapters found for this batch type.
-            </p>
-            <button
-              onClick={() => onAdd({ batchId: currentBatchForQuizAdd })}
-              className="btn btn-primary btn-sm mt-4 gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add First Quiz
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {chapterList
-              .filter((chapter) =>
-                chapter.name
-                  .toLowerCase()
-                  .includes(quizSearchTerm.toLowerCase())
-              )
-              .map((chapter) => (
-                <div
-                  key={chapter.name}
-                  // 👈 ফিক্সড: চ্যাপ্টার কার্ডে ক্লিক করলে কুইজ লিস্ট লোড হবে
-                  onClick={() => setSelectedChapter(chapter.name)}
-                  className="card bg-base-100 shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 border-base-200 hover:border-info/50"
-                >
-                  <div className="card-body">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <h3 className="card-title text-lg">
-                          Chapter: {chapter.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {selectedBatchTypeGroup} Group
-                        </p>
-                      </div>
-                      <BookOpen className="w-8 h-8 text-info flex-shrink-0" />
-                    </div>
-
-                    <div className="divider my-2"></div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Quizzes:</span>
-                        <span className="badge badge-info">
-                          {chapter.quizzes.length}{" "}
-                          {/* এখন এটি ইউনিক কুইজের সংখ্যা দেখাচ্ছে */}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Questions:</span>
-                        <span className="badge badge-success">
-                          {chapter.totalQuestions}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Submissions:</span>
-                        <span className="badge badge-primary">
-                          {chapter.totalSubmissions}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 text-center">
-                      <button className="btn btn-info btn-sm w-full">
-                        View Quizzes
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
+  const filteredBatchQuizzes = quizzes
+    .filter(
+      // কুইজটি অবশ্যই নির্বাচিত চ্যাপ্টার, কোর্স এবং ব্যাচের সাথে সম্পর্কিত হতে হবে।
+      (quiz) =>
+        quiz.chapter === selectedChapter &&
+        (quiz.courseId === selectedBatchData.courseId ||
+          quiz.batchId === selectedBatch)
+    )
+    .filter((quiz) =>
+      quiz.title.toLowerCase().includes(quizSearchTerm.toLowerCase())
     );
-  }
 
-  // ====================================================================
-  // RENDER 3: Quiz List for Selected Chapter
-  // ====================================================================
-
-  const totalChapterQuestions = chapterQuizzes.reduce(
-    (sum, q) => sum + q.questions.length,
-    0
-  );
-  const totalChapterSubmissions = chapterQuizzes.reduce(
-    (sum, q) => sum + q.results.length,
-    0
-  );
+  // Note: যেহেতু আমরা চ্যাপ্টার দ্বারা ফিল্টার করেছি, এখানে গ্রুপিংয়ের প্রয়োজন নেই।
+  // তবে, পূর্বে আপনার দেওয়া কোডের সাথে মিল রাখার জন্য ভিউ লজিকটি সরল রাখা হয়েছে।
 
   return (
     <div>
-      {/* Header with Back Button (to Chapters) */}
+      {/* Header with Back Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleBackToChapters}
-            className="btn btn-ghost btn-sm gap-2"
-          >
+          <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2">
             <ArrowLeft className="w-5 h-5" />
-            Back to Chapters
+            Back to Batches
           </button>
           <div>
             <h2 className="text-2xl font-bold">
-              Chapter: {selectedChapter} Quizzes
+              Chapter {selectedChapter} Quizzes
             </h2>
             <p className="text-sm text-gray-400">
-              {selectedBatchTypeGroup} Group
+              {selectedBatchData?.batchName} -{" "}
+              {selectedBatchData?.course?.title}
             </p>
           </div>
         </div>
-        <button
-          onClick={() =>
-            onAdd({ batchId: currentBatchForQuizAdd, chapter: selectedChapter })
-          }
-          className="btn btn-primary gap-2"
-        >
+        <button onClick={onAdd} className="btn btn-primary gap-2">
           <Plus className="w-5 h-5" />
           Add Quiz
         </button>
       </div>
 
-      {/* Chapter Stats */}
+      {/* Batch Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="stat bg-base-100 rounded-lg shadow-lg">
           <div className="stat-figure text-primary">
             <Award className="w-8 h-8" />
           </div>
-          <div className="stat-title">Total Quizzes (Chapter)</div>
-          <div className="stat-value text-primary">{chapterQuizzes.length}</div>
+          <div className="stat-title">
+            Total Quizzes (Chapter {selectedChapter})
+          </div>
+          <div className="stat-value text-primary">
+            {filteredBatchQuizzes.length}
+          </div>
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
           <div className="stat-figure text-success">
             <Award className="w-8 h-8" />
           </div>
-          <div className="stat-title">Total Questions (Chapter)</div>
-          <div className="stat-value text-success">{totalChapterQuestions}</div>
+          <div className="stat-title">Total Questions</div>
+          <div className="stat-value text-success">
+            {filteredBatchQuizzes.reduce(
+              (sum, q) => sum + q.questions.length,
+              0
+            )}
+          </div>
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
           <div className="stat-figure text-info">
             <Award className="w-8 h-8" />
           </div>
-          <div className="stat-title">Total Submissions (Chapter)</div>
-          <div className="stat-value text-info">{totalChapterSubmissions}</div>
+          <div className="stat-title">Total Submissions</div>
+          <div className="stat-value text-info">
+            {filteredBatchQuizzes.reduce((sum, q) => sum + q.results.length, 0)}
+          </div>
         </div>
       </div>
 
-      {/* Search and View Toggle */}
+      {/* Search and View Toggle (একই থাকবে) */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="form-control flex-1">
           <div className="input-group flex items-center gap-3">
@@ -584,28 +525,24 @@ const QuizList = ({ onEdit, onAdd }) => {
       {quizSearchTerm && (
         <div className="alert alert-info mb-4">
           <span>
-            Found {chapterQuizzes.length} quiz(es) matching "{quizSearchTerm}"
+            Found {filteredBatchQuizzes.length} quiz(es) matching "
+            {quizSearchTerm}"
           </span>
         </div>
       )}
 
-      {/* Quizzes Display */}
-      {chapterQuizzes.length === 0 ? (
+      {/* Quizzes Display - Grid/Table View */}
+      {filteredBatchQuizzes.length === 0 ? (
         <div className="text-center py-12">
           <Award className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">
             {quizSearchTerm
               ? "No quizzes found matching your search"
-              : `No quizzes found for ${selectedChapter} chapter`}
+              : `No quizzes found for Chapter ${selectedChapter} in this batch`}
           </p>
           {!quizSearchTerm && (
             <button
-              onClick={() =>
-                onAdd({
-                  batchId: currentBatchForQuizAdd,
-                  chapter: selectedChapter,
-                })
-              }
+              onClick={onAdd}
               className="btn btn-primary btn-sm mt-4 gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -616,7 +553,7 @@ const QuizList = ({ onEdit, onAdd }) => {
       ) : viewType === "grid" ? (
         // Grid View
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {chapterQuizzes.map((quiz) => (
+          {filteredBatchQuizzes.map((quiz) => (
             <div
               key={quiz._id}
               className="card bg-base-100 shadow-lg hover:shadow-xl transition-all"
@@ -625,9 +562,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="card-title text-lg">{quiz.title}</h3>
-                    <div className="badge badge-accent badge-sm mt-2">
-                      Chapter {quiz.chapter}
-                    </div>
                   </div>
                   <Award className="w-8 h-8 text-primary flex-shrink-0" />
                 </div>
@@ -694,7 +628,7 @@ const QuizList = ({ onEdit, onAdd }) => {
               </tr>
             </thead>
             <tbody>
-              {chapterQuizzes.map((quiz, index) => (
+              {filteredBatchQuizzes.map((quiz, index) => (
                 <tr key={quiz._id} className="hover">
                   <td>{index + 1}</td>
                   <td>
@@ -704,9 +638,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                     </div>
                   </td>
                   <td>
-                    <span className="badge badge-accent">
-                      Chapter {quiz.chapter}
-                    </span>
+                    <span className="badge badge-accent">{quiz.chapter}</span>
                   </td>
                   <td>
                     <span className="badge badge-primary">
@@ -755,7 +687,7 @@ const QuizList = ({ onEdit, onAdd }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal (অপরিবর্তিত) */}
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, quiz: null })}
@@ -766,7 +698,7 @@ const QuizList = ({ onEdit, onAdd }) => {
         type="danger"
       />
 
-      {/* View Quiz Modal (অপরিবর্তিত) */}
+      {/* View Quiz Modal (একই থাকবে) */}
       {viewModal.isOpen && viewModal.quiz && (
         <div className="modal modal-open">
           <div className="modal-box max-w-3xl max-h-[90vh] overflow-y-auto">

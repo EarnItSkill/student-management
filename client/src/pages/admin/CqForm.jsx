@@ -329,6 +329,7 @@ const CqForm = () => {
                       control={control}
                       render={({ field }) => (
                         <input
+                          disabled
                           type="number"
                           min="1"
                           max="10"

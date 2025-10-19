@@ -113,45 +113,12 @@ export const AppProvider = ({ children }) => {
 
   // ============== Authentication Functions ==============
 
-  // const login = (email, password) => {
-  //   // Check admin login
-  //   if (email === "mrmozammal@gmail.com" && password === "admin123") {
-  //     const adminUser = {
-  //       id: 0,
-  //       name: "Admin",
-  //       email: "mrmozammal@gmail.com",
-  //       role: "admin",
-  //       image: "https://avatars.githubusercontent.com/u/31990245?v=4",
-  //     };
-  //     setCurrentUser(adminUser);
-  //     setIsAuthenticated(true);
-  //     localStorage.setItem("currentUser", JSON.stringify(adminUser));
-  //     return { success: true, user: adminUser };
-  //   }
-
-  //   // Check student login
-  //   const student = students.find(
-  //     (s) => s.email === email && s.password === password
-  //   );
-
-  //   if (student) {
-  //     const user = { ...student };
-  //     delete user.password; // Remove password from user object
-  //     setCurrentUser(user);
-  //     setIsAuthenticated(true);
-  //     localStorage.setItem("currentUser", JSON.stringify(user));
-  //     return { success: true, user };
-  //   }
-
-  //   return { success: false, message: "Invalid email or password" };
-  // };
-
   const login = (identifier, password) => {
     // Check admin login
     if (identifier === "mrmozammal@gmail.com" && password === "admin123") {
       const adminUser = {
         id: 0,
-        name: "Admin",
+        name: "মো. মোজাম্মেল হক",
         email: "mrmozammal@gmail.com",
         role: "admin",
         image: "https://avatars.githubusercontent.com/u/31990245?v=4",

@@ -12,6 +12,7 @@ import Settings from "../components/settings/settings";
 import StudentList from "../components/students/StudentList";
 import AdminChapterSchedule from "../pages/admin/AdminChapterSchedule";
 import AdminQuizResults from "../pages/admin/AdminQuizResults";
+import BatchDetailsPage from "../pages/admin/BatchDetailsPage";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
 import AdminDashboard from "../pages/AdminDashboard";
@@ -98,6 +99,7 @@ const AppRoutes = () => {
         <Route path="payments" element={<PaymentList />} />
         <Route path="attendance" element={<AttendanceList />} />
         <Route path="enrollments" element={<EnrollmentList />} />
+        <Route path="batch-details" element={<BatchDetailsPage />} />
         <Route path="cq" element={<CqPageList />} />
         <Route path="cq/add" element={<CqForm />} />
         <Route path="cq/edit/:id" element={<CqForm />} />

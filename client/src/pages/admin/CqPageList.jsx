@@ -273,7 +273,7 @@ const CqPageList = () => {
 
                             {cq.stimulusType === "text" && (
                               <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                                {cq.stimulusContent}
+                                {parseSpecialToJSX(cq.stimulusContent)}
                               </p>
                             )}
 
@@ -281,7 +281,7 @@ const CqPageList = () => {
                               <p className="font-semibold mb-1">Questions:</p>
                               {cq.questions.map((q, idx) => (
                                 <p key={idx} className="text-gray-600">
-                                  {idx + 1}. {q.question}
+                                  {idx + 1}. {parseSpecialToJSX(q.question)}
                                 </p>
                               ))}
                             </div>

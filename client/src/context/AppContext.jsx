@@ -658,8 +658,6 @@ export const AppProvider = ({ children }) => {
   //   };
 
   const submitQuiz = async (quizId, newResult) => {
-    console.log(quizId);
-    console.log(newResult);
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
@@ -667,6 +665,7 @@ export const AppProvider = ({ children }) => {
       );
 
       const updatedQuiz = response.data;
+      console.log(updatedQuiz);
 
       setQuizzes((prevQuizzes) =>
         prevQuizzes.map((q) => (q._id === quizId ? updatedQuiz : q))

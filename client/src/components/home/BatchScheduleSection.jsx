@@ -1,104 +1,116 @@
 import {
   ArrowRight,
+  BookOpen,
   Calendar,
-  Clock,
   DollarSign,
   GraduationCap,
   Sparkles,
-  Star,
   Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAppContext } from "../../context/useAppContext";
+
+// সকল ডেটা একত্রিত করে কোর্সের ধরন (batchType) অনুযায়ী সারসংক্ষেপ তৈরি করে
+const aggregateBatchData = (batches, enrollments, quizzes) => {
+  const aggregatedData = {};
+
+  batches.forEach((batch) => {
+    const type = batch.batchType;
+    const batchId = batch._id;
+    const courseId = batch.courseId;
+
+    if (!aggregatedData[type]) {
+      aggregatedData[type] = {
+        type,
+        courseId,
+        totalEnrolled: 0,
+        totalBatches: 0,
+        minFee: Infinity,
+        batchIds: [],
+        // পুরাতন কমন স্টাইল/নামকরণ
+        ...getBatchTypeStyle(type),
+      };
+    }
+
+    // এনরোলমেন্ট গণনা (ঐ ব্যাচের)
+    const enrolledInBatch = enrollments.filter(
+      (e) => e.batchId === batchId && e.status === "active"
+    ).length;
+
+    // তথ্য একত্রিত করা
+    aggregatedData[type].totalEnrolled += enrolledInBatch;
+    aggregatedData[type].totalBatches += 1;
+    if (batch.courseFee < aggregatedData[type].minFee) {
+      aggregatedData[type].minFee = batch.courseFee;
+    }
+    aggregatedData[type].batchIds.push(batchId);
+  });
+
+  // কুইজ গণনা (কোর্সের ID ধরে)
+  const courseQuizCounts = quizzes.reduce((acc, quiz) => {
+    acc[quiz.courseId] = (acc[quiz.courseId] || 0) + 1;
+    return acc;
+  }, {});
+
+  // চূড়ান্ত ডেটা ফর্মেট
+  return Object.values(aggregatedData).map((data) => ({
+    ...data,
+    quizCount: courseQuizCounts[data.courseId] || 0,
+    cqCount: data.type === "ict" ? 15 : 10, // ডামি CQ সংখ্যা
+  }));
+};
+
+// ব্যাচ টাইপ অনুযায়ী কার্ডের স্টাইল এবং বিবরণ নির্ধারণ
+const getBatchTypeStyle = (type) => {
+  if (type === "ict") {
+    return {
+      title: "ICT এডমিশন ও একাডেমিক",
+      icon: "💻",
+      color: "from-blue-500 to-indigo-600",
+      tColor: "text-indigo-600",
+      bgColor: "from-blue-50 to-indigo-50",
+      borderColor: "border-indigo-300",
+      description:
+        "উচ্চ মাধ্যমিক ও এডমিশন আইসিটি কোর্সের চলমান ব্যাচসমূহ ও তথ্য।",
+      popular: true,
+    };
+  } else if (type === "office") {
+    return {
+      title: "কম্পিউটার অফিস অ্যাপ্লিকেশন",
+      icon: "🗄️",
+      color: "from-green-500 to-teal-600",
+      tColor: "text-teal-600",
+      bgColor: "from-green-50 to-teal-50",
+      borderColor: "border-teal-300",
+      description:
+        "কম্পিউটার বেসিক ও পেশাগত অফিস অ্যাপ্লিকেশনের চলমান ব্যাচসমূহ।",
+      popular: false,
+    };
+  }
+  //... অন্যান্য টাইপ
+  return {};
+};
+
+// স্থায়ী তথ্য (সব কোর্সের জন্য একই)
+const commonInfo = {
+  duration: "৩ মাস",
+  daysPerWeek: "৬ দিন (শনি - বৃহস্পতিবার)",
+  features: [
+    "অভিজ্ঞ শিক্ষক",
+    "ছোট ব্যাচ সাইজ",
+    "প্র্যাকটিক্যাল ক্লাস",
+    "সার্টিফিকেট প্রদান",
+  ],
+};
 
 const BatchScheduleSection = () => {
-  // মৌলিক ব্যাচ টেমপ্লেট (শুধু সময়সূচী ও স্থায়ী তথ্য)
-  const batchTemplates = [
-    {
-      id: 1,
-      title: "সকাল ব্যাচ ICT",
-      timeSlot: "সকাল ৮:০০ - ৯:০০",
-      icon: "🌅",
-      color: "from-orange-400 to-red-500",
-      tColor: "text-red-500",
-      bgColor: "from-orange-50 to-red-50",
-      borderColor: "border-orange-300",
-      description: "যারা সকালে পড়তে পছন্দ করেন",
-      popular: true,
-    },
-    {
-      id: 2,
-      title: "সকাল ব্যাচ",
-      timeSlot: "সকাল ১০:০০ - ১২:০০",
-      icon: "☀️",
-      color: "from-yellow-400 to-orange-500",
-      tColor: "text-orange-500",
-      bgColor: "from-yellow-50 to-orange-50",
-      borderColor: "border-yellow-300",
-      description: "মধ্য সকালের আদর্শ সময়",
-      popular: false,
-    },
-    {
-      id: 3,
-      title: "দুপুর ব্যাচ",
-      timeSlot: "দুপুর ২:০০ - ৪:০০",
-      icon: "🌤️",
-      color: "from-blue-400 to-cyan-500",
-      tColor: "text-cyan-500",
-      bgColor: "from-blue-50 to-cyan-50",
-      borderColor: "border-blue-300",
-      description: "দুপুরের শান্ত পরিবেশে",
-      popular: false,
-    },
-    {
-      id: 4,
-      title: "বিকেল ব্যাচ",
-      timeSlot: "বিকেল ৪:০০ - ৬:০০",
-      icon: "🌆",
-      color: "from-purple-400 to-pink-500",
-      tColor: "text-pink-500",
-      bgColor: "from-purple-50 to-pink-50",
-      borderColor: "border-purple-300",
-      description: "স্কুল/কলেজের পর উপযুক্ত",
-      popular: true,
-    },
-    {
-      id: 5,
-      title: "সন্ধ্যা ব্যাচ",
-      timeSlot: "সন্ধ্যা ৬:০০ - ৮:০০",
-      icon: "🌇",
-      color: "from-indigo-400 to-purple-500",
-      tColor: "text-purple-500",
-      bgColor: "from-indigo-50 to-purple-50",
-      borderColor: "border-indigo-300",
-      description: "কর্মজীবীদের জন্য আদর্শ",
-      popular: true,
-    },
-    {
-      id: 6,
-      title: "রাত্রি ব্যাচ",
-      timeSlot: "রাত ৮:০০ - ১০:০০",
-      icon: "🌙",
-      color: "from-slate-400 to-blue-600",
-      tColor: "text-blue-500",
-      bgColor: "from-slate-50 to-blue-50",
-      borderColor: "border-slate-300",
-      description: "নৈশকালীন শিক্ষার্থীদের জন্য",
-      popular: false,
-    },
-  ];
-
-  // স্থায়ী তথ্য (সব ব্যাচের জন্য একই)
-  const batchInfo = {
-    duration: "৩ মাস",
-    daysPerWeek: "৬ দিন (শনি - বৃহস্পতিবার)",
-    courseFee: "৪,০০০ টাকা",
-    totalSeats: 19,
-    features: [
-      "অভিজ্ঞ শিক্ষক",
-      "ছোট ব্যাচ সাইজ",
-      "প্র্যাকটিক্যাল ক্লাস",
-      "সার্টিফিকেট প্রদান",
-    ],
-  };
+  // ডেটা একত্রিত করা
+  const { batches, enrollments, quizzes } = useAppContext();
+  const processedBatchGroups = aggregateBatchData(
+    batches,
+    enrollments,
+    quizzes
+  );
 
   return (
     <section className="py-16 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -107,101 +119,97 @@ const BatchScheduleSection = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
             <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-primary font-semibold">ব্যাচ সময়সূচী</span>
+            <span className="text-primary font-semibold">
+              কোর্স ও ব্যাচ সময়সূচী
+            </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            আপনার সুবিধামত সময় বেছে নিন
+          <h2 className="text-4xl md:text-5xl py-3 font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            আপনার পছন্দের ব্যাচটি সম্পর্কে জেনে নিন
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            সকাল থেকে রাত পর্যন্ত ৬টি ভিন্ন সময়ে ক্লাস। যেকোনো একটি বেছে নিয়ে
-            শুরু করুন আপনার শেখার যাত্রা
+            চলমান সকল ব্যাচের তথ্য নিচে দেওয়া হলো। বিস্তারিত জানতে যেকোনো কার্ডে
+            ক্লিক করুন।
           </p>
         </div>
 
-        {/* Batch Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {batchTemplates.map((batch) => (
-            <div
-              key={batch.id}
-              className={`card bg-gradient-to-br ${batch.bgColor} border-2 ${batch.borderColor} hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden group`}
+        {/* Batch Type Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {processedBatchGroups.map((group) => (
+            <Link
+              key={group.type}
+              to={`/course-details/${group.type}`} // এখানে টাইপ অনুযায়ী বিস্তারিত পেজে পাঠানো হচ্ছে
+              className={`card rounded-2xl shadow-xl bg-gradient-to-br ${group.bgColor} border-4 ${group.borderColor} hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden group/card relative block`}
             >
               {/* Popular Badge */}
-              {batch.popular && (
+              {group.popular && (
                 <div className="absolute top-4 right-4 z-10">
-                  <div className="flex items-center gap-1 bg-warning text-warning-content px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    <Star className="w-3 h-3 fill-current" />
+                  <div className="flex items-center gap-1 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                     জনপ্রিয়
                   </div>
                 </div>
               )}
 
-              <div className="card-body p-6 relative">
+              <div className="card-body p-6">
                 {/* Icon & Title */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="text-5xl">{batch.icon}</div>
+                  <div className="text-5xl">{group.icon}</div>
                   <div className="flex-1">
-                    <h3 className={`text-2xl font-bold mb-1 ${batch.tColor}`}>
-                      {batch.title}
+                    <h3 className={`text-2xl font-bold mb-1 ${group.tColor}`}>
+                      {group.title}
                     </h3>
-                    <p className="text-sm text-gray-600">{batch.description}</p>
+                    <p className="text-sm text-gray-600">{group.description}</p>
                   </div>
                 </div>
 
-                {/* Time Slot - Highlighted */}
+                {/* Quick Stats - Highlighted */}
                 <div
-                  className={`bg-gradient-to-r ${batch.color} p-4 rounded-xl mb-4 transform group-hover:scale-105 transition-transform`}
+                  className={`bg-gradient-to-r ${group.color} p-4 rounded-xl mb-4 transform group-hover/card:scale-[1.02] transition-transform text-white`}
                 >
-                  <div className="flex items-center justify-center gap-2 text-white">
-                    <Clock className="w-6 h-6" />
-                    <span className="text-xl font-bold">{batch.timeSlot}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      <span className="text-sm">কোর্স ফি:</span>
+                    </div>
+                    <span className="text-xl font-bold">
+                      {group.minFee} টাকা
+                    </span>
                   </div>
                 </div>
 
-                {/* Quick Info */}
+                {/* Live Data Info */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="bg-white p-2 rounded-lg">
-                      <Calendar className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">সময়কাল</p>
-                      <p className="font-bold">{batchInfo.duration}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="bg-white p-2 rounded-lg">
-                      <Users className="w-5 h-5 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">সর্বোচ্চ সিট</p>
-                      <p className="font-bold">{batchInfo.totalSeats} জন</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="bg-white p-2 rounded-lg">
-                      <DollarSign className="w-5 h-5 text-warning" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">কোর্স ফি</p>
-                      <p className="font-bold">{batchInfo.courseFee}</p>
-                    </div>
-                  </div>
+                  <InfoItem
+                    icon={Users}
+                    title="মোট এনরোলমেন্ট"
+                    value={`${group.totalEnrolled} জন`}
+                    color="text-red-500"
+                  />
+                  <InfoItem
+                    icon={Calendar}
+                    title="মোট ব্যাচ"
+                    value={`${group.totalBatches} টি`}
+                    color="text-blue-500"
+                  />
+                  <InfoItem
+                    icon={BookOpen}
+                    title="মোট MCQ সেট"
+                    value={`${group.quizCount} টি`}
+                    color="text-purple-500"
+                  />
                 </div>
 
                 {/* CTA Button */}
-                <button className="btn btn-primary w-full mt-6 gap-2 group-hover:gap-4 transition-all">
-                  এই ব্যাচে ভর্তি হন
+                <button className="btn btn-primary w-full mt-6 gap-2 group-hover/card:gap-4 transition-all">
+                  বিস্তারিত দেখুন
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
-        {/* Additional Info Section */}
-        <div className="card bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-2xl">
+        {/* Additional Info Section (Common Info) */}
+        <div className="card bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-2xl rounded-2xl">
           <div className="card-body p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               {/* Left Side - Features */}
@@ -211,7 +219,7 @@ const BatchScheduleSection = () => {
                   <h3 className="text-3xl font-bold">কোর্সের বিশেষত্ব</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {batchInfo.features.map((feature, index) => (
+                  {commonInfo.features.map((feature, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-2 bg-white/20 backdrop-blur-sm p-3 rounded-lg"
@@ -225,15 +233,18 @@ const BatchScheduleSection = () => {
 
               {/* Right Side - Class Days */}
               <div>
-                <div className="card bg-white/20 backdrop-blur-sm border-2 border-white/30">
+                <div className="card bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-xl">
                   <div className="card-body p-6">
-                    <h4 className="text-xl font-bold mb-4">ক্লাসের দিনসমূহ</h4>
+                    <h4 className="text-xl font-bold mb-4">
+                      সাধারণ সময়কাল ও দিন
+                    </h4>
                     <div className="flex items-center gap-2 mb-4">
                       <Calendar className="w-6 h-6" />
                       <span className="text-lg font-semibold">
-                        {batchInfo.daysPerWeek}
+                        {commonInfo.duration} মেয়াদী কোর্স
                       </span>
                     </div>
+                    <p className="font-semibold mb-3">সাধারণত প্রতি সপ্তাহে:</p>
                     <div className="grid grid-cols-3 gap-2">
                       {["শনি", "রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ"].map(
                         (day) => (
@@ -257,34 +268,22 @@ const BatchScheduleSection = () => {
             </div>
           </div>
         </div>
-
-        {/* Call to Action */}
-        <div className="text-center mt-12">
-          <div className="inline-flex flex-col items-center gap-4">
-            <p className="text-lg text-gray-600">
-              এখনই যোগাযোগ করে আপনার পছন্দের ব্যাচে ভর্তি হন!
-            </p>
-            <div className="flex gap-4">
-              <a
-                href="tel:01515667293"
-                className="btn btn-lg bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 hover:from-green-600 hover:to-emerald-600 gap-2"
-              >
-                📞 এখনই কল করুন
-              </a>
-              <a
-                href="https://wa.me/01515667293"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 hover:from-blue-600 hover:to-purple-600 gap-2"
-              >
-                💬 WhatsApp মেসেজ
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
 };
+
+// ছোট হেল্পার কম্পোনেন্ট
+const InfoItem = ({ icon: Icon, title, value, color }) => (
+  <div className="flex items-center gap-3 text-sm p-2 rounded-lg bg-white/50 border border-gray-100">
+    <div className="p-1 rounded-lg">
+      <Icon className={`w-5 h-5 ${color}`} />
+    </div>
+    <div className="flex justify-between flex-1">
+      <p className="text-xs text-gray-600">{title}</p>
+      <p className="font-bold text-gray-800">{value}</p>
+    </div>
+  </div>
+);
 
 export default BatchScheduleSection;

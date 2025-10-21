@@ -44,6 +44,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
       scheduleType: "",
       startTime: "",
       gender: "",
+      btchType: "",
       totalSeats: 20,
     },
   });
@@ -102,7 +103,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                 Basic Information
               </h4>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {/* Batch Name */}
                 <div className="form-control">
                   <label className="label">
@@ -159,6 +160,36 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                     <label className="label">
                       <span className="label-text-alt text-error">
                         {errors.courseId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Batch Type */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold text-base">
+                      Batch Type
+                    </span>
+                    <span className="label-text-alt text-error">*</span>
+                  </label>
+                  <select
+                    className={`select select-bordered w-full ${
+                      errors.batchtype ? "select-error" : ""
+                    }`}
+                    {...register("batchtype", {
+                      required: "Batch Type is required",
+                    })}
+                  >
+                    <option value="">Select Batch Type</option>
+                    <option value="ict">ICT</option>
+                    <option value="office">Office</option>
+                    <option value="excel">Excel</option>
+                  </select>
+                  {errors.batchtype && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.batchtype.message}
                       </span>
                     </label>
                   )}

@@ -8,6 +8,7 @@ const Registration = () => {
   const { addStudent, students } = useAppContext();
   const navigate = useNavigate();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Generate next student ID
   const generateStudentId = () => {
@@ -32,6 +33,7 @@ const Registration = () => {
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
+    watch,
   } = useForm({
     defaultValues: {
       studentId: "",
@@ -45,6 +47,12 @@ const Registration = () => {
       image: "",
     },
   });
+
+  const password = watch("password");
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // Set student ID when students data is loaded
   useEffect(() => {
@@ -136,7 +144,7 @@ const Registration = () => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Student ID (Read-only) */}
-              <div className="form-control flex gap-2">
+              {/* <div className="form-control flex gap-2">
                 <label className="label">
                   <span className="label-text font-semibold">
                     ছাত্র/ছাত্রীর আইডি
@@ -153,7 +161,7 @@ const Registration = () => {
                     এই আইডি অটো তৈরী হবে। (এটা মনে রাখুন)
                   </span>
                 </label>
-              </div>
+              </div> */}
 
               {/* Personal Information */}
               <div className="divider divider-start text-lg font-bold">
@@ -352,18 +360,20 @@ const Registration = () => {
 
               {/* Account Information */}
               <div className="divider divider-start text-lg font-bold">
-                Account Information
+                একাউন্ট তথ্য
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Password */}
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
                 <div className="form-control flex flex-col">
                   <label className="label">
-                    <span className="label-text font-semibold">Password *</span>
+                    <span className="label-text font-semibold">
+                      পাসওয়ার্ড *
+                    </span>
                   </label>
                   <input
                     type="password"
-                    placeholder="Enter password"
+                    placeholder="পাসওয়ার্ড দিন"
                     className={`input input-bordered w-full ${
                       errors.password ? "input-error" : ""
                     }`}
@@ -384,11 +394,10 @@ const Registration = () => {
                   )}
                 </div>
 
-                {/* Image URL */}
                 <div className="form-control flex flex-col">
                   <label className="label">
                     <span className="label-text font-semibold">
-                      Profile Image URL (Optional)
+                      প্রোপাইল ছবির লিংক (অপশনাল)
                     </span>
                   </label>
                   <input
@@ -399,7 +408,184 @@ const Registration = () => {
                   />
                   <label className="label">
                     <span className="label-text-alt text-gray-500">
-                      Leave empty for default avatar
+                      খালি রাখলে ডিফল্টভাবে একটি ছবি আসবে।
+                    </span>
+                  </label>
+                </div>
+              </div> */}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* ---------------------------------- Password ---------------------------------- */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      পাসওয়ার্ড *
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"} // Dynamic type for show/hide
+                      placeholder="পাসওয়ার্ড দিন"
+                      className={`input input-bordered w-full pr-12 ${
+                        // Added padding right for icon
+                        errors.password ? "input-error" : ""
+                      }`}
+                      {...register("password", {
+                        required: "Password is required",
+                        minLength: {
+                          value: 6,
+                          message: "Password must be at least 6 characters",
+                        },
+                      })}
+                    />
+                    {/* Show/Hide Password Toggle Button */}
+                    <button
+                      type="button" // Important: use type="button" to prevent form submission
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-sm leading-5"
+                    >
+                      {showPassword ? (
+                        // Eye-slash icon (assuming a standard icon library like Heroicons/Font Awesome)
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13.875 18.825A10.057 10.057 0 0112 19c-4.478 0-8.268-2.903-9.715-7.5.374-1.123.864-2.193 1.458-3.18L4.35 6.65M10.125 4.125C10.74 4.048 11.36 4 12 4c4.478 0 8.268 2.903 9.715 7.5-.164.49-.34.96-.53 1.42l-1.92-1.92L14.47 14.47l-1.92-1.92m-5.18 5.18L6.65 19.65M12 11a1 1 0 100 2 1 1 0 000-2z"
+                          />
+                        </svg>
+                      ) : (
+                        // Eye icon
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {errors.password && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.password.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* ------------------------------- Confirm Password ------------------------------- */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      পুনঃ পাসওয়ার্ড *
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"} // Dynamic type for show/hide
+                      placeholder="পাসওয়ার্ডটি আবার দিন"
+                      className={`input input-bordered w-full pr-12 ${
+                        errors.confirmPassword ? "input-error" : ""
+                      }`}
+                      {...register("confirmPassword", {
+                        required: "Confirm Password is required",
+                        validate: (value) =>
+                          value === password || "Passwords do not match", // Validation check
+                      })}
+                    />
+                    {/* Show/Hide Password Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-sm leading-5"
+                    >
+                      {showPassword ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13.875 18.825A10.057 10.057 0 0112 19c-4.478 0-8.268-2.903-9.715-7.5.374-1.123.864-2.193 1.458-3.18L4.35 6.65M10.125 4.125C10.74 4.048 11.36 4 12 4c4.478 0 8.268 2.903 9.715 7.5-.164.49-.34.96-.53 1.42l-1.92-1.92L14.47 14.47l-1.92-1.92m-5.18 5.18L6.65 19.65M12 11a1 1 0 100 2 1 1 0 000-2z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {errors.confirmPassword && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.confirmPassword.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* ---------------------------------- Image URL ----------------------------------- */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      প্রোপাইল ছবির লিংক (অপশনাল)
+                    </span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    className="input input-bordered w-full"
+                    {...register("image")}
+                  />
+                  <label className="label">
+                    <span className="label-text-alt text-gray-500">
+                      খালি রাখলে ডিফল্টভাবে একটি ছবি আসবে।
                     </span>
                   </label>
                 </div>

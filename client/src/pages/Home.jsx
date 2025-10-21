@@ -107,6 +107,69 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Courses Section */}
+      <div id="courses" className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4">আমাদের কোর্সসমূহ</h2>
+          <p className="text-gray-600">মানসম্মত এবং আধুনিক কোর্স</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {courses.map((course) => (
+            <div
+              key={course._id}
+              className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2"
+            >
+              <figure className="h-48 overflow-hidden">
+                <img
+                  src={course.image}
+                  alt={course.title}
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                />
+              </figure>
+              <div className="card-body">
+                <h2 className="card-title">{course.title}</h2>
+                <p className="text-sm text-gray-600">{course.description}</p>
+
+                <div className="divider my-2"></div>
+
+                <div className="flex justify-between items-center">
+                  <div className="badge badge-primary gap-1">
+                    <Timer className="w-4 h-4" />
+                    {course.duration}
+                  </div>
+                  <div className="badge badge-secondary text-lg font-bold">
+                    ৳{course.fee}
+                  </div>
+                </div>
+
+                {course.classes && (
+                  <div className="text-xs text-gray-500 mt-2">
+                    <CheckCircle className="w-3 h-3 inline mr-1" />
+                    {course.classes.length} টি ক্লাস
+                  </div>
+                )}
+
+                <div className="card-actions justify-between mt-4">
+                  <button
+                    onClick={() => navigate(`/course/${course._id}`)}
+                    className="btn btn-success btn-sm gap-1"
+                  >
+                    <Eye className="w-4 h-4" />
+                    বিস্তারিত
+                  </button>
+                  <Link to="/login" className="btn btn-primary btn-sm">
+                    ভর্তি হন
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <BatchScheduleSection />
+
       {/* Upcoming Batches Section */}
       {upcomingBatches.length > 0 && (
         <div className="container mx-auto px-4 py-16">
@@ -245,69 +308,7 @@ const Home = () => {
       {/* Quiz Features Section */}
       <Quiz />
 
-      {/* Courses Section */}
-      <div id="courses" className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">আমাদের কোর্সসমূহ</h2>
-          <p className="text-gray-600">মানসম্মত এবং আধুনিক কোর্স</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {courses.map((course) => (
-            <div
-              key={course._id}
-              className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2"
-            >
-              <figure className="h-48 overflow-hidden">
-                <img
-                  src={course.image}
-                  alt={course.title}
-                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                />
-              </figure>
-              <div className="card-body">
-                <h2 className="card-title">{course.title}</h2>
-                <p className="text-sm text-gray-600">{course.description}</p>
-
-                <div className="divider my-2"></div>
-
-                <div className="flex justify-between items-center">
-                  <div className="badge badge-primary gap-1">
-                    <Timer className="w-4 h-4" />
-                    {course.duration}
-                  </div>
-                  <div className="badge badge-secondary text-lg font-bold">
-                    ৳{course.fee}
-                  </div>
-                </div>
-
-                {course.classes && (
-                  <div className="text-xs text-gray-500 mt-2">
-                    <CheckCircle className="w-3 h-3 inline mr-1" />
-                    {course.classes.length} টি ক্লাস
-                  </div>
-                )}
-
-                <div className="card-actions justify-between mt-4">
-                  <button
-                    onClick={() => navigate(`/course/${course._id}`)}
-                    className="btn btn-success btn-sm gap-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    বিস্তারিত
-                  </button>
-                  <Link to="/login" className="btn btn-primary btn-sm">
-                    ভর্তি হন
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
       <CourseProcessSection />
-
-      <BatchScheduleSection />
 
       {/* Instructor Section */}
       <Instructor />

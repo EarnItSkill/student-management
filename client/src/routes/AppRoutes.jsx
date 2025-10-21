@@ -6,6 +6,7 @@ import AttendanceList from "../components/attendence/AttendanceList";
 import BatchList from "../components/batches/BatchList";
 import CourseList from "../components/courses/CourseList";
 import EnrollmentList from "../components/enrollments/EnrollmentList";
+import BatchDetails from "../components/home/BatchDetails";
 import PaymentList from "../components/payments/PaymentList";
 import QuizList from "../components/quizzes/QuizList";
 import Settings from "../components/settings/settings";
@@ -16,7 +17,6 @@ import BatchDetailsPage from "../pages/admin/BatchDetailsPage";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
 import AdminDashboard from "../pages/AdminDashboard";
-import Code from "../pages/Code";
 import CourseDetails from "../pages/CourseDetails";
 import ForgotCredentials from "../pages/ForgotCredentials";
 import Home from "../pages/Home";
@@ -58,7 +58,7 @@ const AppRoutes = () => {
       <Route path="/course/:id" element={<CourseDetails />} />
       <Route path="/registration" element={<Registration />} />
       <Route path="/forgot" element={<ForgotCredentials />} />
-      <Route path="/code" element={<Code />} />
+      <Route path="/course-details/:batchType" element={<BatchDetails />} />
 
       {/* Protected Student Routes */}
       <Route

@@ -26,13 +26,9 @@ const QuizList = ({ onEdit, onAdd }) => {
   const [selectedChapter, setSelectedChapter] = useState(null);
 
   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-  const [viewType, setViewType] = useState("list");
+  const [viewType, setViewType] = useState("grid");
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, quiz: null });
   const [viewModal, setViewModal] = useState({ isOpen: false, quiz: null });
-
-  // RENDER 3-এর জন্য Pagination স্টেট এবং লজিক যোগ করা হলো
-  const QUIZZES_PER_PAGE = 12;
-  const [currentPage, setCurrentPage] = useState(1); // 👈 নতুন স্টেট
 
   // 1. Group quizzes by batch and calculate stats
   // (এই অংশটি অপরিবর্তিত, কারণ এটি প্রতি ব্যাচের তথ্য ঠিকভাবে যোগ করে)
@@ -494,15 +490,6 @@ const QuizList = ({ onEdit, onAdd }) => {
     0
   );
 
-  // মোট পেজ গণনা
-  const totalQuizzesInChapter = chapterQuizzes.length;
-  const totalPages = Math.ceil(totalQuizzesInChapter / QUIZZES_PER_PAGE);
-
-  // বর্তমান পেজের জন্য কুইজ ডেটা স্লাইস করা
-  const startIndex = (currentPage - 1) * QUIZZES_PER_PAGE;
-  const endIndex = startIndex + QUIZZES_PER_PAGE;
-  const paginatedQuizzes = chapterQuizzes.slice(startIndex, endIndex); //
-
   return (
     <div>
       {/* Header with Back Button (to Chapters) */}
@@ -542,10 +529,7 @@ const QuizList = ({ onEdit, onAdd }) => {
             <Award className="w-8 h-8" />
           </div>
           <div className="stat-title">Total Quizzes (Chapter)</div>
-          <div className="stat-value text-primary">
-            {totalQuizzesInChapter}
-          </div>{" "}
-          {/* 👈 মোট সংখ্যা */} 1000 need change
+          <div className="stat-value text-primary">{chapterQuizzes.length}</div>
         </div>
         <div className="stat bg-base-100 rounded-lg shadow-lg">
           <div className="stat-figure text-success">
@@ -575,10 +559,7 @@ const QuizList = ({ onEdit, onAdd }) => {
               placeholder="Search quizzes..."
               className="input input-bordered w-full"
               value={quizSearchTerm}
-              onChange={(e) => {
-                setQuizSearchTerm(e.target.value);
-                setCurrentPage(1); // সার্চ করলে পেজ ১ এ ফিরে যেতে হবে
-              }}
+              onChange={(e) => setQuizSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -603,13 +584,13 @@ const QuizList = ({ onEdit, onAdd }) => {
       {quizSearchTerm && (
         <div className="alert alert-info mb-4">
           <span>
-            Found {totalQuizzesInChapter} quiz(es) matching "{quizSearchTerm}"
+            Found {chapterQuizzes.length} quiz(es) matching "{quizSearchTerm}"
           </span>
         </div>
       )}
 
       {/* Quizzes Display */}
-      {totalQuizzesInChapter === 0 ? (
+      {chapterQuizzes.length === 0 ? (
         <div className="text-center py-12">
           <Award className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">
@@ -632,230 +613,146 @@ const QuizList = ({ onEdit, onAdd }) => {
             </button>
           )}
         </div>
+      ) : viewType === "grid" ? (
+        // Grid View
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {chapterQuizzes.map((quiz) => (
+            <div
+              key={quiz._id}
+              className="card bg-base-100 shadow-lg hover:shadow-xl transition-all"
+            >
+              <div className="card-body border rounded-2xl border-gray-500">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="card-title text-lg">{quiz.title}</h3>
+                    <div className="badge badge-accent badge-sm mt-2">
+                      Chapter {quiz.chapter}
+                    </div>
+                  </div>
+                  <Award className="w-8 h-8 text-primary flex-shrink-0" />
+                </div>
+
+                <div className="divider my-2"></div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Questions:</span>
+                    <span className="font-semibold">
+                      {quiz.questions.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Marks:</span>
+                    <span className="font-semibold">{quiz.totalMarks}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Submissions:</span>
+                    <span className="font-semibold">{quiz.results.length}</span>
+                  </div>
+                </div>
+
+                <div className="card-actions justify-end mt-4 gap-2">
+                  <button
+                    onClick={() => setViewModal({ isOpen: true, quiz })}
+                    className="btn btn-ghost btn-sm gap-1"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </button>
+                  <button
+                    onClick={() => onEdit(quiz)}
+                    className="btn btn-info btn-sm gap-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(quiz)}
+                    className="btn btn-error btn-sm gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
-        <>
-          {viewType === "grid" ? (
-            // Grid View
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedQuizzes.map((quiz, i) => (
-                <div
-                  key={quiz._id}
-                  className="card bg-base-100 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <div className="card-body border rounded-2xl border-gray-500">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="card-title text-lg">{quiz.title}</h3>
-                        <div className="badge badge-accent badge-sm mt-2 mr-2">
-                          Chapter {quiz.chapter}
-                        </div>
-                        <div className="badge badge-info badge-sm mt-2">
-                          Class: {startIndex + i + 1}
-                        </div>
-                      </div>
-                      <Award className="w-8 h-8 text-primary flex-shrink-0" />
+        // Table View
+        <div className="overflow-x-auto">
+          <table className="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Quiz Title</th>
+                <th>Chapter</th>
+                <th>Questions</th>
+                <th>Total Marks</th>
+                <th>Submissions</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chapterQuizzes.map((quiz, index) => (
+                <tr key={quiz._id} className="hover">
+                  <td>{index + 1}</td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <Award className="w-5 h-5 text-primary" />
+                      <span className="font-semibold">{quiz.title}</span>
                     </div>
-
-                    <div className="divider my-2"></div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Questions:</span>
-                        <span className="font-semibold">
-                          {quiz.questions.length}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Marks:</span>
-                        <span className="font-semibold">{quiz.totalMarks}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Submissions:</span>
-                        <span className="font-semibold">
-                          {quiz.results.length}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="card-actions justify-end mt-4 gap-2">
+                  </td>
+                  <td>
+                    <span className="badge badge-accent">
+                      Chapter {quiz.chapter}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-primary">
+                      {quiz.questions.length}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-success">
+                      {quiz.totalMarks}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-info">
+                      {quiz.results.length}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setViewModal({ isOpen: true, quiz })}
-                        className="btn btn-ghost btn-sm gap-1"
+                        className="btn btn-ghost btn-xs gap-1"
+                        title="View Quiz"
                       >
                         <Eye className="w-4 h-4" />
-                        View
                       </button>
                       <button
                         onClick={() => onEdit(quiz)}
-                        className="btn btn-info btn-sm gap-1"
+                        className="btn btn-info btn-xs gap-1"
+                        title="Edit Quiz"
                       >
                         <Edit className="w-4 h-4" />
-                        Edit
                       </button>
                       <button
                         onClick={() => handleDelete(quiz)}
-                        className="btn btn-error btn-sm gap-1"
+                        className="btn btn-error btn-xs gap-1"
+                        title="Delete Quiz"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
                       </button>
                     </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          ) : (
-            // Table View
-            <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Quiz Title</th>
-                    <th>Chapter</th>
-                    <th>Questions</th>
-                    <th>Total Marks</th>
-                    <th>Submissions</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedQuizzes.map((quiz, index) => (
-                    <tr key={quiz._id} className="hover">
-                      <td>{startIndex + index + 1}</td>
-                      {/* 👈 পেজ অনুযায়ী ইনডেক্স */}
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-primary" />
-                          <span className="font-semibold">{quiz.title}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-accent">
-                          Chapter {quiz.chapter}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="badge badge-primary">
-                          {quiz.questions.length}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="badge badge-success">
-                          {quiz.totalMarks}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="badge badge-info">
-                          {quiz.results.length}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setViewModal({ isOpen: true, quiz })}
-                            className="btn btn-ghost btn-xs gap-1"
-                            title="View Quiz"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => onEdit(quiz)}
-                            className="btn btn-info btn-xs gap-1"
-                            title="Edit Quiz"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(quiz)}
-                            className="btn btn-error btn-xs gap-1"
-                            title="Delete Quiz"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination Component */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-6">
-              <div className="join">
-                <button
-                  className="join-item btn"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                >
-                  «
-                </button>
-                {/* পেজ বাটন লজিক: প্রথম ২-৩টি এবং শেষ ২টি পেজ দেখানো */}
-                {[...Array(totalPages).keys()].map((page) => {
-                  const pageNum = page + 1;
-                  const isVisible =
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
-
-                  if (isVisible) {
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`join-item btn ${
-                          currentPage === pageNum
-                            ? "btn-active btn-primary"
-                            : ""
-                        }`}
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  }
-                  // ডট (...) দেখানোর জন্য লজিক
-                  else if (pageNum === 2 && currentPage > 3) {
-                    return (
-                      <button
-                        key="start-dots"
-                        className="join-item btn pointer-events-none"
-                      >
-                        ...
-                      </button>
-                    );
-                  } else if (
-                    pageNum === totalPages - 1 &&
-                    currentPage < totalPages - 2
-                  ) {
-                    return (
-                      <button
-                        key="end-dots"
-                        className="join-item btn pointer-events-none"
-                      >
-                        ...
-                      </button>
-                    );
-                  }
-                  return null;
-                })}
-                <button
-                  className="join-item btn"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  »
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Delete Confirmation Modal (অপরিবর্তিত) */}

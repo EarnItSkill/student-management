@@ -29,7 +29,7 @@ const CourseDetails = () => {
   const { courses, currentUser, isAuthenticated, batches, enrollments } =
     useAppContext();
 
-  const course = courses.find((c) => c._id === id);
+  const course = courses?.find((c) => c._id === id);
 
   // Find student's batch for this course (if enrolled)
   const studentEnrollment = isAuthenticated
@@ -255,7 +255,7 @@ const CourseDetails = () => {
                               >
                                 Class {classIndex + 1}
                               </div>
-                              <span>ক্লাস {classIndex + 1}</span>
+                              <span>{classItem.topic[0]}</span>
                             </div>
 
                             {/* Lock/Unlock Status */}
@@ -302,23 +302,25 @@ const CourseDetails = () => {
                                         Topics (বিষয়সমূহ)
                                       </h3>
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {classItem.topic.map((topic, index) => (
-                                          <div
-                                            key={index}
-                                            className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
-                                          >
-                                            <div className="avatar placeholder">
-                                              <div className="bg-primary text-white rounded-full w-8">
-                                                <span className="text-sm block h-8 text-center pt-1">
-                                                  {index + 1}
-                                                </span>
+                                        {classItem.topic
+                                          .slice(1, classItem.topic.length)
+                                          .map((topic, index) => (
+                                            <div
+                                              key={index}
+                                              className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+                                            >
+                                              <div className="avatar placeholder">
+                                                <div className="bg-primary text-white rounded-full w-8">
+                                                  <span className="text-sm block h-8 text-center pt-1">
+                                                    {index + 1}
+                                                  </span>
+                                                </div>
                                               </div>
+                                              <span className="font-semibold">
+                                                {topic}
+                                              </span>
                                             </div>
-                                            <span className="font-semibold">
-                                              {topic}
-                                            </span>
-                                          </div>
-                                        ))}
+                                          ))}
                                       </div>
                                     </div>
                                   </div>

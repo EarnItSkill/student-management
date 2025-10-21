@@ -28,7 +28,7 @@ export default function CourseProcessSection() {
       ],
       icon: Users,
       color: "from-blue-500 to-cyan-500",
-      bgLight: "from-blue-50 to-cyan-50",
+      bgLight: "from-blue-100 to-cyan-50",
     },
     {
       number: 2,
@@ -43,7 +43,7 @@ export default function CourseProcessSection() {
       ],
       icon: BookOpen,
       color: "from-purple-500 to-pink-500",
-      bgLight: "from-purple-50 to-pink-50",
+      bgLight: "from-purple-100 to-pink-50",
     },
     {
       number: 3,
@@ -53,12 +53,13 @@ export default function CourseProcessSection() {
         "প্রতিটি ক্লাসের পর আপনার জ্ঞান পরীক্ষা করতে MCQ প্রশ্নের সমাধান করুন।",
       benefits: [
         "তাৎক্ষণিক ফলাফল",
-        "বিস্তারিত ব্যাখ্যা",
+        "সঠিক ও ভুল উত্তর প্রদর্শন",
         "দুর্বল বিষয় চিহ্নিত করুন",
+        "নিজের অবস্থান যাচাই করুন",
       ],
       icon: ClipboardList,
       color: "from-green-500 to-emerald-500",
-      bgLight: "from-green-50 to-emerald-50",
+      bgLight: "from-green-100 to-emerald-50",
     },
     {
       number: 4,
@@ -73,7 +74,7 @@ export default function CourseProcessSection() {
       ],
       icon: FileText,
       color: "from-orange-500 to-amber-500",
-      bgLight: "from-orange-50 to-amber-50",
+      bgLight: "from-orange-100 to-amber-50",
     },
     {
       number: 5,
@@ -84,11 +85,11 @@ export default function CourseProcessSection() {
       benefits: [
         "সম্পূর্ণ অধ্যায় কভারেজ",
         "র‍্যাঙ্কিং সিস্টেম",
-        "সার্টিফিকেট পান",
+        "সম্পূর্ণ অধ্যায় ধারণা",
       ],
       icon: Target,
       color: "from-red-500 to-rose-500",
-      bgLight: "from-red-50 to-rose-50",
+      bgLight: "from-red-100 to-rose-50",
     },
   ];
 
@@ -110,7 +111,7 @@ export default function CourseProcessSection() {
               আমাদের শিক্ষা পদ্ধতি
             </span>
           </div>
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          <h2 className="py-3 text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
             কোর্স চলার ধাপসমূহ
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">

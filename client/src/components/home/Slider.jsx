@@ -111,6 +111,12 @@ export default function Slider() {
         "https://plus.unsplash.com/premium_photo-1663051138877-c6471214ae11?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTd8fGNvbXB1dGVyJTIwYmFja2dyb3VuZHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&q=60&w=600",
     },
     {
+      title: "ICT: এইচ.এস.সি, আলিম",
+      subtitle: "কোর কনসেপ্ট নিয়ে অন্য লেভেলের অভিজ্ঞতা",
+      // Placeholder image for Coding/Tech
+      imageUrl: "https://i.ibb.co.com/FqnDS4vP/ict-slider.jpg",
+    },
+    {
       title: "সফলতার পথে এগিয়ে যান",
       subtitle: "অভিজ্ঞ শিক্ষক এবং আধুনিক পরিবেশে শিখুন",
       // Placeholder image for Success/Achievement

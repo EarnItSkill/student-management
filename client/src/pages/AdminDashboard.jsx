@@ -99,14 +99,14 @@ const AdminDashboard = () => {
   return (
     <DashboardLayout>
       {/* Welcome Card */}
-      <div className="card bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl mb-6">
+      {/* <div className="card bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl mb-6">
         <div className="card-body">
           <h2 className="card-title text-2xl">
             Welcome Admin, {currentUser?.name}! 👨‍💼
           </h2>
           <p>Manage your training center efficiently from this dashboard</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

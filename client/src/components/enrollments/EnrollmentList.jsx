@@ -203,7 +203,7 @@ const EnrollmentList = ({ onAdd }) => {
 
                 return (
                   <tr key={enrollment._id}>
-                    <td className="font-mono">#{enrollment?.id}Need</td>
+                    <td className="font-mono">{student?.studentId}</td>
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="avatar">

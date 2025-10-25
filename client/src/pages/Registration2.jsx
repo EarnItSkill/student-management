@@ -120,7 +120,7 @@ const Registration = () => {
               <h2 className="card-title text-3xl mb-2">
                 🎉 Registration Successful!
               </h2>
-              <p className="text-gray-600 mb-6 text-lg">
+              <p className="text-gray-400 mb-6 text-lg">
                 আপনার রেজিস্ট্রেশন সফল হয়েছে!
                 <br />
                 আপনি এখন লগিন করতে পারবেন।
@@ -170,7 +170,7 @@ const Registration = () => {
               </div>
             </div>
             <h1 className="text-4xl font-bold mb-2">Student Registration</h1>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-400 text-lg">
               নতুন শিক্ষার্থী হিসেবে রেজিস্ট্রেশন করুন
             </p>
           </div>
@@ -214,7 +214,7 @@ const Registration = () => {
                         <h3 className="text-2xl font-bold">
                           Personal Information
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           আপনার ব্যক্তিগত তথ্য দিন
                         </p>
                       </div>
@@ -368,7 +368,7 @@ const Registration = () => {
                       </div>
                       <div>
                         <h3 className="text-2xl font-bold">Contact Details</h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           ঠিকানা এবং প্রতিষ্ঠানের তথ্য
                         </p>
                       </div>
@@ -453,7 +453,7 @@ const Registration = () => {
                       </div>
                       <div>
                         <h3 className="text-2xl font-bold">Account Setup</h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           পাসওয়ার্ড এবং প্রোফাইল ছবি
                         </p>
                       </div>
@@ -593,7 +593,7 @@ const Registration = () => {
 
               {/* Login Link */}
               <div className="text-center mt-6 pt-6 border-t">
-                <p className="text-gray-600">
+                <p className="text-gray-400">
                   Already have an account?{" "}
                   <Link
                     to="/login"

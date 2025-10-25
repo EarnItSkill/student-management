@@ -112,7 +112,7 @@ const BatchScheduleSection = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             আপনার সুবিধামত সময় বেছে নিন
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             সকাল থেকে রাত পর্যন্ত ৬টি ভিন্ন সময়ে ক্লাস। যেকোনো একটি বেছে নিয়ে
             শুরু করুন আপনার শেখার যাত্রা
           </p>
@@ -143,7 +143,7 @@ const BatchScheduleSection = () => {
                     <h3 className={`text-2xl font-bold mb-1 ${batch.tColor}`}>
                       {batch.title}
                     </h3>
-                    <p className="text-sm text-gray-600">{batch.description}</p>
+                    <p className="text-sm text-gray-400">{batch.description}</p>
                   </div>
                 </div>
 

@@ -147,21 +147,21 @@ const TestQuiz = () => {
                 <Target className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">৫০টি প্রশ্ন</p>
-                  <p className="text-sm text-gray-600">র‍্যান্ডম নির্বাচন</p>
+                  <p className="text-sm text-gray-400">র‍্যান্ডম নির্বাচন</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-base-100 rounded-lg">
                 <BookOpen className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">অধ্যায় ভিত্তিক</p>
-                  <p className="text-sm text-gray-600">আপনার পছন্দ অনুযায়ী</p>
+                  <p className="text-sm text-gray-400">আপনার পছন্দ অনুযায়ী</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-base-100 rounded-lg">
                 <Clock className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">অসীম সময়</p>
-                  <p className="text-sm text-gray-600">নিজের গতিতে শিখুন</p>
+                  <p className="text-sm text-gray-400">নিজের গতিতে শিখুন</p>
                 </div>
               </div>
             </div>
@@ -212,7 +212,7 @@ const TestQuiz = () => {
                           <div className="flex justify-between">
                             <span
                               className={
-                                isSelected ? "text-white/80" : "text-gray-600"
+                                isSelected ? "text-white/80" : "text-gray-400"
                               }
                             >
                               মোট প্রশ্ন:
@@ -224,7 +224,7 @@ const TestQuiz = () => {
                           <div className="flex justify-between">
                             <span
                               className={
-                                isSelected ? "text-white/80" : "text-gray-600"
+                                isSelected ? "text-white/80" : "text-gray-400"
                               }
                             >
                               মোট কুইজ:
@@ -236,7 +236,7 @@ const TestQuiz = () => {
                           <div className="flex justify-between">
                             <span
                               className={
-                                isSelected ? "text-white/80" : "text-gray-600"
+                                isSelected ? "text-white/80" : "text-gray-400"
                               }
                             >
                               এলোমেলো প্রশ্ন:

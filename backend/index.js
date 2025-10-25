@@ -67,6 +67,11 @@ async function run() {
       .db(process.env.DB_NAME)
       .collection("quizzes");
 
+    // New -------------
+    const resultsCollection = client
+      .db(process.env.DB_NAME)
+      .collection("results");
+
     const mcqQuizzesCollection = client
       .db(process.env.DB_NAME)
       .collection("mcqQuizzes");
@@ -1197,6 +1202,94 @@ async function run() {
     });
 
     // =================================================================
+
+    // New -----------------------------
+
+    // POST: নতুন result submit করা
+    app.post("/results", async (req, res) => {
+      const resultData = req.body;
+
+      try {
+        const result = await resultsCollection.insertOne(resultData);
+
+        if (result.insertedId) {
+          res.status(201).send({
+            message: "Result submitted successfully",
+            resultId: result.insertedId,
+          });
+        } else {
+          res.status(500).send({ message: "Failed to submit result" });
+        }
+      } catch (error) {
+        console.error("Error submitting result:", error);
+        res.status(500).send({
+          message: "Server error",
+          error: error.message,
+        });
+      }
+    });
+
+    // GET: সব results পাওয়া
+    app.get("/results", async (req, res) => {
+      try {
+        const results = await resultsCollection
+          .find({})
+          .sort({ submittedAt: -1 })
+          .toArray();
+
+        res.send(results);
+      } catch (error) {
+        console.error("Error fetching results:", error);
+        res.status(500).send({ message: "Failed to fetch results" });
+      }
+    });
+
+    // GET: /results/student/:studentId (একজন student-এর সব results)
+    app.get("/results/student/:studentId", async (req, res) => {
+      try {
+        const results = await resultsCollection
+          .find({ studentId: req.params.studentId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+
+        res.send(results);
+      } catch (error) {
+        console.error("Error fetching student results:", error);
+        res.status(500).send({ message: "Failed to fetch results" });
+      }
+    });
+
+    // GET: /results/quiz/:quizId (একটি quiz-এর সব results)
+    app.get("/results/quiz/:quizId", async (req, res) => {
+      try {
+        const results = await resultsCollection
+          .find({ quizId: req.params.quizId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+
+        res.send(results);
+      } catch (error) {
+        console.error("Error fetching quiz results:", error);
+        res.status(500).send({ message: "Failed to fetch results" });
+      }
+    });
+
+    // GET: /results/batch/:batchId (একটি batch-এর সব results)
+    app.get("/results/batch/:batchId", async (req, res) => {
+      try {
+        const results = await resultsCollection
+          .find({ batchId: req.params.batchId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+
+        res.send(results);
+      } catch (error) {
+        console.error("Error fetching batch results:", error);
+        res.status(500).send({ message: "Failed to fetch results" });
+      }
+    });
+
+    // New --------------------------------
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

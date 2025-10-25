@@ -62,7 +62,7 @@ const NotEnrolledPage = () => {
                   আপনি এখনও কোনো ব্যাচে এনরোল করেননি
                 </h1>
 
-                <p className="text-lg text-gray-600 mb-6 max-w-2xl">
+                <p className="text-lg text-gray-400 mb-6 max-w-2xl">
                   আমাদের কোর্সে যুক্ত হয়ে আপনার শিক্ষা যাত্রা শুরু করুন। নিচের
                   যোগাযোগ মাধ্যমে আমাদের সাথে সংযুক্ত হন।
                 </p>
@@ -86,7 +86,7 @@ const NotEnrolledPage = () => {
                       <h3 className="font-bold text-lg mb-2 text-green-700">
                         {feature.title}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-400">
                         {feature.description}
                       </p>
                     </div>
@@ -113,7 +113,7 @@ const NotEnrolledPage = () => {
                         <Phone className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 font-medium">
+                        <p className="text-sm text-gray-400 font-medium">
                           ফোন করুন
                         </p>
                         <p
@@ -140,7 +140,7 @@ const NotEnrolledPage = () => {
                         <MessageCircle className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 font-medium">
+                        <p className="text-sm text-gray-400 font-medium">
                           WhatsApp
                         </p>
                         <p
@@ -165,7 +165,7 @@ const NotEnrolledPage = () => {
                         <Mail className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-600 font-medium">
+                        <p className="text-sm text-gray-400 font-medium">
                           ইমেইল করুন
                         </p>
                         <p className="text-sm font-bold text-blue-700 truncate">
@@ -189,7 +189,7 @@ const NotEnrolledPage = () => {
                         <Facebook className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-600 font-medium">
+                        <p className="text-sm text-gray-400 font-medium">
                           Facebook
                         </p>
                         <p className="text-sm font-bold text-[#1877F2] truncate">
@@ -211,7 +211,7 @@ const NotEnrolledPage = () => {
                         <MapPin className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 font-medium mb-1">
+                        <p className="text-sm text-gray-400 font-medium mb-1">
                           আমাদের ঠিকানা
                         </p>
                         <p className="font-bold text-purple-700">
@@ -230,13 +230,13 @@ const NotEnrolledPage = () => {
                         <Clock className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 font-medium mb-1">
+                        <p className="text-sm text-gray-400 font-medium mb-1">
                           অফিস সময়
                         </p>
                         <p className="font-bold text-orange-700">
                           সকাল ৯টা - রাত ৯টা
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           শনি - বৃহস্পতিবার
                         </p>
                       </div>

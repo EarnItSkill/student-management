@@ -261,7 +261,7 @@ const StudentList = ({ onEdit, onAdd }) => {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
               {/* Page Info */}
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-400">
                 Showing {startIndex + 1} to{" "}
                 {Math.min(endIndex, filteredStudents.length)} of{" "}
                 {filteredStudents.length} students

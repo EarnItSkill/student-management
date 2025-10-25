@@ -111,7 +111,7 @@ const Home = () => {
       <div id="courses" className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">আমাদের কোর্সসমূহ</h2>
-          <p className="text-gray-600">মানসম্মত এবং আধুনিক কোর্স</p>
+          <p className="text-gray-400">মানসম্মত এবং আধুনিক কোর্স</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -129,7 +129,7 @@ const Home = () => {
               </figure>
               <div className="card-body">
                 <h2 className="card-title">{course.title}</h2>
-                <p className="text-sm text-gray-600">{course.description}</p>
+                <p className="text-sm text-gray-400">{course.description}</p>
 
                 <div className="divider my-2"></div>
 
@@ -175,7 +175,7 @@ const Home = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">আসন্ন ব্যাচসমূহ</h2>
-            <p className="text-gray-600">শীঘ্রই শুরু হতে যাচ্ছে যে ব্যাচগুলো</p>
+            <p className="text-gray-400">শীঘ্রই শুরু হতে যাচ্ছে যে ব্যাচগুলো</p>
           </div>
 
           <div className="overflow-x-auto pb-4">
@@ -214,7 +214,7 @@ const Home = () => {
                         <div className="flex items-center gap-2">
                           <Calendar className="w-5 h-5 text-primary" />
                           <div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-400">
                               শুরু হবে
                             </div>
                             <div className="font-semibold">
@@ -233,7 +233,7 @@ const Home = () => {
                         <div className="flex items-center gap-2">
                           <Clock className="w-5 h-5 text-primary" />
                           <div>
-                            <div className="text-sm text-gray-600">সময়</div>
+                            <div className="text-sm text-gray-400">সময়</div>
                             <div className="font-semibold">
                               {formatTime(batch.startTime)}
                             </div>
@@ -243,7 +243,7 @@ const Home = () => {
                         <div className="flex items-center gap-2">
                           <Clock className="w-5 h-5 text-primary" />
                           <div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-400">
                               ক্লাসের দিন
                             </div>
                             <div className="font-semibold">
@@ -255,7 +255,7 @@ const Home = () => {
                         <div className="flex items-center gap-2">
                           <Users className="w-5 h-5 text-primary" />
                           <div className="flex-1">
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-400">
                               আসন সংখ্যা
                             </div>
                             <div className="font-semibold">

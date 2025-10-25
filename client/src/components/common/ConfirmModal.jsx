@@ -45,7 +45,7 @@ const ConfirmModal = ({
         <h3 className="font-bold text-xl text-center mb-2">{title}</h3>
 
         {/* Message */}
-        <p className="text-center text-gray-600 mb-6">{message}</p>
+        <p className="text-center text-gray-400 mb-6">{message}</p>
 
         {/* Actions */}
         <div className="modal-action justify-center">

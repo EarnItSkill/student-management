@@ -190,7 +190,7 @@ const RankPage = () => {
           <Trophy className="w-8 h-8 text-primary" />
           Student Rankings
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-400 mt-2">
           View student performance rankings based on quiz scores
         </p>
       </div>

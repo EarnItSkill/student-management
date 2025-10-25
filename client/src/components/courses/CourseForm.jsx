@@ -7,6 +7,7 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
   const { addCourse, updateCourse } = useAppContext();
   const isEdit = !!course;
   const [selectedClassIndex, setSelectedClassIndex] = useState(0);
+  const [show, setShow] = useState(false);
 
   const getDefaultValues = () => {
     if (course) {
@@ -144,6 +145,12 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
           </h3>
           <div>
             <button
+              className="btn btn-info mr-2"
+              onClick={() => setShow(!show)}
+            >
+              {show ? "Hide" : "Show"} basic
+            </button>
+            <button
               type="button"
               onClick={addNewClass}
               className="btn btn-primary gap-2 mr-3"
@@ -163,256 +170,258 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           {/* Basic Info */}
-          <div className="card bg-base-200 shadow-xl border-2 border-primary/20">
-            <div className="card-body">
-              <h4 className="font-bold text-xl mb-6 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-primary" />
-                Basic Information
-              </h4>
+          {show && (
+            <div className="card bg-base-200 shadow-xl border-2 border-primary/20">
+              <div className="card-body">
+                <h4 className="font-bold text-xl mb-6 flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                  Basic Information
+                </h4>
 
-              {/* Course Title & Description */}
-              <div className="space-y-6">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Title *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., এডভান্সড অফিস কোর্স"
-                    className={`input input-bordered w-full ${
-                      errors.title ? "input-error" : ""
-                    }`}
-                    {...register("title", {
-                      required: "Title is required",
-                      minLength: {
-                        value: 5,
-                        message: "Title must be at least 5 characters",
-                      },
-                    })}
-                  />
-                  {errors.title && (
+                {/* Course Title & Description */}
+                <div className="space-y-6">
+                  <div className="form-control">
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.title.message}
+                      <span className="label-text font-semibold text-base">
+                        Course Title *
                       </span>
                     </label>
-                  )}
-                </div>
+                    <input
+                      type="text"
+                      placeholder="e.g., এডভান্সড অফিস কোর্স"
+                      className={`input input-bordered w-full ${
+                        errors.title ? "input-error" : ""
+                      }`}
+                      {...register("title", {
+                        required: "Title is required",
+                        minLength: {
+                          value: 5,
+                          message: "Title must be at least 5 characters",
+                        },
+                      })}
+                    />
+                    {errors.title && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.title.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Description *
-                    </span>
-                  </label>
-                  <textarea
-                    placeholder="Course এর বিস্তারিত বর্ণনা লিখুন..."
-                    className={`textarea textarea-bordered w-full h-28 ${
-                      errors.description ? "textarea-error" : ""
-                    }`}
-                    {...register("description", {
-                      required: "Description is required",
-                      minLength: {
-                        value: 20,
-                        message: "Description must be at least 20 characters",
-                      },
-                    })}
-                  />
-                  {errors.description && (
+                  <div className="form-control">
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.description.message}
+                      <span className="label-text font-semibold text-base">
+                        Description *
                       </span>
                     </label>
-                  )}
+                    <textarea
+                      placeholder="Course এর বিস্তারিত বর্ণনা লিখুন..."
+                      className={`textarea textarea-bordered w-full h-28 ${
+                        errors.description ? "textarea-error" : ""
+                      }`}
+                      {...register("description", {
+                        required: "Description is required",
+                        minLength: {
+                          value: 20,
+                          message: "Description must be at least 20 characters",
+                        },
+                      })}
+                    />
+                    {errors.description && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.description.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Divider */}
-              <div className="divider divider-start text-base font-bold mt-6">
-                Course Details
-              </div>
+                {/* Divider */}
+                <div className="divider divider-start text-base font-bold mt-6">
+                  Course Details
+                </div>
 
-              {/* Duration, Fee, Image in Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Duration *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., ৩ মাস"
-                    className={`input input-bordered w-full ${
-                      errors.duration ? "input-error" : ""
-                    }`}
-                    {...register("duration", {
-                      required: "Duration is required",
-                    })}
-                  />
-                  {errors.duration && (
+                {/* Duration, Fee, Image in Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="form-control">
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.duration.message}
+                      <span className="label-text font-semibold text-base">
+                        Duration *
                       </span>
                     </label>
-                  )}
-                </div>
+                    <input
+                      type="text"
+                      placeholder="e.g., ৩ মাস"
+                      className={`input input-bordered w-full ${
+                        errors.duration ? "input-error" : ""
+                      }`}
+                      {...register("duration", {
+                        required: "Duration is required",
+                      })}
+                    />
+                    {errors.duration && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.duration.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Fee (৳) *
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g., 8000"
-                    className={`input input-bordered w-full ${
-                      errors.fee ? "input-error" : ""
-                    }`}
-                    {...register("fee", {
-                      required: "Fee is required",
-                      min: { value: 0, message: "Fee must be positive" },
-                    })}
-                  />
-                  {errors.fee && (
+                  <div className="form-control">
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.fee.message}
+                      <span className="label-text font-semibold text-base">
+                        Course Fee (৳) *
                       </span>
                     </label>
-                  )}
-                </div>
+                    <input
+                      type="number"
+                      placeholder="e.g., 8000"
+                      className={`input input-bordered w-full ${
+                        errors.fee ? "input-error" : ""
+                      }`}
+                      {...register("fee", {
+                        required: "Fee is required",
+                        min: { value: 0, message: "Fee must be positive" },
+                      })}
+                    />
+                    {errors.fee && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.fee.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Course Image URL
-                    </span>
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://... (optional)"
-                    className="input input-bordered w-full"
-                    {...register("image")}
-                  />
-                  <label className="label">
-                    <span className="label-text-alt text-gray-500">
-                      Leave empty for random image
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="divider divider-start text-base font-bold mt-6">
-                Instructor Information
-              </div>
-
-              {/* Instructor Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Instructor Name *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Md. Abdul Karim"
-                    className={`input input-bordered w-full ${
-                      errors.instructorName ? "input-error" : ""
-                    }`}
-                    {...register("instructorName", {
-                      required: "Instructor name is required",
-                      minLength: {
-                        value: 3,
-                        message: "Name must be at least 3 characters",
-                      },
-                    })}
-                  />
-                  {errors.instructorName && (
+                  <div className="form-control">
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.instructorName.message}
+                      <span className="label-text font-semibold text-base">
+                        Course Image URL
                       </span>
                     </label>
-                  )}
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Designation *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Senior Instructor"
-                    className={`input input-bordered w-full ${
-                      errors.instructorDesignation ? "input-error" : ""
-                    }`}
-                    {...register("instructorDesignation", {
-                      required: "Designation is required",
-                    })}
-                  />
-                  {errors.instructorDesignation && (
+                    <input
+                      type="url"
+                      placeholder="https://... (optional)"
+                      className="input input-bordered w-full"
+                      {...register("image")}
+                    />
                     <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.instructorDesignation.message}
+                      <span className="label-text-alt text-gray-500">
+                        Leave empty for random image
                       </span>
                     </label>
-                  )}
+                  </div>
                 </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold text-base">
-                      Instructor Photo URL
-                    </span>
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://... (optional)"
-                    className="input input-bordered w-full"
-                    {...register("instructorImage")}
-                  />
-                  <label className="label">
-                    <span className="label-text-alt text-gray-500">
-                      Leave empty for random avatar
-                    </span>
-                  </label>
+                {/* Divider */}
+                <div className="divider divider-start text-base font-bold mt-6">
+                  Instructor Information
                 </div>
-              </div>
 
-              {/* Info Alert */}
-              <div className="alert alert-info mt-6">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  className="stroke-current shrink-0 w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                <div>
-                  <div className="text-sm">
-                    <strong>Note:</strong> If you don't provide images, random
-                    professional images will be automatically assigned.
+                {/* Instructor Details */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold text-base">
+                        Instructor Name *
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Md. Abdul Karim"
+                      className={`input input-bordered w-full ${
+                        errors.instructorName ? "input-error" : ""
+                      }`}
+                      {...register("instructorName", {
+                        required: "Instructor name is required",
+                        minLength: {
+                          value: 3,
+                          message: "Name must be at least 3 characters",
+                        },
+                      })}
+                    />
+                    {errors.instructorName && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.instructorName.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold text-base">
+                        Designation *
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Senior Instructor"
+                      className={`input input-bordered w-full ${
+                        errors.instructorDesignation ? "input-error" : ""
+                      }`}
+                      {...register("instructorDesignation", {
+                        required: "Designation is required",
+                      })}
+                    />
+                    {errors.instructorDesignation && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.instructorDesignation.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold text-base">
+                        Instructor Photo URL
+                      </span>
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://... (optional)"
+                      className="input input-bordered w-full"
+                      {...register("instructorImage")}
+                    />
+                    <label className="label">
+                      <span className="label-text-alt text-gray-500">
+                        Leave empty for random avatar
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Info Alert */}
+                <div className="alert alert-info mt-6">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    className="stroke-current shrink-0 w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                  <div>
+                    <div className="text-sm">
+                      <strong>Note:</strong> If you don't provide images, random
+                      professional images will be automatically assigned.
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Classes Section with Right Sidebar */}
           {classFields.length > 0 ? (
@@ -621,7 +630,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
       {/* Topics */}
       <div className="collapse collapse-arrow bg-base-200">
         <input type="checkbox" defaultChecked />
-        <div className="collapse-title font-semibold">
+        <div className="collapse-title font-semibold text-gray-300">
           Topics (বিষয়সমূহ) - {topicFields.length} items
         </div>
         <div className="collapse-content">
@@ -631,7 +640,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                 <input
                   type="text"
                   placeholder={`Topic ${index + 1}`}
-                  className="input input-sm input-bordered flex-1"
+                  className="input input-md text-gray-400 input-bordered flex-1"
                   {...register(`classes.${classIndex}.topic.${index}`, {
                     required: true,
                   })}
@@ -660,7 +669,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
       {/* Questions & Answers */}
       <div className="collapse collapse-arrow bg-base-200">
         <input type="checkbox" />
-        <div className="collapse-title font-semibold">
+        <div className="collapse-title font-semibold text-gray-300">
           Questions & Answers - {quesAnsFields.length} items
         </div>
         <div className="collapse-content">
@@ -669,7 +678,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
               <div key={field.fieldId} className="card bg-base-100 shadow-sm">
                 <div className="card-body p-3">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold">
+                    <span className="text-md font-semibold text-gray-400">
                       Q&A {index + 1}
                     </span>
                     <button
@@ -684,7 +693,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <input
                       type="text"
                       placeholder="Question"
-                      className="input input-sm input-bordered w-full"
+                      className="input input-md text-gray-400 input-bordered w-full"
                       {...register(
                         `classes.${classIndex}.quesAns.${index}.question`,
                         { required: true }
@@ -693,7 +702,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <input
                       type="text"
                       placeholder="Answer"
-                      className="input input-sm input-bordered w-full"
+                      className="input input-md text-gray-400 input-bordered w-full"
                       {...register(
                         `classes.${classIndex}.quesAns.${index}.answer`,
                         { required: true }
@@ -718,7 +727,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
       {/* Homework */}
       <div className="collapse collapse-arrow bg-base-200">
         <input type="checkbox" />
-        <div className="collapse-title font-semibold">
+        <div className="collapse-title font-semibold text-gray-300">
           Homework - {homeWorkFields.length} items
         </div>
         <div className="collapse-content">
@@ -727,7 +736,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
               <div key={field.fieldId} className="card bg-base-100 shadow-sm">
                 <div className="card-body p-3">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm text-gray-400 font-semibold">
                       HW {index + 1}
                     </span>
                     <button
@@ -742,7 +751,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <input
                       type="text"
                       placeholder="Title"
-                      className="input input-sm input-bordered"
+                      className="input input-md text-gray-400 input-bordered"
                       {...register(
                         `classes.${classIndex}.homeWork.${index}.title`,
                         { required: true }
@@ -751,7 +760,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <input
                       type="text"
                       placeholder="Task"
-                      className="input input-sm input-bordered"
+                      className="input input-md text-gray-400 input-bordered"
                       {...register(
                         `classes.${classIndex}.homeWork.${index}.task`,
                         { required: true }
@@ -776,7 +785,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
       {/* Important Words */}
       <div className="collapse collapse-arrow bg-base-200">
         <input type="checkbox" />
-        <div className="collapse-title font-semibold">
+        <div className="collapse-title font-semibold text-gray-300">
           Important Words - {someWordFields.length} items
         </div>
         <div className="collapse-content">
@@ -786,7 +795,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                 <input
                   type="text"
                   placeholder={`Word ${index + 1}`}
-                  className="input input-sm input-bordered flex-1"
+                  className="input input-md text-gray-400 input-bordered flex-1"
                   {...register(`classes.${classIndex}.someWord.${index}`, {
                     required: true,
                   })}

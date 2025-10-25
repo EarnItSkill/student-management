@@ -260,7 +260,7 @@ const Sidebar = () => {
         {/* Sidebar Footer */}
         <div className="mt-auto pt-6 border-t border-base-300">
           <div className="p-4 bg-base-200 rounded-lg">
-            <p className="text-xs text-gray-600">Logged in as</p>
+            <p className="text-xs text-gray-400">Logged in as</p>
             <p className="font-semibold text-sm">{currentUser?.name}</p>
             <p className="text-xs text-gray-500">{currentUser?.email}</p>
           </div>

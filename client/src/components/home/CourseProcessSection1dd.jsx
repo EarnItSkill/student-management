@@ -68,7 +68,7 @@ export default function CourseProcessSection() {
             কোর্স চলার ধাপসমূহ
           </h2>
           <div className="h-1 w-24 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full"></div>
-          <p className="text-gray-600 mt-6 text-lg">
+          <p className="text-gray-400 mt-6 text-lg">
             আমাদের সুসংগঠিত শিক্ষা প্রক্রিয়া অনুসরণ করে আপনার দক্ষতা বৃদ্ধি
             করুন
           </p>
@@ -93,7 +93,7 @@ export default function CourseProcessSection() {
                   <h4 className="text-2xl font-bold mb-3">
                     {steps[activeStep].title}
                   </h4>
-                  <p className="text-gray-600 text-lg">
+                  <p className="text-gray-400 text-lg">
                     {steps[activeStep].details}
                   </p>
                 </div>
@@ -102,7 +102,7 @@ export default function CourseProcessSection() {
               {/* Progress Indicator */}
               <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
-                  <p className="text-sm text-gray-600 mb-3">অগ্রগতি</p>
+                  <p className="text-sm text-gray-400 mb-3">অগ্রগতি</p>
                   <div className="w-full bg-base-200 rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-primary to-secondary h-full transition-all duration-500"
@@ -111,7 +111,7 @@ export default function CourseProcessSection() {
                       }}
                     ></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3">
+                  <p className="text-sm text-gray-400 mt-3">
                     {activeStep + 1} এর {steps.length}
                   </p>
                 </div>
@@ -162,7 +162,7 @@ export default function CourseProcessSection() {
                             className={`text-sm ${
                               isActive
                                 ? "text-white opacity-90"
-                                : "text-gray-600"
+                                : "text-gray-400"
                             }`}
                           >
                             {step.description}

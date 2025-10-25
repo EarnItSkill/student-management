@@ -87,7 +87,7 @@ const BatchDetailsPage = () => {
             <BookOpen className="w-8 h-8 text-primary" />
             ব্যাচ বিস্তারিত তথ্য
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             সকল ব্যাচের সম্পূর্ণ তথ্য দেখুন এবং পরিচালনা করুন
           </p>
         </div>
@@ -168,7 +168,7 @@ const BatchDetailsPage = () => {
             <div className="col-span-2 card bg-base-100 shadow-xl">
               <div className="card-body items-center text-center py-12">
                 <AlertCircle className="w-16 h-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-bold text-gray-600">
+                <h3 className="text-xl font-bold text-gray-400">
                   কোনো ব্যাচ পাওয়া যায়নি
                 </h3>
                 <p className="text-gray-500">অন্য কিছু দিয়ে খুঁজে দেখুন</p>
@@ -242,18 +242,18 @@ const BatchDetailsPage = () => {
 
                     {/* Basic Info */}
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-400">
                         <Calendar className="w-4 h-4" />
                         <span>
                           {formatDateBengali(batch.startDate)} -{" "}
                           {formatDateBengali(batch.endDate)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-400">
                         <Clock className="w-4 h-4" />
                         <span>{batch.startTime}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-400">
                         <DollarSign className="w-4 h-4" />
                         <span className="font-bold">
                           {batch.courseFee} টাকা
@@ -268,7 +268,7 @@ const BatchDetailsPage = () => {
                         <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                           <Award className="w-8 h-8 text-purple-500" />
                           <div>
-                            <p className="text-xs text-gray-600">শিক্ষক</p>
+                            <p className="text-xs text-gray-400">শিক্ষক</p>
                             <p className="font-bold text-purple-700">
                               {batch.instructor}
                             </p>
@@ -309,7 +309,7 @@ const BatchDetailsPage = () => {
                         {/* Additional Info */}
                         <div className="space-y-2">
                           <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600 mr-6">
+                            <span className="text-sm text-gray-400 mr-6">
                               Schedule Type:
                             </span>
                             <span className="font-bold  text-pink-400">
@@ -317,7 +317,7 @@ const BatchDetailsPage = () => {
                             </span>
                           </div>
                           <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600 mr-6">
+                            <span className="text-sm text-gray-400 mr-6">
                               Gender:
                             </span>
                             <span className="font-bold capitalize text-pink-400">

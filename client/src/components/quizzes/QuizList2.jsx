@@ -265,7 +265,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       <h3 className="card-title text-2xl text-secondary">
                         {group.batchType}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-400 mt-1">
                         Group of {group.batches.length} Batches
                       </p>
                     </div>
@@ -276,7 +276,7 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         Total Unique Quizzes:
                       </span>
                       <span className="badge badge-primary">
@@ -284,7 +284,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         Total Unique Questions:
                       </span>
                       <span className="badge badge-success">
@@ -292,7 +292,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Submissions:</span>
+                      <span className="text-gray-400">Total Submissions:</span>
                       <span className="badge badge-info">
                         {group.totalSubmissions}
                       </span>
@@ -432,7 +432,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                         <h3 className="card-title text-lg">
                           Chapter: {chapter.name}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-400 mt-1">
                           {selectedBatchTypeGroup} Group
                         </p>
                       </div>
@@ -443,20 +443,20 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Quizzes:</span>
+                        <span className="text-gray-400">Quizzes:</span>
                         <span className="badge badge-info">
                           {chapter.quizzes.length}{" "}
                           {/* এখন এটি ইউনিক কুইজের সংখ্যা দেখাচ্ছে */}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Questions:</span>
+                        <span className="text-gray-400">Questions:</span>
                         <span className="badge badge-success">
                           {chapter.totalQuestions}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Submissions:</span>
+                        <span className="text-gray-400">Submissions:</span>
                         <span className="badge badge-primary">
                           {chapter.totalSubmissions}
                         </span>
@@ -636,17 +636,17 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Questions:</span>
+                    <span className="text-gray-400">Questions:</span>
                     <span className="font-semibold">
                       {quiz.questions.length}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total Marks:</span>
+                    <span className="text-gray-400">Total Marks:</span>
                     <span className="font-semibold">{quiz.totalMarks}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Submissions:</span>
+                    <span className="text-gray-400">Submissions:</span>
                     <span className="font-semibold">{quiz.results.length}</span>
                   </div>
                 </div>
@@ -773,7 +773,7 @@ const QuizList = ({ onEdit, onAdd }) => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="font-bold text-xl">{viewModal.quiz.title}</h3>
-                <p className="text-sm text-gray-600">Quiz Preview</p>
+                <p className="text-sm text-gray-400">Quiz Preview</p>
               </div>
               <button
                 onClick={() => setViewModal({ isOpen: false, quiz: null })}

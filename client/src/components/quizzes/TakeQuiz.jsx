@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
 
 const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
-  const { currentUser, submitQuiz, enrollments } = useAppContext();
+  const { currentUser, submitQuiz, enrollments, submitMcq } = useAppContext();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
@@ -168,8 +168,8 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     };
 
     // Submit quiz result
-    submitQuiz(quizId, submissionData);
-
+    // submitQuiz(quizId, submissionData);
+    submitMcq(quizId, submissionData);
     setShowResult(true);
   };
 
@@ -200,7 +200,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   Question {currentQuestion + 1} of{" "}
                   {shuffledQuiz.questions.length}
                 </p>
@@ -220,7 +220,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 value={currentQuestion + 1}
                 max={shuffledQuiz.questions.length}
               ></progress>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>
                   Progress:{" "}
                   {Math.round(
@@ -309,7 +309,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 ← Previous
               </button>
 
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-400">
                 {isAnswered ? (
                   <span className="text-success">✓ Answered</span>
                 ) : (
@@ -365,7 +365,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                   : "Keep Practicing! 💪"}
               </h3>
 
-              <p className="text-gray-600 mb-6">You have completed the quiz</p>
+              <p className="text-gray-400 mb-6">You have completed the quiz</p>
 
               {/* Score Display */}
               <div className="stats shadow mb-6">

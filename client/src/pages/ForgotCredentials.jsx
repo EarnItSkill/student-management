@@ -118,7 +118,7 @@ const ForgotCredentials = () => {
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   তথ্য পুনরুদ্ধার করুন
                 </h1>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-400 mt-2">
                   আপনার হারিয়ে যাওয়া তথ্য ফিরে পেতে সাহায্য করুন
                 </p>
               </div>
@@ -150,7 +150,7 @@ const ForgotCredentials = () => {
                                 দ্রুততম
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-400">
                               এখানেই আপনার তথ্য দেখুন (ইমেইল/ফোন দরকার)
                             </p>
                           </div>
@@ -169,7 +169,7 @@ const ForgotCredentials = () => {
                             <h3 className="font-bold text-lg text-blue-700">
                               পাসওয়ার্ড ভুলে গেছেন?
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-400">
                               নতুন পাসওয়ার্ড পেতে এখানে ক্লিক করুন
                             </p>
                           </div>
@@ -188,7 +188,7 @@ const ForgotCredentials = () => {
                             <h3 className="font-bold text-lg text-purple-700">
                               Student ID ভুলে গেছেন?
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-400">
                               আপনার Student ID খুঁজে পেতে এখানে ক্লিক করুন
                             </p>
                           </div>
@@ -322,7 +322,7 @@ const ForgotCredentials = () => {
                               <h3 className="font-bold text-lg text-green-700">
                                 ইমেইলের মাধ্যমে
                               </h3>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-400">
                                 আপনার ইমেইলে পাঠান
                               </p>
                             </div>
@@ -341,7 +341,7 @@ const ForgotCredentials = () => {
                               <h3 className="font-bold text-lg text-orange-700">
                                 ফোন নম্বরের মাধ্যমে
                               </h3>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-400">
                                 SMS এর মাধ্যমে পাঠান
                               </p>
                             </div>
@@ -494,7 +494,7 @@ const ForgotCredentials = () => {
                           <h3 className="text-xl font-bold">
                             {foundStudent.name}
                           </h3>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-400">
                             {foundStudent.role === "student"
                               ? foundStudent.name
                               : "প্রশাসক"}
@@ -593,7 +593,7 @@ const ForgotCredentials = () => {
                     <h2 className="text-2xl font-bold text-green-600 mb-2">
                       সফলভাবে পাঠানো হয়েছে!
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-400">
                       আপনার {recoveryMethod === "email" ? "ইমেইলে" : "ফোনে"}{" "}
                       তথ্য পাঠানো হয়েছে। অনুগ্রহ করে চেক করুন।
                     </p>
@@ -689,7 +689,7 @@ const ForgotCredentials = () => {
             {/* Security Tips */}
             <div className="card bg-white shadow-xl">
               <div className="card-body p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-600">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-400">
                   <ShieldCheck className="w-6 h-6  text-green-500" />
                   নিরাপত্তা টিপস
                 </h3>

@@ -189,7 +189,7 @@ const McqRankPage = () => {
             <Trophy className="w-10 h-10 text-primary" />
             <div>
               <h1 className="text-3xl font-bold">MCQ Quiz Rankings</h1>
-              <p className="text-gray-600">Top 50 Performers</p>
+              <p className="text-gray-400">Top 50 Performers</p>
             </div>
           </div>
         </div>
@@ -217,25 +217,25 @@ const McqRankPage = () => {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Position</p>
+                      <p className="text-sm text-gray-400">Position</p>
                       <p className="text-xl font-bold text-primary">
                         #{currentUserRank.rank}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Serial</p>
+                      <p className="text-sm text-gray-400">Serial</p>
                       <p className="text-xl font-bold">
                         #{currentUserRank.serialNumber}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Avg Score</p>
+                      <p className="text-sm text-gray-400">Avg Score</p>
                       <p className="text-xl font-bold text-success">
                         {currentUserRank.averageScore}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Quizzes</p>
+                      <p className="text-sm text-gray-400">Quizzes</p>
                       <p className="text-xl font-bold">
                         {currentUserRank.totalQuizzes}
                       </p>

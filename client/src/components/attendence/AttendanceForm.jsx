@@ -218,7 +218,7 @@ const AttendanceForm = ({ attendance: editAttendance, onClose, onSuccess }) => {
               <Calendar className="w-6 h-6 text-primary" />
               {isEdit ? "Edit Attendance" : "Mark Attendance"}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               {isEdit
                 ? "Update student attendance record"
                 : "Record student attendance for today's class"}
@@ -350,7 +350,7 @@ const AttendanceForm = ({ attendance: editAttendance, onClose, onSuccess }) => {
                       {enrolledStudents.length}
                     </span>
                   </h4>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-400">
                     Check to mark present
                   </span>
                 </div>

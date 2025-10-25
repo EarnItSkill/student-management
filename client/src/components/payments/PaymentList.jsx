@@ -316,7 +316,7 @@ const PaymentList = ({ onEdit, onAdd }) => {
                 <ChevronRight className="w-4 h-4" />
               </button>
 
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-400">
                 Page {currentPage} of {totalPages}
               </span>
             </div>

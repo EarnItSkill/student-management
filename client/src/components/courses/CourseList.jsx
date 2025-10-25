@@ -89,7 +89,7 @@ const CourseList = ({ onEdit, onAdd }) => {
               </figure>
               <div className="card-body">
                 <h3 className="card-title text-lg">{course.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className="text-sm text-gray-400 line-clamp-2">
                   {course.description}
                 </p>
 

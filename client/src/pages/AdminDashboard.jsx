@@ -533,7 +533,7 @@ const AdminDashboard = () => {
                           <h4 className="font-bold text-sm">
                             {batch.batchName}
                           </h4>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-gray-400">
                             {course?.title}
                           </p>
                           <div className="mt-2">

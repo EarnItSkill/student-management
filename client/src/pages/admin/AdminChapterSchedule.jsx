@@ -97,7 +97,7 @@ const AdminChapterSchedule = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold">Chapter Schedule Management</h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-400 mt-1">
             Set quiz schedules for each chapter by batch
           </p>
         </div>
@@ -175,7 +175,7 @@ const AdminChapterSchedule = () => {
                       <h3 className="text-xl font-bold">
                         Chapter {schedule.chapter}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-400">
                         {getBatchName(schedule.batchId)}
                       </p>
                     </div>
@@ -212,19 +212,19 @@ const AdminChapterSchedule = () => {
                   {/* Dates */}
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Start Date:</span>
+                      <span className="text-gray-400">Start Date:</span>
                       <span className="font-semibold">
                         {startDate.toLocaleDateString("en-GB")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">End Date:</span>
+                      <span className="text-gray-400">End Date:</span>
                       <span className="font-semibold">
                         {endDate.toLocaleDateString("en-GB")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
+                      <span className="text-gray-400">Status:</span>
                       <button
                         onClick={() => handleToggle(schedule._id)}
                         className={`btn btn-xs gap-1 ${

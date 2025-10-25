@@ -100,7 +100,7 @@ const AttendanceForm = ({ onClose, onSuccess }) => {
               <Calendar className="w-6 h-6 text-primary" />
               Mark Attendance
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Record student attendance for today's class
             </p>
           </div>
@@ -199,7 +199,7 @@ const AttendanceForm = ({ onClose, onSuccess }) => {
                       {enrolledStudents.length}
                     </span>
                   </h4>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-400">
                     Check to mark present
                   </span>
                 </div>

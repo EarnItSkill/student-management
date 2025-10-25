@@ -27,10 +27,10 @@ const Footer = () => {
               />
               <h3 className="text-xl font-bold">
                 Earn It Skill{" "}
-                <span className="text-sm text-gray-600">Offline</span>
+                <span className="text-sm text-gray-400">Offline</span>
               </h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-400 mb-4">
               আমরা মানসম্মত কম্পিউটার প্রশিক্ষণ প্রদান করি। আপনার ক্যারিয়ার
               গড়ার সঠিক সঙ্গী।
             </p>

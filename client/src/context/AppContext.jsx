@@ -28,6 +28,9 @@ export const AppProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  // New -----------------------
+  const [mcqResult, setMcqResult] = useState([]);
+
   const [mcqQuizzes, setMcqQuizzes] = useState([]);
   const [chapterSchedules, setChapterSchedules] = useState([]);
   const [cqQuestions, setCqQuestions] = useState([]);
@@ -51,7 +54,7 @@ export const AppProvider = ({ children }) => {
         const courses = await axios.get(
           `${import.meta.env.VITE_API_URL}/courses`
         );
-        setCourses(courses.data);
+        setCourses(courses?.data);
 
         const batches = await axios.get(
           `${import.meta.env.VITE_API_URL}/batches`
@@ -78,10 +81,11 @@ export const AppProvider = ({ children }) => {
         );
         setQuizzes(quizzes.data);
 
-        const mcqQuizzes = await axios.get(
-          `${import.meta.env.VITE_API_URL}/mcqquizzes`
+        // New --------------------
+        const mcqResult = await axios.get(
+          `${import.meta.env.VITE_API_URL}/results`
         );
-        setMcqQuizzes(mcqQuizzes?.data);
+        setMcqResult(mcqResult.data);
 
         const schedules = await axios.get(
           `${import.meta.env.VITE_API_URL}/chapter-schedules`
@@ -92,6 +96,11 @@ export const AppProvider = ({ children }) => {
           `${import.meta.env.VITE_API_URL}/cq-questions`
         );
         setCqQuestions(cqs?.data);
+
+        // const results = await fetchStudentResults(currentUser._id);
+        // console.log("Student এর সব results:", results);
+        // // এখানে results নিয়ে কাজ করুন
+        // setStudentResult(results);
 
         // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem("currentUser");
@@ -657,7 +666,40 @@ export const AppProvider = ({ children }) => {
   //     submittedAt: new Date().toISOString(),
   //   };
 
+  // New ------------------------
+  const submitMcq = async (quizId, submissionData) => {
+    console.log(quizId, submissionData);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/results`,
+        {
+          quizId: quizId,
+          ...submissionData,
+        }
+      );
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error("Result submit error:", error);
+      throw error;
+    }
+  };
+
+  // AppContext এ এই function টি add করুন
+  const fetchStudentResults = async (studentId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/results/student/${studentId}`
+      );
+      return response;
+    } catch (error) {
+      console.error("Student results fetch error:", error);
+      throw error;
+    }
+  };
+
   const submitQuiz = async (quizId, newResult) => {
+    console.log(quizId, newResult);
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
@@ -665,7 +707,6 @@ export const AppProvider = ({ children }) => {
       );
 
       const updatedQuiz = response.data;
-      console.log(updatedQuiz);
 
       setQuizzes((prevQuizzes) =>
         prevQuizzes.map((q) => (q._id === quizId ? updatedQuiz : q))
@@ -887,6 +928,8 @@ export const AppProvider = ({ children }) => {
     payments,
     attendance,
     quizzes,
+    // New
+    mcqResult,
     loading,
     mcqQuizzes,
     chapterSchedules,
@@ -913,6 +956,9 @@ export const AppProvider = ({ children }) => {
     addAttendance,
     updateAttendance,
     submitQuiz,
+    // New
+    submitMcq,
+    fetchStudentResults,
 
     setMcqQuizzes,
     checkQuizAttempt,

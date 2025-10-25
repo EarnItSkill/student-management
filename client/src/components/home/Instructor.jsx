@@ -4,7 +4,7 @@ export default function Instructor() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">আমাদের ইন্সট্রাক্টর</h2>
-          <p className="text-gray-600">অভিজ্ঞ এবং দক্ষ প্রশিক্ষক</p>
+          <p className="text-gray-400">অভিজ্ঞ এবং দক্ষ প্রশিক্ষক</p>
         </div>
 
         <div className="card lg:card-side bg-gradient-to-br from-primary/10 to-secondary/10 shadow-2xl max-w-4xl mx-auto">

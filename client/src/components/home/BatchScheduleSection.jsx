@@ -126,7 +126,7 @@ const BatchScheduleSection = () => {
           <h2 className="text-4xl md:text-5xl py-3 font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             আপনার পছন্দের ব্যাচটি সম্পর্কে জেনে নিন
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             চলমান সকল ব্যাচের তথ্য নিচে দেওয়া হলো। বিস্তারিত জানতে যেকোনো কার্ডে
             ক্লিক করুন।
           </p>
@@ -157,7 +157,7 @@ const BatchScheduleSection = () => {
                     <h3 className={`text-2xl font-bold mb-1 ${group.tColor}`}>
                       {group.title}
                     </h3>
-                    <p className="text-sm text-gray-600">{group.description}</p>
+                    <p className="text-sm text-gray-400">{group.description}</p>
                   </div>
                 </div>
 
@@ -280,7 +280,7 @@ const InfoItem = ({ icon: Icon, title, value, color }) => (
       <Icon className={`w-5 h-5 ${color}`} />
     </div>
     <div className="flex justify-between flex-1">
-      <p className="text-xs text-gray-600">{title}</p>
+      <p className="text-xs text-gray-400">{title}</p>
       <p className="font-bold text-gray-800">{value}</p>
     </div>
   </div>

@@ -21,7 +21,7 @@ const Navbar = () => {
             src="https://office-course.vercel.app/assets/images/logo/logo.jpg"
             alt=""
           />
-          Earn IT Skill <span className="text-sm text-gray-600">(Offline)</span>
+          Earn IT Skill <span className="text-sm text-gray-400">(Offline)</span>
         </Link>
       </div>
 

@@ -124,7 +124,7 @@ const SearchableSelect = ({
             </div>
 
             {/* Results Count */}
-            <div className="p-2 border-t bg-base-200 text-xs text-gray-600 text-center">
+            <div className="p-2 border-t bg-base-200 text-xs text-gray-400 text-center">
               {filteredOptions.length} result(s) found
             </div>
           </div>
@@ -284,7 +284,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
               <UserCheck className="w-7 h-7 text-primary" />
               Enroll Student
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Add a student to a batch
             </p>
           </div>
@@ -387,7 +387,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <BookOpen className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-600">Course</div>
+                        <div className="text-sm text-gray-400">Course</div>
                         <div className="font-semibold">
                           {selectedCourse.title}
                         </div>
@@ -397,7 +397,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-600">Schedule</div>
+                        <div className="text-sm text-gray-400">Schedule</div>
                         <div className="font-semibold">
                           {getScheduleText(selectedBatch.scheduleType)}
                         </div>
@@ -407,7 +407,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <Clock className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-600">Class Time</div>
+                        <div className="text-sm text-gray-400">Class Time</div>
                         <div className="font-semibold">
                           {formatTime(selectedBatch.startTime)}
                         </div>
@@ -419,7 +419,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-600">Duration</div>
+                        <div className="text-sm text-gray-400">Duration</div>
                         <div className="font-semibold">
                           {new Date(selectedBatch.startDate).toLocaleDateString(
                             "en-GB"
@@ -435,7 +435,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <Users className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-400">
                           Available Seats
                         </div>
                         <div className="font-semibold">
@@ -454,7 +454,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 text-2xl mt-0.5">৳</div>
                       <div>
-                        <div className="text-sm text-gray-600">Course Fee</div>
+                        <div className="text-sm text-gray-400">Course Fee</div>
                         <div className="font-semibold text-success text-lg">
                           ৳{selectedCourse.fee}
                         </div>
@@ -469,7 +469,7 @@ const EnrollmentForm = ({ onClose, onSuccess }) => {
                     <div className="flex items-center gap-2">
                       <UserCheck className="w-5 h-5 text-primary" />
                       <div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-400">
                           Instructor:{" "}
                         </span>
                         <span className="font-semibold">

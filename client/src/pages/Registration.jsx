@@ -100,7 +100,7 @@ const Registration = () => {
                   {generateStudentId()}
                 </span>
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-400 mb-4">
                 আপনার রেজিস্ট্রেশন সফল হয়েছে। আপনি এখন লগিন করতে পারবেন।
               </p>
               <div className="divider">Redirecting to login...</div>
@@ -136,7 +136,7 @@ const Registration = () => {
               <h2 className="card-title text-3xl justify-center mb-2">
                 ছাত্র/ছাত্রী রেজিস্ট্রেশন ফরম
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 নতুন শিক্ষার্থী হিসেবে রেজিস্ট্রেশন করুন
               </p>
             </div>
@@ -235,7 +235,7 @@ const Registration = () => {
                   <label className="label">
                     <span className="label-text font-semibold">
                       ইমেইল{" "}
-                      <span className="text-gray-600 text-sm">(অপশনাল)</span>{" "}
+                      <span className="text-gray-400 text-sm">(অপশনাল)</span>{" "}
                     </span>
                   </label>
                   <input
@@ -614,7 +614,7 @@ const Registration = () => {
 
               {/* Login Link */}
               <div className="text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   রেজিষ্ট্রেশন করা আছে?{" "}
                   <Link to="/login" className="link link-primary font-semibold">
                     লগইন করুন

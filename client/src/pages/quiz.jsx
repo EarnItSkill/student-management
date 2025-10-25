@@ -63,7 +63,7 @@
                           <h3 className="card-title text-lg">
                             {batch.batchName}
                           </h3>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-400 mt-1">
                             {course?.title || "No Course"}
                           </p>
                         </div>
@@ -74,25 +74,25 @@
 
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Schedule:</span>
+                          <span className="text-gray-400">Schedule:</span>
                           <span className="font-semibold text-xs">
                             {batch.schedule}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Total Quizzes:</span>
+                          <span className="text-gray-400">Total Quizzes:</span>
                           <span className="badge badge-primary">
                             {batchQuizzes.length}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Completed:</span>
+                          <span className="text-gray-400">Completed:</span>
                           <span className="badge badge-success">
                             {completedInBatch}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Pending:</span>
+                          <span className="text-gray-400">Pending:</span>
                           <span className="badge badge-warning">
                             {batchQuizzes.length - completedInBatch}
                           </span>
@@ -133,7 +133,7 @@
                     ?.batchName
                 }
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-400">
                 {
                   courses.find(
                     (c) =>
@@ -293,7 +293,7 @@
                                 <h3 className="card-title text-lg">
                                   {quiz.title}
                                 </h3>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-gray-400 mt-1">
                                   Batch: {batch?.batchName}
                                 </p>
                               </div>
@@ -304,7 +304,7 @@
 
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">
+                                <span className="text-gray-400">
                                   Questions:
                                 </span>
                                 <span className="font-semibold">
@@ -312,7 +312,7 @@
                                 </span>
                               </div>
                               <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">
+                                <span className="text-gray-400">
                                   Total Marks:
                                 </span>
                                 <span className="font-semibold">
@@ -322,7 +322,7 @@
                               {myResult && (
                                 <>
                                   <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">
+                                    <span className="text-gray-400">
                                       Your Score:
                                     </span>
                                     <span className="font-bold text-primary">
@@ -330,7 +330,7 @@
                                     </span>
                                   </div>
                                   <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">
+                                    <span className="text-gray-400">
                                       Percentage:
                                     </span>
                                     <span

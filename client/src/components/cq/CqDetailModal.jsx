@@ -29,7 +29,7 @@ const CqDetailModal = ({ cq, onClose }) => {
         <div className="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-base-100 z-10">
           <div>
             <h3 className="font-bold text-2xl">CQ Question Details</h3>
-            <p className="text-sm text-gray-600 mt-1">Chapter {cq.chapter}</p>
+            <p className="text-sm text-gray-400 mt-1">Chapter {cq.chapter}</p>
           </div>
           <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
             <X className="w-5 h-5" />

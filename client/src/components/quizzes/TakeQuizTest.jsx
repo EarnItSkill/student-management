@@ -90,7 +90,8 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
     };
 
     // Submit quiz result
-    // submitQuiz(quizId, submissionData);
+
+    submitQuiz(quizId, submissionData);
 
     setShowResult(true);
   };
@@ -122,7 +123,7 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="font-bold text-2xl">{quiz.title}</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   Question {currentQuestion + 1} of {quiz.questions.length}
                 </p>
               </div>
@@ -141,7 +142,7 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
                 value={currentQuestion + 1}
                 max={quiz.questions.length}
               ></progress>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>
                   Progress:{" "}
                   {Math.round(
@@ -229,7 +230,7 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
                 ← Previous
               </button>
 
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-400">
                 {isAnswered ? (
                   <span className="text-success">✓ Answered</span>
                 ) : (
@@ -284,7 +285,7 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
                   : "Keep Practicing! 💪"}
               </h3>
 
-              <p className="text-gray-600 mb-6">You have completed the quiz</p>
+              <p className="text-gray-400 mb-6">You have completed the quiz</p>
 
               {/* Score Display */}
               <div className="stats shadow mb-6">

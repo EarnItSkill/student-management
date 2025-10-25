@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 import ConfirmModal from "../common/ConfirmModal";
 
 const QuizList = ({ onEdit, onAdd }) => {
@@ -269,7 +270,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       <h3 className="card-title text-2xl text-secondary">
                         {group.batchType}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-400 mt-1">
                         Group of {group.batches.length} Batches
                       </p>
                     </div>
@@ -280,7 +281,7 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         Total Unique Quizzes:
                       </span>
                       <span className="badge badge-primary">
@@ -288,7 +289,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         Total Unique Questions:
                       </span>
                       <span className="badge badge-success">
@@ -296,7 +297,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Submissions:</span>
+                      <span className="text-gray-400">Total Submissions:</span>
                       <span className="badge badge-info">
                         {group.totalSubmissions}
                       </span>
@@ -436,7 +437,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                         <h3 className="card-title text-lg">
                           Chapter: {chapter.name}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-400 mt-1">
                           {selectedBatchTypeGroup} Group
                         </p>
                       </div>
@@ -447,20 +448,20 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Quizzes:</span>
+                        <span className="text-gray-400">Quizzes:</span>
                         <span className="badge badge-info">
                           {chapter.quizzes.length}{" "}
                           {/* এখন এটি ইউনিক কুইজের সংখ্যা দেখাচ্ছে */}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Questions:</span>
+                        <span className="text-gray-400">Questions:</span>
                         <span className="badge badge-success">
                           {chapter.totalQuestions}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Submissions:</span>
+                        <span className="text-gray-400">Submissions:</span>
                         <span className="badge badge-primary">
                           {chapter.totalSubmissions}
                         </span>
@@ -660,17 +661,17 @@ const QuizList = ({ onEdit, onAdd }) => {
 
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Questions:</span>
+                        <span className="text-gray-400">Questions:</span>
                         <span className="font-semibold">
                           {quiz.questions.length}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Total Marks:</span>
+                        <span className="text-gray-400">Total Marks:</span>
                         <span className="font-semibold">{quiz.totalMarks}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Submissions:</span>
+                        <span className="text-gray-400">Submissions:</span>
                         <span className="font-semibold">
                           {quiz.results.length}
                         </span>
@@ -876,7 +877,7 @@ const QuizList = ({ onEdit, onAdd }) => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="font-bold text-xl">{viewModal.quiz.title}</h3>
-                <p className="text-sm text-gray-600">Quiz Preview</p>
+                <p className="text-sm text-gray-400">Quiz Preview</p>
               </div>
               <button
                 onClick={() => setViewModal({ isOpen: false, quiz: null })}
@@ -918,7 +919,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                     <div className="card-body p-4">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg flex-1">
-                          {index + 1}. {q.question}
+                          {index + 1}. {parseSpecialToJSX(q.question)}
                         </h4>
                         {hasMultipleCorrect && (
                           <div className="badge badge-info badge-lg gap-1">
@@ -946,7 +947,7 @@ const QuizList = ({ onEdit, onAdd }) => {
                                   <span className="font-bold">
                                     {String.fromCharCode(65 + optIndex)}.
                                   </span>
-                                  <span>{option}</span>
+                                  <span>{parseSpecialToJSX(option)}</span>
                                 </div>
                                 {isCorrect && (
                                   <div className="flex items-center gap-1">

@@ -79,7 +79,7 @@ const CqPageList = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold">Creative Questions (CQ)</h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-400 mt-1">
             Manage chapter-wise creative questions
           </p>
         </div>
@@ -207,7 +207,7 @@ const CqPageList = () => {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-600 line-clamp-3">
+                      <p className="text-sm text-gray-400 line-clamp-3">
                         {parseSpecialToJSX(cq.stimulusContent)}
                       </p>
                     )}
@@ -217,7 +217,7 @@ const CqPageList = () => {
                     <div className="text-sm space-y-1">
                       <p className="font-semibold">Questions:</p>
                       {cq.questions.map((q, idx) => (
-                        <p key={idx} className="text-gray-600 line-clamp-1">
+                        <p key={idx} className="text-gray-400 line-clamp-1">
                           {idx + 1}. {parseSpecialToJSX(q.question)}
                         </p>
                       ))}
@@ -272,7 +272,7 @@ const CqPageList = () => {
                             </div>
 
                             {cq.stimulusType === "text" && (
-                              <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                              <p className="text-sm text-gray-400 mb-2 line-clamp-2">
                                 {parseSpecialToJSX(cq.stimulusContent)}
                               </p>
                             )}
@@ -280,7 +280,7 @@ const CqPageList = () => {
                             <div className="text-sm">
                               <p className="font-semibold mb-1">Questions:</p>
                               {cq.questions.map((q, idx) => (
-                                <p key={idx} className="text-gray-600">
+                                <p key={idx} className="text-gray-400">
                                   {idx + 1}. {parseSpecialToJSX(q.question)}
                                 </p>
                               ))}

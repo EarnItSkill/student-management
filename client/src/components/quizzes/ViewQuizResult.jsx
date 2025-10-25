@@ -1,4 +1,5 @@
 import { Award, CheckCircle, X, XCircle } from "lucide-react";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const ViewQuizResult = ({ quiz, studentId, onClose }) => {
   // Find student's result
@@ -34,7 +35,7 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
         <div className="flex justify-between items-center mb-6 sticky top-0 bg-base-100 z-10 pb-4">
           <div>
             <h3 className="font-bold text-2xl">{quiz.title}</h3>
-            <p className="text-sm text-gray-600">Quiz Result Review</p>
+            <p className="text-sm text-gray-400">Quiz Result Review</p>
           </div>
           <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
             <X className="w-5 h-5" />
@@ -90,7 +91,7 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 mt-4">
+          <p className="text-sm text-gray-400 mt-4">
             Submitted:{" "}
             {new Date(myResult.submittedAt).toLocaleDateString("en-GB")} at{" "}
             {new Date(myResult.submittedAt).toLocaleTimeString("en-US", {
@@ -147,7 +148,7 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
                     {/* Question Header */}
                     <div className="flex items-start justify-between mb-3">
                       <h5 className="font-semibold flex-1">
-                        {index + 1}. {question.question}
+                        {index + 1}. {parseSpecialToJSX(question.question)}
                       </h5>
                       <div
                         className={`badge ${
@@ -190,7 +191,9 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
                               <span className="font-bold">
                                 {String.fromCharCode(65 + optIndex)}.
                               </span>
-                              <span className="flex-1">{option}</span>
+                              <span className="flex-1">
+                                {parseSpecialToJSX(option)}
+                              </span>
 
                               {/* Correct Answer Badge */}
                               {isCorrect && (

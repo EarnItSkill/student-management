@@ -49,7 +49,7 @@ const ScheduleFormModal = ({ schedule, onClose, availableChapters }) => {
               <Calendar className="w-7 h-7 text-primary" />
               {isEdit ? "Edit Schedule" : "Create New Schedule"}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Set quiz availability dates for a chapter
             </p>
           </div>

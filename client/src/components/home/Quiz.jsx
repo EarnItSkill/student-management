@@ -5,7 +5,7 @@ export default function Quiz() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold my-4">MCQ কুইজ সুবিধা</h2>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             নিয়মিত কুইজের মাধ্যমে নিজের দক্ষতা যাচাই করুন
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function Quiz() {
                 <div className="text-4xl">🥇</div>
                 <div className="flex-1">
                   <div className="font-bold">১ম স্থান - গোল্ড মেডেল</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-400">
                     সবচেয়ে বেশি স্কোর অর্জনকারী
                   </div>
                 </div>
@@ -76,7 +76,7 @@ export default function Quiz() {
                 <div className="text-4xl">🥈</div>
                 <div className="flex-1">
                   <div className="font-bold">২য় স্থান - সিলভার মেডেল</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-400">
                     দ্বিতীয় সর্বোচ্চ স্কোর
                   </div>
                 </div>
@@ -87,7 +87,7 @@ export default function Quiz() {
                 <div className="text-4xl">🥉</div>
                 <div className="flex-1">
                   <div className="font-bold">৩য় স্থান - ব্রোঞ্জ মেডেল</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-400">
                     তৃতীয় সর্বোচ্চ স্কোর
                   </div>
                 </div>

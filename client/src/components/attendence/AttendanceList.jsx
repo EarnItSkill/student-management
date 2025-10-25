@@ -174,7 +174,7 @@ const AttendanceList = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <h3 className="card-title text-lg">{batch.batchName}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-400 mt-1">
                         {batch.course?.title || "No Course"}
                       </p>
                     </div>
@@ -185,31 +185,31 @@ const AttendanceList = () => {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Schedule:</span>
+                      <span className="text-gray-400">Schedule:</span>
                       <span className="font-semibold text-xs">
                         {batch.schedule}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Records:</span>
+                      <span className="text-gray-400">Total Records:</span>
                       <span className="badge badge-primary">
                         {batch.attendanceRecords.length}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Present:</span>
+                      <span className="text-gray-400">Present:</span>
                       <span className="badge badge-success">
                         {batch.presentCount}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Absent:</span>
+                      <span className="text-gray-400">Absent:</span>
                       <span className="badge badge-error">
                         {batch.absentCount}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Attendance Rate:</span>
+                      <span className="text-gray-400">Attendance Rate:</span>
                       <span className="font-bold text-info">
                         {batch.attendanceRate}%
                       </span>
@@ -278,7 +278,7 @@ const AttendanceList = () => {
             <h2 className="text-2xl font-bold">
               {selectedBatchData?.batchName}
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-400">
               {selectedBatchData?.course?.title}
             </p>
           </div>
@@ -462,7 +462,7 @@ const AttendanceList = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-lg">{student?.name}</h3>
-                      <p className="text-sm text-gray-600">{record.date}</p>
+                      <p className="text-sm text-gray-400">{record.date}</p>
                     </div>
                   </div>
 

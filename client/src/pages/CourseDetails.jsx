@@ -13,6 +13,7 @@ import {
   List,
   Lock,
   Unlock,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -35,6 +36,7 @@ const CourseDetails = () => {
 
   const [selectedClass, setSelectedClass] = useState(0);
   const [expandedGroups, setExpandedGroups] = useState([0]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const course = courses?.find((c) => c._id === id);
 
@@ -144,7 +146,7 @@ const CourseDetails = () => {
             <div className="mb-4 w-11/12">
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold">Class Progress</span>
-                <span className="text-gray-600">
+                <span className="text-gray-400">
                   {
                     course.classes.filter((_, i) =>
                       isClassUnlocked(i, classUnlockDates, today)
@@ -165,7 +167,6 @@ const CourseDetails = () => {
             </div>
           )}
         </div>
-
         {/* Enrollment Info Banner (if logged in) */}
         {isAuthenticated && studentBatch && (
           <div className="alert alert-info shadow-lg mb-6">
@@ -192,7 +193,6 @@ const CourseDetails = () => {
             </div>
           </div>
         )}
-
         {/* Hero Section */}
         {!currentUser && (
           <div className="card bg-base-100 shadow-xl mb-6">
@@ -209,7 +209,7 @@ const CourseDetails = () => {
                 <h1 className="card-title text-4xl font-bold mb-4">
                   {course.title}
                 </h1>
-                <p className="text-lg text-gray-600 mb-6">
+                <p className="text-lg text-gray-400 mb-6">
                   {course.description}
                 </p>
 
@@ -236,7 +236,7 @@ const CourseDetails = () => {
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-semibold">Class Progress</span>
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         {
                           course.classes.filter((_, i) =>
                             isClassUnlocked(i, classUnlockDates, today)
@@ -270,6 +270,17 @@ const CourseDetails = () => {
             </div>
           </div>
         )}
+
+        {/* Mobile Sidebar Toggle Button */}
+        <div className="lg:hidden mb-4">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="btn btn-primary btn-block gap-2"
+          >
+            <GraduationCap className="w-5 h-5" />
+            ক্লাসের লিস্ট দেখুন ({course.classes.length}টি)
+          </button>
+        </div>
 
         {/* Classes Section with Right Sidebar */}
         {course.classes && course.classes.length > 0 && (
@@ -476,7 +487,8 @@ const CourseDetails = () => {
             </div>
 
             {/* Right Sidebar - Class Navigation */}
-            <div className="lg:col-span-4">
+            {/* <div className="lg:col-span-4"> */}
+            <div className="lg:col-span-4 hidden lg:block">
               <div className="card bg-base-100 shadow-xl sticky top-4">
                 <div className="card-body p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
                   <h2 className="card-title text-lg mb-4 flex items-center gap-2">
@@ -585,6 +597,133 @@ const CourseDetails = () => {
                           )}
                         </div>
                       ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Sidebar Drawer */}
+            <div
+              className={`drawer absolute right-4 drawer-end lg:hidden ${
+                isSidebarOpen ? "drawer-open" : ""
+              }`}
+            >
+              <input
+                id="my-drawer"
+                type="checkbox"
+                className="drawer-toggle"
+                checked={isSidebarOpen}
+                onChange={() => setIsSidebarOpen(!isSidebarOpen)}
+              />
+              <div className="drawer-side z-50">
+                <label
+                  htmlFor="my-drawer"
+                  className="drawer-overlay"
+                  onClick={() => setIsSidebarOpen(false)}
+                ></label>
+                <div className="menu p-4 w-80 min-h-full bg-base-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-primary" />
+                      ক্লাসের লিস্ট
+                    </h2>
+                    <button
+                      onClick={() => setIsSidebarOpen(false)}
+                      className="btn btn-sm btn-circle btn-ghost"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Sidebar content copy করুন */}
+                  <div className="space-y-2">
+                    {groupedClasses.map((group) => (
+                      <div
+                        key={group.groupIndex}
+                        className="border border-base-300 rounded-lg"
+                      >
+                        <button
+                          onClick={() => toggleGroup(group.groupIndex)}
+                          className="w-full flex items-center justify-between p-3 hover:bg-base-200 rounded-lg transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            {expandedGroups.includes(group.groupIndex) ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                            <span className="font-semibold">
+                              {group.groupName}
+                            </span>
+                          </div>
+                          <div className="badge badge-sm badge-ghost">
+                            {group.classes.length}
+                          </div>
+                        </button>
+
+                        {expandedGroups.includes(group.groupIndex) && (
+                          <div className="px-2 pb-2 space-y-1">
+                            {group.classes.map((classItem, idx) => {
+                              const classIndex = group.startIndex + idx;
+                              const isSelected = selectedClass === classIndex;
+                              const isUnlocked =
+                                !isAuthenticated ||
+                                !studentBatch ||
+                                isClassUnlocked(
+                                  classIndex,
+                                  classUnlockDates,
+                                  today
+                                );
+
+                              return (
+                                <button
+                                  key={classItem.id}
+                                  onClick={() => {
+                                    handleClassClick(classIndex);
+                                    setIsSidebarOpen(false); // Close drawer on selection
+                                  }}
+                                  disabled={
+                                    !isUnlocked &&
+                                    isAuthenticated &&
+                                    studentBatch
+                                  }
+                                  className={`w-full text-left p-3 rounded-lg transition-all ${
+                                    isSelected
+                                      ? "bg-primary text-primary-content shadow-md"
+                                      : isUnlocked
+                                      ? "hover:bg-base-200"
+                                      : "opacity-50 cursor-not-allowed"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <div
+                                        className={`badge badge-sm flex-shrink-0 ${
+                                          isSelected
+                                            ? "badge-primary-content"
+                                            : "badge-ghost"
+                                        }`}
+                                      >
+                                        {classIndex + 1}
+                                      </div>
+                                      <span className="text-sm font-medium truncate">
+                                        {classItem.topic[0].split(":")[1] ||
+                                          classItem.topic[0]}
+                                      </span>
+                                    </div>
+                                    {isUnlocked ? (
+                                      <Unlock className="w-4 h-4 text-success flex-shrink-0 ml-2" />
+                                    ) : (
+                                      <Lock className="w-4 h-4 text-error flex-shrink-0 ml-2" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

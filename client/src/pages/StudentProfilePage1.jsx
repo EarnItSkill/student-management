@@ -339,7 +339,7 @@ const StudentProfile = () => {
                   >
                     <div className="card-body">
                       <h3 className="card-title">{batch.batchName}</h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-400">
                         {batch.course?.title}
                       </p>
 
@@ -347,7 +347,7 @@ const StudentProfile = () => {
 
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">শুরুর তারিখ:</span>
+                          <span className="text-gray-400">শুরুর তারিখ:</span>
                           <span className="font-semibold">
                             {new Date(batch.startDate).toLocaleDateString(
                               "en-GB"
@@ -355,7 +355,7 @@ const StudentProfile = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">শেষের তারিখ:</span>
+                          <span className="text-gray-400">শেষের তারিখ:</span>
                           <span className="font-semibold">
                             {new Date(batch.endDate).toLocaleDateString(
                               "en-GB"
@@ -363,7 +363,7 @@ const StudentProfile = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">ফি:</span>
+                          <span className="text-gray-400">ফি:</span>
                           <span className="font-bold text-primary">
                             ৳{batch.courseFee}
                           </span>

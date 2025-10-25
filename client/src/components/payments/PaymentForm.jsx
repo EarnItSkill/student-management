@@ -236,7 +236,7 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
               <DollarSign className="w-7 h-7 text-primary" />
               {isEdit ? "Edit Payment" : "Add New Payment"}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Record student payment for batch enrollment
             </p>
           </div>
@@ -289,7 +289,7 @@ const PaymentForm = ({ payment, onClose, onSuccess }) => {
                     <div>
                       <div className="font-bold">{selectedStudent.name}</div>
                       <div className="text-sm">{selectedStudent.email}</div>
-                      <div className="text-xs text-gray-600">
+                      <div className="text-xs text-gray-400">
                         {selectedStudent.studentId}
                       </div>
                     </div>

@@ -126,7 +126,7 @@ const BatchDetails = () => {
             <h1 className="text-4xl font-extrabold text-indigo-700">
               {courseTitle}
             </h1>
-            <p className="text-lg text-gray-600 mt-1">{courseDescription}</p>
+            <p className="text-lg text-gray-400 mt-1">{courseDescription}</p>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ const BatchDetails = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mt-2">
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-400 mt-2">
                 <p>
                   <span className="font-semibold text-gray-700">
                     ক্লাসের দিন:

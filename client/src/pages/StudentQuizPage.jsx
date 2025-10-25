@@ -311,7 +311,7 @@ const StudentQuizPage = () => {
               <h2 className="text-2xl font-bold mb-2">
                 আপনি কোন ব্যাচে ভর্তি নন
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 কুইজে অংশগ্রহণ করতে প্রথমে একটি ব্যাচে ভর্তি হন
               </p>
               <button
@@ -354,21 +354,21 @@ const StudentQuizPage = () => {
                 <Target className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">৫০টি প্রশ্ন</p>
-                  <p className="text-sm text-gray-600">র‍্যান্ডম নির্বাচন</p>
+                  <p className="text-sm text-gray-400">র‍্যান্ডম নির্বাচন</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-base-100 rounded-lg">
                 <Clock className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">৫০ মিনিট</p>
-                  <p className="text-sm text-gray-600">সময় সীমা</p>
+                  <p className="text-sm text-gray-400">সময় সীমা</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-base-100 rounded-lg">
                 <BookOpen className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold">একবার মাত্র</p>
-                  <p className="text-sm text-gray-600">প্রতি অধ্যায়ে</p>
+                  <p className="text-sm text-gray-400">প্রতি অধ্যায়ে</p>
                 </div>
               </div>
             </div>
@@ -448,7 +448,7 @@ const StudentQuizPage = () => {
                               className={
                                 isSelected && !isDisabled
                                   ? "text-white/80"
-                                  : "text-gray-600"
+                                  : "text-gray-400"
                               }
                             >
                               মোট প্রশ্ন:
@@ -462,7 +462,7 @@ const StudentQuizPage = () => {
                               className={
                                 isSelected && !isDisabled
                                   ? "text-white/80"
-                                  : "text-gray-600"
+                                  : "text-gray-400"
                               }
                             >
                               এলোমেলো প্রশ্ন:
@@ -474,7 +474,7 @@ const StudentQuizPage = () => {
                           {!isAttempted &&
                             availability.reason === "Not started" && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">শুরু হবে:</span>
+                                <span className="text-gray-400">শুরু হবে:</span>
                                 <span className="font-bold text-info">
                                   {availability.startDate}
                                 </span>
@@ -482,7 +482,7 @@ const StudentQuizPage = () => {
                             )}
                           {isAttempted && attemptInfo.attempt && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
+                              <span className="text-gray-400">
                                 আপনার স্কোর:
                               </span>
                               <span className="font-bold text-success">

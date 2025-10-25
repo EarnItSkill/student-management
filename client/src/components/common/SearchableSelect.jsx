@@ -111,7 +111,7 @@ const SearchableSelect = ({
             </div>
 
             {/* Results Count */}
-            <div className="p-2 border-t bg-base-200 text-xs text-gray-600 text-center">
+            <div className="p-2 border-t bg-base-200 text-xs text-gray-400 text-center">
               {filteredOptions.length} result(s) found
             </div>
           </div>

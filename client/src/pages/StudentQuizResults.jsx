@@ -183,25 +183,25 @@ const StudentQuizResults = () => {
 
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">মোট প্রশ্ন:</span>
+                            <span className="text-gray-400">মোট প্রশ্ন:</span>
                             <span className="font-semibold">
                               {attempt.totalQuestions}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">সঠিক:</span>
+                            <span className="text-gray-400">সঠিক:</span>
                             <span className="font-semibold text-success">
                               {attempt.correctAnswers}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">ভুল:</span>
+                            <span className="text-gray-400">ভুল:</span>
                             <span className="font-semibold text-error">
                               {attempt.wrongAnswers}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">সময়:</span>
+                            <span className="text-gray-400">সময়:</span>
                             <span className="font-semibold">
                               {Math.floor(attempt.timeTaken / 60)} মিনিট
                             </span>
@@ -210,7 +210,7 @@ const StudentQuizResults = () => {
 
                         <div className="divider my-2"></div>
 
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
                           <Calendar className="w-3 h-3" />
                           <span>
                             {new Date(attempt.submittedAt).toLocaleDateString(

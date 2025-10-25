@@ -6,7 +6,7 @@ const NotFound = () => {
       <div className="text-center">
         <div className="text-9xl font-bold text-primary mb-4">404</div>
         <h1 className="text-4xl font-bold mb-4">পেজ পাওয়া যায়নি! 😕</h1>
-        <p className="text-xl text-gray-600 mb-8">
+        <p className="text-xl text-gray-400 mb-8">
           দুঃখিত, আপনি যে পেজটি খুঁজছেন তা বিদ্যমান নেই।
         </p>
         <div className="space-x-4">

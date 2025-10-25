@@ -82,7 +82,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
               <GraduationCap className="w-7 h-7 text-primary" />
               {isEdit ? "Edit Batch" : "Add New Batch"}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               {isEdit
                 ? "Update batch information"
                 : "Create a new batch for students"}

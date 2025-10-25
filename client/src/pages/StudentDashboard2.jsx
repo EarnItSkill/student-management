@@ -58,24 +58,27 @@ const StudentDashboard = () => {
     useState(null);
   const [attendanceDateFilter, setAttendanceDateFilter] = useState("");
   const [attendanceViewType, setAttendanceViewType] = useState("table");
-  const [studentResults, setStudentResults] = useState([]);
-  console.log(studentResults);
+  const [mcqResult, setMcqResult] = useState([]);
+  console.log(mcqResult);
 
   const student = currentUser;
 
   useEffect(() => {
-    const loadStudentResults = async () => {
-      if (currentUser?._id) {
-        try {
-          const results = await fetchStudentResults(currentUser._id);
-          setStudentResults(results.data);
-        } catch (error) {
-          console.error("Results load করতে সমস্যা:", error);
-        }
+    const loadResults = async () => {
+      try {
+        const results = await fetchStudentResults(student._id);
+        // console.log("Student এর সব results:", results.data);
+        // এখানে results নিয়ে কাজ করুন
+        // return results;
+        setMcqResult(results.data);
+      } catch (error) {
+        console.error("Results load করতে সমস্যা হয়েছে");
       }
     };
-    loadStudentResults();
-  }, [currentUser]);
+    if (student?._id) {
+      loadResults();
+    }
+  }, [student._id]);
 
   // Get student's data
   const myEnrollments = enrollments.filter(
@@ -96,13 +99,18 @@ const StudentDashboard = () => {
   // Student এর enrolled courses থেকে courseIds বের করা
   const enrolledCourseIds = myBatches.map((batch) => batch.courseId);
 
-  // ⭐ CHANGE: quizzes এর সাথে results merge করা
-  const myQuizzes = quizzes
-    .filter((quiz) => enrolledCourseIds.includes(quiz.courseId))
-    .map((quiz) => ({
-      ...quiz,
-      results: studentResults.filter((r) => r.quizId === quiz._id),
-    }));
+  // শুধুমাত্র enrolled courses এর quizzes ফিল্টার করা
+  const myQuizzes = quizzes.filter((quiz) =>
+    enrolledCourseIds.includes(quiz.courseId)
+  );
+
+  const studentQuizResults = quizzes.map((q) =>
+    mcqResult.find(
+      (r) => r.quizId === q._id && r.studentId === currentUser?._id
+    )
+  );
+
+  console.log(studentQuizResults);
 
   // Generate unlock dates for each batch
   const batchUnlockDates = {};
@@ -126,9 +134,15 @@ const StudentDashboard = () => {
     const unlockDates = batchUnlockDates[studentBatch._id] || [];
 
     // Get all quizzes for this course (sorted by _id)
-    const courseQuizzes = myQuizzes
-      .filter((q) => q.courseId === quiz.courseId)
-      .sort((a, b) => a._id.localeCompare(b._id));
+    // const courseQuizzes = myQuizzes
+    //   .filter((q) => q.courseId === quiz.courseId)
+    //   .sort((a, b) => a._id.localeCompare(b._id));
+
+    const studentQuizResults = courseQuizzes.map((q) =>
+      studentResults.find(
+        (r) => r.quizId === q._id && r.studentId === currentUser?._id
+      )
+    );
 
     // Get student's quiz results for this course (in order)
     const studentQuizResults = courseQuizzes.map((q) =>
@@ -1742,7 +1756,7 @@ const StudentDashboard = () => {
 
                         {quizViewType === "grid" ? (
                           // Grid View
-                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {courseQuizzes.map((quiz) => {
                               const myResult = quiz.results.find(
                                 (r) => r.studentId === currentUser?._id

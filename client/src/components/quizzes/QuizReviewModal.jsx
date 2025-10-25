@@ -5,14 +5,14 @@ const QuizReviewModal = ({ attempt, onClose }) => {
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-4xl max-h-[90vh]">
+      <div className="modal-box max-w-7xl max-h-[95vh]">
         {/* Header */}
         <div className="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-base-100 z-10">
           <div>
             <h3 className="font-bold text-2xl">
               অধ্যায় {attempt.chapter} - কুইজ রিভিউ
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               জমা: {new Date(attempt.submittedAt).toLocaleDateString("bn-BD")}
             </p>
           </div>
@@ -38,7 +38,7 @@ const QuizReviewModal = ({ attempt, onClose }) => {
                   <Award className="w-10 h-10 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">আপনার স্কোর</p>
+                  <p className="text-sm text-gray-400">আপনার স্কোর</p>
                   <p className="text-4xl font-bold">{percentage}%</p>
                 </div>
               </div>
@@ -110,7 +110,7 @@ const QuizReviewModal = ({ attempt, onClose }) => {
                         </p>
 
                         {/* Options */}
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-4">
                           {question.options.map((option, optIndex) => {
                             const isUserAnswer = userAnswers.includes(optIndex);
                             const isCorrectAnswer =
@@ -183,7 +183,7 @@ const QuizReviewModal = ({ attempt, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end mt-6 pt-4 border-t sticky bottom-0 bg-base-100">
+        <div className="flex justify-end mt-6 pt-4 border-t sticky -bottom-6 bg-base-100">
           <button onClick={onClose} className="btn btn-primary">
             বন্ধ করুন
           </button>

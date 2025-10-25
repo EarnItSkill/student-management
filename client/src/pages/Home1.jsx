@@ -132,7 +132,7 @@ const Home = () => {
                 <div key={batch._id} className="card bg-base-200 shadow-lg">
                   <div className="card-body">
                     <h3 className="card-title text-lg">{batch.batchName}</h3>
-                    <p className="text-sm text-gray-600">{course?.title}</p>
+                    <p className="text-sm text-gray-400">{course?.title}</p>
                     <div className="divider my-2"></div>
                     <div className="space-y-2 text-sm">
                       <p>📅 শুরু: {batch.startDate}</p>

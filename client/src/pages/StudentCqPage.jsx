@@ -94,7 +94,7 @@ const StudentCqPage = () => {
         <div className="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-base-100 z-10">
           <div>
             <h3 className="font-bold text-2xl">প্রশ্ন বিস্তারিত</h3>
-            <p className="text-sm text-gray-600 mt-1">অধ্যায় {cq.chapter}</p>
+            <p className="text-sm text-gray-400 mt-1">অধ্যায় {cq.chapter}</p>
           </div>
           <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
             <X className="w-5 h-5" />
@@ -174,7 +174,7 @@ const StudentCqPage = () => {
               <h2 className="text-2xl font-bold mb-2">
                 আপনি কোন ব্যাচে ভর্তি নন
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 CQ প্রশ্ন দেখতে প্রথমে একটি ব্যাচে ভর্তি হন
               </p>
               <button
@@ -206,7 +206,7 @@ const StudentCqPage = () => {
             <BookOpen className="w-10 h-10 text-primary" />
             <div>
               <h1 className="text-3xl font-bold">সৃজনশীল প্রশ্ন (CQ)</h1>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 অধ্যায়ভিত্তিক প্রশ্ন অনুশীলন করুন
               </p>
             </div>
@@ -273,7 +273,7 @@ const StudentCqPage = () => {
                     <h3 className="text-xl font-bold">
                       অধ্যায় {selectedChapter}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-400">
                       {filteredCqs.length} টি প্রশ্ন
                     </p>
                   </div>
@@ -356,7 +356,7 @@ const StudentCqPage = () => {
                         </div>
                       ) : (
                         <div className="h-32">
-                          <p className="text-sm text-gray-600 line-clamp-5">
+                          <p className="text-sm text-gray-400 line-clamp-5">
                             {parseSpecialToJSX(cq.stimulusContent)}
                           </p>
                         </div>
@@ -372,7 +372,7 @@ const StudentCqPage = () => {
                             className="flex items-start gap-2 mb-1"
                           >
                             <span className="badge badge-sm">{idx + 1}</span>
-                            <p className="text-gray-600 line-clamp-2 flex-1">
+                            <p className="text-gray-400 line-clamp-2 flex-1">
                               {parseSpecialToJSX(q.question)}
                             </p>
                           </div>
@@ -427,7 +427,7 @@ const StudentCqPage = () => {
                         <div className="flex-1">
                           {cq.stimulusType === "text" && (
                             <div className="mb-3">
-                              <p className="font-semibold text-sm text-gray-600 mb-1">
+                              <p className="font-semibold text-sm text-gray-400 mb-1">
                                 উদ্দীপক:
                               </p>
                               <p className="text-sm line-clamp-3">
@@ -437,7 +437,7 @@ const StudentCqPage = () => {
                           )}
 
                           <div>
-                            <p className="font-semibold text-sm text-gray-600 mb-2">
+                            <p className="font-semibold text-sm text-gray-400 mb-2">
                               প্রশ্ন:
                             </p>
                             <div className="space-y-2">

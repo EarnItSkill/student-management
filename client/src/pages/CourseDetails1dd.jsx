@@ -131,7 +131,7 @@ const CourseDetails = () => {
               <h1 className="card-title text-4xl font-bold mb-4">
                 {course.title}
               </h1>
-              <p className="text-lg text-gray-600 mb-6">{course.description}</p>
+              <p className="text-lg text-gray-400 mb-6">{course.description}</p>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="stat bg-base-200 rounded-lg">
@@ -156,7 +156,7 @@ const CourseDetails = () => {
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="font-semibold">Class Progress</span>
-                    <span className="text-gray-600">
+                    <span className="text-gray-400">
                       {
                         course.classes.filter((_, i) =>
                           isClassUnlocked(i, classUnlockDates, today)

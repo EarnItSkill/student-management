@@ -3,9 +3,6 @@ import {
   Award,
   CheckCircle,
   Clock,
-  Eye,
-  Grid3x3,
-  List,
   Send,
   X,
 } from "lucide-react";
@@ -21,7 +18,6 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
   const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
   const [startTime] = useState(Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState("single"); // "single", "ten", "all"
 
   // Shuffle function
   const shuffleArray = (array) => {
@@ -141,29 +137,14 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
   };
 
   const handleNext = () => {
-    if (
-      viewMode === "single" &&
-      currentQuestion < shuffledQuiz.questions.length - 1
-    ) {
+    if (currentQuestion < shuffledQuiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-    } else if (viewMode === "ten") {
-      const currentGroup = Math.floor(currentQuestion / 10);
-      const nextGroupStart = (currentGroup + 1) * 10;
-      if (nextGroupStart < shuffledQuiz.questions.length) {
-        setCurrentQuestion(nextGroupStart);
-      }
     }
   };
 
   const handlePrevious = () => {
-    if (viewMode === "single" && currentQuestion > 0) {
+    if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
-    } else if (viewMode === "ten") {
-      const currentGroup = Math.floor(currentQuestion / 10);
-      const prevGroupStart = (currentGroup - 1) * 10;
-      if (prevGroupStart >= 0) {
-        setCurrentQuestion(prevGroupStart);
-      }
     }
   };
 
@@ -229,10 +210,15 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
     }
   };
 
+  const question = shuffledQuiz.questions[currentQuestion];
+  const isAnswered =
+    answers[currentQuestion] !== undefined &&
+    answers[currentQuestion].length > 0;
   const allAnswered = shuffledQuiz.questions.every(
     (_, idx) => answers[idx] !== undefined && answers[idx].length > 0
   );
   const percentage = score;
+  const hasMultipleAnswers = question.correctAnswers.length > 1;
 
   const handleClose = () => {
     if (showResult) {
@@ -248,271 +234,151 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
     return "text-info";
   };
 
-  // Get questions to display based on view mode
-  const getQuestionsToDisplay = () => {
-    if (viewMode === "single") {
-      return [currentQuestion];
-    } else if (viewMode === "ten") {
-      const groupIndex = Math.floor(currentQuestion / 10);
-      const start = groupIndex * 10;
-      const end = Math.min(start + 10, shuffledQuiz.questions.length);
-      const indices = [];
-      for (let i = start; i < end; i++) {
-        indices.push(i);
-      }
-      return indices;
-    } else {
-      // "all" mode
-      return shuffledQuiz.questions.map((_, idx) => idx);
-    }
-  };
-
-  const questionsToShow = getQuestionsToDisplay();
-
-  // Check if on last page
-  const isLastPage = () => {
-    if (viewMode === "single") {
-      return currentQuestion === shuffledQuiz.questions.length - 1;
-    } else if (viewMode === "ten") {
-      const currentGroup = Math.floor(currentQuestion / 10);
-      const totalGroups = Math.ceil(shuffledQuiz.questions.length / 10);
-      return currentGroup === totalGroups - 1;
-    } else {
-      return true;
-    }
-  };
-
-  const isFirstPage = () => {
-    if (viewMode === "single") {
-      return currentQuestion === 0;
-    } else if (viewMode === "ten") {
-      return currentQuestion < 10;
-    } else {
-      return true;
-    }
-  };
-
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-7xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box max-w-3xl">
         {!showResult ? (
           <>
-            <div className="sticky top-0 bg-base-100 z-50 pb-4 border-b border-base-300 mb-6">
-              {/* Header with Timer */}
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
-                  <p className="text-sm text-gray-400">
-                    {viewMode === "single" &&
-                      `প্রশ্ন ${currentQuestion + 1} / ${
-                        shuffledQuiz.questions.length
-                      }`}
-                    {viewMode === "ten" &&
-                      `গ্রুপ ${
-                        Math.floor(currentQuestion / 10) + 1
-                      } / ${Math.ceil(shuffledQuiz.questions.length / 10)}`}
-                    {viewMode === "all" &&
-                      `সম্পূর্ণ ${shuffledQuiz.questions.length} টি প্রশ্ন`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  {/* Timer */}
-                  <div
-                    className={`flex items-center gap-2 font-mono text-2xl font-bold ${getTimerColor()}`}
-                  >
-                    <Clock className="w-6 h-6" />
-                    {formatTime(timeLeft)}
-                  </div>
-                  <button
-                    onClick={handleClose}
-                    className="btn btn-sm btn-circle btn-ghost"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+            {/* Header with Timer */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
+                <p className="text-sm text-gray-400">
+                  প্রশ্ন {currentQuestion + 1} / {shuffledQuiz.questions.length}
+                </p>
               </div>
-
-              {/* View Mode Selector */}
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => {
-                    setViewMode("single");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "single" ? "btn-primary" : "btn-outline"
-                  }`}
+              <div className="flex items-center gap-4">
+                {/* Timer */}
+                <div
+                  className={`flex items-center gap-2 font-mono text-2xl font-bold ${getTimerColor()}`}
                 >
-                  <Eye className="w-4 h-4" />
-                  ১টি করে
-                </button>
-                <button
-                  onClick={() => {
-                    setViewMode("ten");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "ten" ? "btn-primary" : "btn-outline"
-                  }`}
-                >
-                  <Grid3x3 className="w-4 h-4" />
-                  ১০টি করে
-                </button>
-                <button
-                  onClick={() => {
-                    setViewMode("all");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "all" ? "btn-primary" : "btn-outline"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  সম্পূর্ণ
-                </button>
-              </div>
-
-              {/* Time Warning */}
-              {timeLeft <= 300 && (
-                <div className="alert alert-error mb-4">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span>
-                    সতর্কতা! মাত্র {Math.floor(timeLeft / 60)} মিনিট বাকি!
-                  </span>
+                  <Clock className="w-6 h-6" />
+                  {formatTime(timeLeft)}
                 </div>
-              )}
-
-              {/* Progress Bar */}
-              <div className="mb-6">
-                <progress
-                  className="progress progress-primary w-full"
-                  value={
-                    Object.keys(answers).filter((k) => answers[k]?.length > 0)
-                      .length
-                  }
-                  max={shuffledQuiz.questions.length}
-                ></progress>
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>
-                    অগ্রগতি:{" "}
-                    {Math.round(
-                      (Object.keys(answers).filter(
-                        (k) => answers[k]?.length > 0
-                      ).length /
-                        shuffledQuiz.questions.length) *
-                        100
-                    )}
-                    %
-                  </span>
-                  <span>
-                    উত্তরিত:{" "}
-                    {
-                      Object.keys(answers).filter((k) => answers[k]?.length > 0)
-                        .length
-                    }
-                    /{shuffledQuiz.questions.length}
-                  </span>
-                </div>
+                <button
+                  onClick={handleClose}
+                  className="btn btn-sm btn-circle btn-ghost"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
-            {/* Questions Display */}
-            <div className="space-y-6 mb-6">
-              {questionsToShow.map((questionIndex) => {
-                const question = shuffledQuiz.questions[questionIndex];
-                const hasMultipleAnswers = question.correctAnswers.length > 1;
-                const isAnswered =
-                  answers[questionIndex] !== undefined &&
-                  answers[questionIndex].length > 0;
+            {/* Time Warning */}
+            {timeLeft <= 300 && (
+              <div className="alert alert-error mb-4">
+                <AlertTriangle className="w-5 h-5" />
+                <span>
+                  সতর্কতা! মাত্র {Math.floor(timeLeft / 60)} মিনিট বাকি!
+                </span>
+              </div>
+            )}
 
-                return (
-                  <div
-                    key={questionIndex}
-                    className={`card  shadow-lg border border-gray-600 ${
-                      isAnswered ? "bg-gray-800" : "bg-base-200"
-                    } `}
-                  >
-                    <div className="card-body">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-lg font-bold flex-1">
-                          {questionIndex + 1}. {question.question}
-                        </h4>
-                        <div className="flex gap-2">
-                          {hasMultipleAnswers && (
-                            <span className="badge badge-info">
-                              একাধিক উত্তর
-                            </span>
-                          )}
-                          {isAnswered && (
-                            <span className="badge badge-success gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              উত্তরিত
-                            </span>
-                          )}
-                        </div>
-                      </div>
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <progress
+                className="progress progress-primary w-full"
+                value={currentQuestion + 1}
+                max={shuffledQuiz.questions.length}
+              ></progress>
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <span>
+                  অগ্রগতি:{" "}
+                  {Math.round(
+                    ((currentQuestion + 1) / shuffledQuiz.questions.length) *
+                      100
+                  )}
+                  %
+                </span>
+                <span>
+                  উত্তরিত:{" "}
+                  {
+                    Object.keys(answers).filter((k) => answers[k]?.length > 0)
+                      .length
+                  }
+                  /{shuffledQuiz.questions.length}
+                </span>
+              </div>
+            </div>
 
-                      {hasMultipleAnswers && (
-                        <div className="alert alert-info mb-4">
-                          <span className="text-sm">
-                            ℹ️ এই প্রশ্নের একাধিক সঠিক উত্তর আছে। সব উত্তর
-                            নির্বাচন করুন।
-                          </span>
-                        </div>
-                      )}
+            {/* Question Card */}
+            <div className="card bg-base-200 shadow-lg mb-6">
+              <div className="card-body">
+                <div className="flex justify-between items-start mb-4">
+                  <h4 className="text-lg font-bold flex-1">
+                    {currentQuestion + 1}. {question.question}
+                  </h4>
+                  {hasMultipleAnswers && (
+                    <span className="badge badge-info">একাধিক উত্তর</span>
+                  )}
+                </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        {question.options.map((option, optIndex) => {
-                          const isSelected =
-                            answers[questionIndex]?.includes(optIndex);
-
-                          return (
-                            <button
-                              key={optIndex}
-                              onClick={() =>
-                                handleAnswerSelect(questionIndex, optIndex)
-                              }
-                              className={`btn btn-block justify-start text-left h-auto py-4 ${
-                                isSelected ? "btn-primary" : "btn-outline"
-                              }`}
-                            >
-                              {hasMultipleAnswers ? (
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  readOnly
-                                  className="checkbox checkbox-sm mr-3"
-                                />
-                              ) : (
-                                <span className="font-bold mr-3">
-                                  {String.fromCharCode(65 + optIndex)}.
-                                </span>
-                              )}
-                              <span className="flex-1">{option}</span>
-                              {isSelected && !hasMultipleAnswers && (
-                                <CheckCircle className="w-5 h-5" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+                {hasMultipleAnswers && (
+                  <div className="alert alert-info mb-4">
+                    <span className="text-sm">
+                      ℹ️ এই প্রশ্নের একাধিক সঠিক উত্তর আছে। সব উত্তর নির্বাচন
+                      করুন।
+                    </span>
                   </div>
-                );
-              })}
+                )}
+
+                <div className="space-y-3">
+                  {question.options.map((option, index) => {
+                    const isSelected =
+                      answers[currentQuestion]?.includes(index);
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() =>
+                          handleAnswerSelect(currentQuestion, index)
+                        }
+                        className={`btn btn-block justify-start text-left h-auto py-4 ${
+                          isSelected ? "btn-primary" : "btn-outline"
+                        }`}
+                      >
+                        {hasMultipleAnswers ? (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            readOnly
+                            className="checkbox checkbox-sm mr-3"
+                          />
+                        ) : (
+                          <span className="font-bold mr-3">
+                            {String.fromCharCode(65 + index)}.
+                          </span>
+                        )}
+                        <span className="flex-1">{option}</span>
+                        {isSelected && !hasMultipleAnswers && (
+                          <CheckCircle className="w-5 h-5" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Navigation Buttons */}
             <div className="flex justify-between items-center">
               <button
                 onClick={handlePrevious}
-                disabled={isFirstPage()}
+                disabled={currentQuestion === 0}
                 className="btn btn-ghost"
               >
                 ← পূর্ববর্তী
               </button>
 
-              {isLastPage() ? (
+              <div className="text-sm text-gray-400">
+                {isAnswered ? (
+                  <span className="text-success">✓ উত্তরিত</span>
+                ) : (
+                  <span className="text-warning">⚠ উত্তর দেননি</span>
+                )}
+              </div>
+
+              {currentQuestion === shuffledQuiz.questions.length - 1 ? (
                 <button
                   onClick={() => handleSubmit(false)}
                   disabled={!allAnswered || isSubmitting}
@@ -538,11 +404,12 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
             </div>
 
             {/* Submit Warning */}
-            {!allAnswered && isLastPage() && (
-              <div className="alert alert-warning mt-4">
-                <span>⚠ কুইজ জমা দেওয়ার আগে সব প্রশ্নের উত্তর দিন</span>
-              </div>
-            )}
+            {!allAnswered &&
+              currentQuestion === shuffledQuiz.questions.length - 1 && (
+                <div className="alert alert-warning mt-4">
+                  <span>⚠ কুইজ জমা দেওয়ার আগে সব প্রশ্নের উত্তর দিন</span>
+                </div>
+              )}
           </>
         ) : (
           <>

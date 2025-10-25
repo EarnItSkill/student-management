@@ -114,7 +114,7 @@ export default function CourseProcessSection() {
           <h2 className="py-3 text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
             কোর্স চলার ধাপসমূহ
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             একটি সুসংগঠিত এবং প্রমাণিত শিক্ষা প্রক্রিয়া যা আপনার দক্ষতা বৃদ্ধি
             নিশ্চিত করে।
           </p>
@@ -308,7 +308,7 @@ export default function CourseProcessSection() {
                                       <div
                                         className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${step.color}`}
                                       ></div>
-                                      <span className="text-xs text-gray-600">
+                                      <span className="text-xs text-gray-400">
                                         {benefit}
                                       </span>
                                     </div>

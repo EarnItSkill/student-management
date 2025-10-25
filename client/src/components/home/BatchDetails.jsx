@@ -77,7 +77,6 @@ const getCourseDetailsByType = (type, batches, enrollments, quizzes) => {
 
 const BatchDetails = () => {
   const { batches, enrollments, quizzes, cqQuestions } = useAppContext();
-  console.log(cqQuestions);
 
   const { batchType } = useParams();
 

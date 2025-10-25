@@ -382,7 +382,7 @@ const RankPage = () => {
                               {student.studentName}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {student.gender === "male" ? "👦 Boy" : "👧 Girl"}
+                              {student.gender === "male" ? "Boy" : "Girl"}
                             </div>
                           </div>
                         </div>

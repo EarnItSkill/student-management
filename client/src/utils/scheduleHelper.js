@@ -61,6 +61,36 @@ export const isClassUnlocked = (
   return today >= unlockDate;
 };
 
+// /**
+//  * Check if a quiz is unlocked for a student
+//  * @param {number} quizIndex - Quiz index in course
+//  * @param {Array<string>} unlockDates - Array of unlock dates
+//  * @param {Array<object>} quizResults - Student's quiz results
+//  * @param {string} currentDate - Current date (YYYY-MM-DD)
+//  * @returns {boolean}
+//  */
+// export const isQuizUnlocked = (
+//   quizIndex,
+//   unlockDates,
+//   quizResults,
+//   currentDate = null
+// ) => {
+//   // First check if class is unlocked
+//   if (!isClassUnlocked(quizIndex, unlockDates, currentDate)) {
+//     return false;
+//   }
+
+//   // If this is the first quiz, it's unlocked after class
+//   if (quizIndex === 0) {
+//     return true;
+//   }
+
+//   // Check if previous quiz is completed
+//   const previousQuizCompleted = quizResults && quizResults[quizIndex - 1];
+
+//   return previousQuizCompleted;
+// };
+
 /**
  * Check if a quiz is unlocked for a student
  * @param {number} quizIndex - Quiz index in course
@@ -75,7 +105,7 @@ export const isQuizUnlocked = (
   quizResults,
   currentDate = null
 ) => {
-  // First check if class is unlocked
+  // First check if class is unlocked (সময় হয়েছে কিনা)
   if (!isClassUnlocked(quizIndex, unlockDates, currentDate)) {
     return false;
   }
@@ -85,10 +115,14 @@ export const isQuizUnlocked = (
     return true;
   }
 
-  // Check if previous quiz is completed
-  const previousQuizCompleted = quizResults && quizResults[quizIndex - 1];
+  // Check if ALL previous quizzes are completed (সব আগের quiz complete হয়েছে কিনা)
+  for (let i = 0; i < quizIndex; i++) {
+    if (!quizResults || !quizResults[i]) {
+      return false; // আগের কোনো quiz incomplete থাকলে locked
+    }
+  }
 
-  return previousQuizCompleted;
+  return true;
 };
 
 /**

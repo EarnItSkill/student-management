@@ -280,7 +280,6 @@ const BatchDetailsPage = () => {
                           <div className="stat bg-blue-50 rounded-lg p-3">
                             <div className="stat-title text-xs text-sky-500">
                               পুরুষ
-                              {console.log(stats)}
                             </div>
                             <div className="stat-value text-blue-600 text-xl">
                               {stats.maleCount}

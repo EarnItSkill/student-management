@@ -57,7 +57,6 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log(data);
     try {
       const quizData = {
         ...data,

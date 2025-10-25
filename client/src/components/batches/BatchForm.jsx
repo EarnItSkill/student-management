@@ -10,7 +10,6 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     const courseFee = courses.find((fee) => fee._id === data.courseId);
     return courseFee.fee;
   };
-  console.log(batches);
 
   // Generate unique Batch ID
   const generateBatchId = () => {

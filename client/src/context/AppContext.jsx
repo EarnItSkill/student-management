@@ -97,11 +97,7 @@ export const AppProvider = ({ children }) => {
         );
         setCqQuestions(cqs?.data);
 
-        // const results = await fetchStudentResults(currentUser._id);
-        // console.log("Student এর সব results:", results);
-        // // এখানে results নিয়ে কাজ করুন
-        // setStudentResult(results);
-
+        // ------------------------------------------------
         // Check if user is logged in (from localStorage)
         const savedUser = localStorage.getItem("currentUser");
         if (savedUser) {
@@ -362,7 +358,6 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateBatch = async (batchId, updatedBatchData) => {
-    console.log(batchId, updatedBatchData);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/batch/${batchId}`,
@@ -370,7 +365,6 @@ export const AppProvider = ({ children }) => {
       );
 
       const updatedBatch = response.data;
-      console.log(updatedBatch);
 
       setBatches((prevBatches) => {
         return prevBatches.map((batch) =>
@@ -657,18 +651,8 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // const submitQuiz = async (quizId, studentId, score, answers) => {
-  //   const newResult = {
-  //     studentId: studentId,
-  //     score: score,
-  //     answers: answers,
-
-  //     submittedAt: new Date().toISOString(),
-  //   };
-
   // New ------------------------
   const submitMcq = async (quizId, submissionData) => {
-    console.log(quizId, submissionData);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/results`,
@@ -677,7 +661,6 @@ export const AppProvider = ({ children }) => {
           ...submissionData,
         }
       );
-      console.log(response);
       return response.data;
     } catch (error) {
       console.error("Result submit error:", error);
@@ -698,31 +681,32 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const submitQuiz = async (quizId, newResult) => {
-    console.log(quizId, newResult);
-    try {
-      const response = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
-        newResult
-      );
+  // const submitQuiz = async (quizId, newResult) => {
 
-      const updatedQuiz = response.data;
+  //   try {
+  //     const response = await axios.patch(
+  //       `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
+  //       newResult
+  //     );
 
-      setQuizzes((prevQuizzes) =>
-        prevQuizzes.map((q) => (q._id === quizId ? updatedQuiz : q))
-      );
+  //     const updatedQuiz = response.data;
 
-      return updatedQuiz;
-    } catch (error) {
-      console.error(
-        `API-এর মাধ্যমে কুইজ ID: ${quizId} সাবমিট করার সময় ত্রুটি:`,
-        error
-      );
-      throw error;
-    }
-  };
+  //     setQuizzes((prevQuizzes) =>
+  //       prevQuizzes.map((q) => (q._id === quizId ? updatedQuiz : q))
+  //     );
+
+  //     return updatedQuiz;
+  //   } catch (error) {
+  //     console.error(
+  //       `API-এর মাধ্যমে কুইজ ID: ${quizId} সাবমিট করার সময় ত্রুটি:`,
+  //       error
+  //     );
+  //     throw error;
+  //   }
+  // };
 
   // ================================== mcq Quizzes
+
   // Functions যোগ করুন (return এর আগে)
   const checkQuizAttempt = async (studentId, batchId, chapter) => {
     try {
@@ -955,7 +939,7 @@ export const AppProvider = ({ children }) => {
     deletePayment,
     addAttendance,
     updateAttendance,
-    submitQuiz,
+    // submitQuiz,
     // New
     submitMcq,
     fetchStudentResults,

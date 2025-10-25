@@ -20,7 +20,7 @@ import {
   TrendingUp,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/common/DashboardLayout";
 import TakeQuiz from "../components/quizzes/TakeQuiz";
@@ -44,22 +44,37 @@ const StudentDashboard = () => {
     payments,
     attendance,
     quizzes,
-    results,
+    // mcqResult,
+    fetchStudentResults,
   } = useAppContext();
-  console.log(results);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [quizModal, setQuizModal] = useState({ isOpen: false, quiz: null });
   const [resultModal, setResultModal] = useState({ isOpen: false, quiz: null });
   const [selectedBatchForQuiz, setSelectedBatchForQuiz] = useState(null);
   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-  const [quizViewType, setQuizViewType] = useState("list");
+  const [quizViewType, setQuizViewType] = useState("grid");
   const [selectedBatchForAttendance, setSelectedBatchForAttendance] =
     useState(null);
   const [attendanceDateFilter, setAttendanceDateFilter] = useState("");
   const [attendanceViewType, setAttendanceViewType] = useState("table");
+  const [studentResults, setStudentResults] = useState([]);
 
   const student = currentUser;
+
+  useEffect(() => {
+    const loadStudentResults = async () => {
+      if (currentUser?._id) {
+        try {
+          const results = await fetchStudentResults(currentUser._id);
+          setStudentResults(results.data);
+        } catch (error) {
+          console.error("Results load করতে সমস্যা:", error);
+        }
+      }
+    };
+    loadStudentResults();
+  }, [currentUser]);
 
   // Get student's data
   const myEnrollments = enrollments.filter(
@@ -80,10 +95,13 @@ const StudentDashboard = () => {
   // Student এর enrolled courses থেকে courseIds বের করা
   const enrolledCourseIds = myBatches.map((batch) => batch.courseId);
 
-  // শুধুমাত্র enrolled courses এর quizzes ফিল্টার করা
-  const myQuizzes = quizzes.filter((quiz) =>
-    enrolledCourseIds.includes(quiz.courseId)
-  );
+  // ⭐ CHANGE: quizzes এর সাথে results merge করা
+  const myQuizzes = quizzes
+    .filter((quiz) => enrolledCourseIds.includes(quiz.courseId))
+    .map((quiz) => ({
+      ...quiz,
+      results: studentResults.filter((r) => r.quizId === quiz._id),
+    }));
 
   // Generate unlock dates for each batch
   const batchUnlockDates = {};
@@ -102,7 +120,8 @@ const StudentDashboard = () => {
     // Find which batch this quiz belongs to
     const studentBatch = myBatches.find((b) => b.courseId === quiz.courseId);
 
-    if (!studentBatch) return { ...quiz, isUnlocked: false, unlockDate: null };
+    if (!studentBatch)
+      return { ...quiz, isUnlocked: false, unlockDate: null, isPending: false };
 
     const unlockDates = batchUnlockDates[studentBatch._id] || [];
 
@@ -126,11 +145,20 @@ const StudentDashboard = () => {
 
     const unlockDate = getClassUnlockDate(currentQuizIndex, unlockDates);
 
+    // ⭐ NEW: Check if date unlocked but quiz locked (pending state)
+    const isDateUnlocked = isClassUnlocked(currentQuizIndex, unlockDates);
+    const isCompleted = quiz.results.some(
+      (r) => r.studentId === currentUser?._id
+    );
+    const isPending = isDateUnlocked && !isCompleted; // সময় হয়েছে কিন্তু দেওয়া হয়নি
+
     return {
       ...quiz,
       isUnlocked,
       unlockDate,
       quizIndex: currentQuizIndex,
+      isPending, // ⭐ NEW property
+      isDateUnlocked, // ⭐ সময় হয়েছে কিনা
     };
   });
 
@@ -147,7 +175,14 @@ const StudentDashboard = () => {
   const completedQuizzes = myQuizzes.filter((quiz) =>
     quiz.results.some((r) => r.studentId === currentUser?._id)
   ).length;
-  const pendingQuizzes = myQuizzes.length - completedQuizzes;
+
+  // const pendingQuizzes = myQuizzes.length - completedQuizzes;
+  const pendingQuizzes = myQuizzesWithStatus.filter(
+    (q) => q.isPending && q.isUnlocked
+  ).length;
+  const lockedPendingQuizzes = myQuizzesWithStatus.filter(
+    (q) => q.isPending && !q.isUnlocked
+  ).length;
 
   // Calculate average quiz score
   const myQuizResults = myQuizzes
@@ -165,8 +200,6 @@ const StudentDashboard = () => {
   const recentPayments = [...myPayments].slice(-3).reverse();
   const recentAttendance = [...myAttendance].slice(-5).reverse();
   const recentQuizzes = myQuizzes.slice(-3).reverse();
-
-  // if (enrolledCourseIds.length === 0) return <h2>দয়া করে enroll করুন</h2>;
 
   return (
     <DashboardLayout>
@@ -348,7 +381,7 @@ const StudentDashboard = () => {
                       ? "Excellent!"
                       : attendancePercentage >= 60
                       ? "Good"
-                      : "Need Improvement"}
+                      : "উন্নতি প্রয়োজন"}
                   </div>
                 </div>
 
@@ -1441,7 +1474,7 @@ const StudentDashboard = () => {
                       </div>
                       <div className="stat-title">Total Quizzes</div>
                       <div className="stat-value text-success">
-                        {myQuizzesWithStatus.length} 67
+                        {myQuizzesWithStatus.length}
                       </div>
                     </div>
                     <div className="stat bg-base-200 rounded-lg shadow-lg">
@@ -1533,7 +1566,7 @@ const StudentDashboard = () => {
                                     Pending:
                                   </span>
                                   <span className="badge badge-warning">
-                                    {unlockedCount - completedInCourse}
+                                    {lockedPendingQuizzes}
                                   </span>
                                 </div>
                               </div>
@@ -1632,17 +1665,7 @@ const StudentDashboard = () => {
                       </div>
                       <div className="stat-title">Pending</div>
                       <div className="stat-value text-warning">
-                        {
-                          myQuizzesWithStatus
-                            .filter((q) => q.courseId === selectedBatchForQuiz)
-                            .filter((q) => q.isUnlocked)
-                            .filter(
-                              (quiz) =>
-                                !quiz.results.some(
-                                  (r) => r.studentId === currentUser?._id
-                                )
-                            ).length
-                        }
+                        {lockedPendingQuizzes}
                       </div>
                     </div>
                   </div>
@@ -1650,8 +1673,8 @@ const StudentDashboard = () => {
                   {/* Search and View Toggle */}
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="form-control flex-1">
-                      <div className="input-group">
-                        <span className="bg-base-200">
+                      <div className="input-group flex justify-center items-center gap-3">
+                        <span>
                           <Search className="w-5 h-5" />
                         </span>
                         <input
@@ -1725,7 +1748,7 @@ const StudentDashboard = () => {
 
                         {quizViewType === "grid" ? (
                           // Grid View
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                             {courseQuizzes.map((quiz) => {
                               const myResult = quiz.results.find(
                                 (r) => r.studentId === currentUser?._id
@@ -1756,12 +1779,9 @@ const StudentDashboard = () => {
                                           <h3 className="card-title text-lg">
                                             {quiz.title}
                                           </h3>
-                                          {!quiz.isUnlocked && (
-                                            <Lock className="w-5 h-5 text-error" />
-                                          )}
                                         </div>
                                         <p className="text-sm text-gray-400 mt-1">
-                                          Course: {course?.title}
+                                          কোর্স: {course?.title}
                                         </p>
                                         <div className="flex gap-2 mt-2">
                                           {!quiz.isUnlocked && (
@@ -1771,7 +1791,7 @@ const StudentDashboard = () => {
                                             </div>
                                           )}
                                           <div className="badge badge-neutral badge-sm">
-                                            Quiz #{quiz.quizIndex + 1}
+                                            MCQ নং #{quiz.quizIndex + 1}
                                           </div>
                                         </div>
                                       </div>
@@ -1782,11 +1802,21 @@ const StudentDashboard = () => {
 
                                     {/* Show lock message if not unlocked */}
                                     {!quiz.isUnlocked ? (
-                                      <div className="alert alert-warning">
+                                      <div
+                                        className={`alert ${
+                                          !quiz.isUnlocked && quiz.isPending
+                                            ? "bg-error/20 border-2 border-error" // Pending but locked
+                                            : !quiz.isUnlocked
+                                            ? "alert-warning" // Not unlocked yet
+                                            : "alert-success"
+                                        }`}
+                                      >
                                         <AlertCircle className="w-5 h-5" />
                                         <div className="text-sm">
                                           <div className="font-bold">
-                                            Quiz Locked
+                                            {quiz.isDateUnlocked
+                                              ? "কুইজ Pending"
+                                              : "কুইজ Locked"}
                                           </div>
                                           {quiz.quizIndex === 0 ? (
                                             <div>
@@ -1800,10 +1830,18 @@ const StudentDashboard = () => {
                                                 day: "numeric",
                                               })}
                                             </div>
+                                          ) : quiz.isDateUnlocked ? (
+                                            <div>
+                                              আনলক করার জন্য আগের কুইজ সম্পন্ন
+                                              করুন
+                                            </div>
                                           ) : (
                                             <div>
-                                              Complete Quiz #{quiz.quizIndex} to
-                                              unlock
+                                              কুইজ সম্পন্ন করুন #
+                                              {quiz.quizIndex} এবং অপেক্ষা করুন{" "}
+                                              {new Date(
+                                                quiz.unlockDate
+                                              ).toLocaleDateString("en-GB")}
                                             </div>
                                           )}
                                         </div>
@@ -1813,7 +1851,7 @@ const StudentDashboard = () => {
                                         <div className="space-y-2">
                                           <div className="flex justify-between text-sm">
                                             <span className="text-gray-400">
-                                              Questions:
+                                              মোট প্রশ্ন:
                                             </span>
                                             <span className="font-semibold">
                                               {quiz.questions.length}
@@ -1821,7 +1859,7 @@ const StudentDashboard = () => {
                                           </div>
                                           <div className="flex justify-between text-sm">
                                             <span className="text-gray-400">
-                                              Total Marks:
+                                              মোট মার্ক:
                                             </span>
                                             <span className="font-semibold">
                                               {quiz.totalMarks}
@@ -1831,7 +1869,7 @@ const StudentDashboard = () => {
                                             <>
                                               <div className="flex justify-between text-sm">
                                                 <span className="text-gray-400">
-                                                  Your Score:
+                                                  তোমার মার্ক:
                                                 </span>
                                                 <span className="font-bold text-primary">
                                                   {myResult.score}/
@@ -1840,7 +1878,7 @@ const StudentDashboard = () => {
                                               </div>
                                               <div className="flex justify-between text-sm">
                                                 <span className="text-gray-400">
-                                                  Percentage:
+                                                  গড় মার্ক:
                                                 </span>
                                                 <span
                                                   className={`font-bold ${
@@ -1873,13 +1911,13 @@ const StudentDashboard = () => {
                                               <div>
                                                 <div className="font-bold">
                                                   {percentage >= 80
-                                                    ? "Excellent!"
+                                                    ? "অসাধারণ!"
                                                     : percentage >= 60
-                                                    ? "Good Job!"
-                                                    : "Need Improvement"}
+                                                    ? "দারুণ!"
+                                                    : "উন্নতি প্রয়োজন"}
                                                 </div>
                                                 <div className="text-sm">
-                                                  Submitted:{" "}
+                                                  সাবমিটেড:{" "}
                                                   {new Date(
                                                     myResult.submittedAt
                                                   ).toLocaleDateString()}

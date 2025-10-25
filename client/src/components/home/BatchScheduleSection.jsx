@@ -134,9 +134,9 @@ const BatchScheduleSection = () => {
 
         {/* Batch Type Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {processedBatchGroups.map((group) => (
+          {processedBatchGroups.map((group, i) => (
             <Link
-              key={group.type}
+              key={i}
               to={`/course-details/${group.type}`} // এখানে টাইপ অনুযায়ী বিস্তারিত পেজে পাঠানো হচ্ছে
               className={`card rounded-2xl shadow-xl bg-gradient-to-br ${group.bgColor} border-4 ${group.borderColor} hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden group/card relative block`}
             >

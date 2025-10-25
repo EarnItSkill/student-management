@@ -363,57 +363,6 @@ const Registration = () => {
                 একাউন্ট তথ্য
               </div>
 
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div className="form-control flex flex-col">
-                  <label className="label">
-                    <span className="label-text font-semibold">
-                      পাসওয়ার্ড *
-                    </span>
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="পাসওয়ার্ড দিন"
-                    className={`input input-bordered w-full ${
-                      errors.password ? "input-error" : ""
-                    }`}
-                    {...register("password", {
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                    })}
-                  />
-                  {errors.password && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">
-                        {errors.password.message}
-                      </span>
-                    </label>
-                  )}
-                </div>
-
-                <div className="form-control flex flex-col">
-                  <label className="label">
-                    <span className="label-text font-semibold">
-                      প্রোপাইল ছবির লিংক (অপশনাল)
-                    </span>
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    className="input input-bordered w-full"
-                    {...register("image")}
-                  />
-                  <label className="label">
-                    <span className="label-text-alt text-gray-500">
-                      খালি রাখলে ডিফল্টভাবে একটি ছবি আসবে।
-                    </span>
-                  </label>
-                </div>
-              </div> */}
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* ---------------------------------- Password ---------------------------------- */}
                 <div className="form-control flex flex-col">

@@ -53,32 +53,31 @@ const StudentDashboard = () => {
   const [resultModal, setResultModal] = useState({ isOpen: false, quiz: null });
   const [selectedBatchForQuiz, setSelectedBatchForQuiz] = useState(null);
   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-  const [quizViewType, setQuizViewType] = useState("list");
+  const [quizViewType, setQuizViewType] = useState("grid");
   const [selectedBatchForAttendance, setSelectedBatchForAttendance] =
     useState(null);
   const [attendanceDateFilter, setAttendanceDateFilter] = useState("");
   const [attendanceViewType, setAttendanceViewType] = useState("table");
-  const [mcqResult, setMcqResult] = useState([]);
-  console.log(mcqResult);
+  const [studentResults, setStudentResults] = useState([]);
+  const [courseCurrentPage, setCourseCurrentPage] = useState(1);
+  const [quizCurrentPage, setQuizCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const student = currentUser;
 
   useEffect(() => {
-    const loadResults = async () => {
-      try {
-        const results = await fetchStudentResults(student._id);
-        // console.log("Student এর সব results:", results.data);
-        // এখানে results নিয়ে কাজ করুন
-        // return results;
-        setMcqResult(results.data);
-      } catch (error) {
-        console.error("Results load করতে সমস্যা হয়েছে");
+    const loadStudentResults = async () => {
+      if (currentUser?._id) {
+        try {
+          const results = await fetchStudentResults(currentUser._id);
+          setStudentResults(results.data);
+        } catch (error) {
+          console.error("Results load করতে সমস্যা:", error);
+        }
       }
     };
-    if (student?._id) {
-      loadResults();
-    }
-  }, [student._id]);
+    loadStudentResults();
+  }, [currentUser]);
 
   // Get student's data
   const myEnrollments = enrollments.filter(
@@ -99,18 +98,13 @@ const StudentDashboard = () => {
   // Student এর enrolled courses থেকে courseIds বের করা
   const enrolledCourseIds = myBatches.map((batch) => batch.courseId);
 
-  // শুধুমাত্র enrolled courses এর quizzes ফিল্টার করা
-  const myQuizzes = quizzes.filter((quiz) =>
-    enrolledCourseIds.includes(quiz.courseId)
-  );
-
-  const studentQuizResults = quizzes.map((q) =>
-    mcqResult.find(
-      (r) => r.quizId === q._id && r.studentId === currentUser?._id
-    )
-  );
-
-  console.log(studentQuizResults);
+  // ⭐ CHANGE: quizzes এর সাথে results merge করা
+  const myQuizzes = quizzes
+    .filter((quiz) => enrolledCourseIds.includes(quiz.courseId))
+    .map((quiz) => ({
+      ...quiz,
+      results: studentResults.filter((r) => r.quizId === quiz._id),
+    }));
 
   // Generate unlock dates for each batch
   const batchUnlockDates = {};
@@ -129,20 +123,15 @@ const StudentDashboard = () => {
     // Find which batch this quiz belongs to
     const studentBatch = myBatches.find((b) => b.courseId === quiz.courseId);
 
-    if (!studentBatch) return { ...quiz, isUnlocked: false, unlockDate: null };
+    if (!studentBatch)
+      return { ...quiz, isUnlocked: false, unlockDate: null, isPending: false };
 
     const unlockDates = batchUnlockDates[studentBatch._id] || [];
 
     // Get all quizzes for this course (sorted by _id)
-    // const courseQuizzes = myQuizzes
-    //   .filter((q) => q.courseId === quiz.courseId)
-    //   .sort((a, b) => a._id.localeCompare(b._id));
-
-    const studentQuizResults = courseQuizzes.map((q) =>
-      studentResults.find(
-        (r) => r.quizId === q._id && r.studentId === currentUser?._id
-      )
-    );
+    const courseQuizzes = myQuizzes
+      .filter((q) => q.courseId === quiz.courseId)
+      .sort((a, b) => a._id.localeCompare(b._id));
 
     // Get student's quiz results for this course (in order)
     const studentQuizResults = courseQuizzes.map((q) =>
@@ -159,11 +148,20 @@ const StudentDashboard = () => {
 
     const unlockDate = getClassUnlockDate(currentQuizIndex, unlockDates);
 
+    // ⭐ NEW: Check if date unlocked but quiz locked (pending state)
+    const isDateUnlocked = isClassUnlocked(currentQuizIndex, unlockDates);
+    const isCompleted = quiz.results.some(
+      (r) => r.studentId === currentUser?._id
+    );
+    const isPending = isDateUnlocked && !isCompleted; // সময় হয়েছে কিন্তু দেওয়া হয়নি
+
     return {
       ...quiz,
       isUnlocked,
       unlockDate,
       quizIndex: currentQuizIndex,
+      isPending, // ⭐ NEW property
+      isDateUnlocked, // ⭐ সময় হয়েছে কিনা
     };
   });
 
@@ -180,7 +178,14 @@ const StudentDashboard = () => {
   const completedQuizzes = myQuizzes.filter((quiz) =>
     quiz.results.some((r) => r.studentId === currentUser?._id)
   ).length;
-  const pendingQuizzes = myQuizzes.length - completedQuizzes;
+
+  // const pendingQuizzes = myQuizzes.length - completedQuizzes;
+  const pendingQuizzes = myQuizzesWithStatus.filter(
+    (q) => q.isPending && q.isUnlocked
+  ).length;
+  const lockedPendingQuizzes = myQuizzesWithStatus.filter(
+    (q) => q.isPending && !q.isUnlocked
+  ).length;
 
   // Calculate average quiz score
   const myQuizResults = myQuizzes
@@ -353,7 +358,7 @@ const StudentDashboard = () => {
             onClick={() => setActiveTab("quizzes")}
           >
             <Award className="w-4 h-4" />
-            Quizzes
+            MCQs
           </a>
         </div>
       )}
@@ -379,7 +384,7 @@ const StudentDashboard = () => {
                       ? "Excellent!"
                       : attendancePercentage >= 60
                       ? "Good"
-                      : "Need Improvement"}
+                      : "উন্নতি প্রয়োজন"}
                   </div>
                 </div>
 
@@ -387,12 +392,12 @@ const StudentDashboard = () => {
                   <div className="stat-figure text-white">
                     <Activity className="w-8 h-8" />
                   </div>
-                  <div className="stat-title text-white">Quiz Performance</div>
+                  <div className="stat-title text-white">MCQ Performance</div>
                   <div className="stat-value">
                     {completedQuizzes}/{myQuizzes.length}
                   </div>
                   <div className="stat-desc text-white">
-                    {pendingQuizzes} pending
+                    {lockedPendingQuizzes} pending
                   </div>
                 </div>
 
@@ -430,10 +435,11 @@ const StudentDashboard = () => {
                   <div className="alert alert-info">
                     <Clock className="w-6 h-6" />
                     <div>
-                      <h4 className="font-bold">Pending Quizzes</h4>
+                      <h4 className="font-bold">Pending MCQ</h4>
                       <p className="text-sm">
-                        You have {pendingQuizzes} quiz(zes) pending. Complete
-                        them to improve your score.
+                        You have {lockedPendingQuizzes} MCQ
+                        {lockedPendingQuizzes && "zes"} pending. Complete them
+                        to improve your score.
                       </p>
                     </div>
                   </div>
@@ -1498,87 +1504,159 @@ const StudentDashboard = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {enrolledCourseIds.map((courseId) => {
-                        const course = courses.find((c) => c._id === courseId);
-                        const courseQuizzes = myQuizzesWithStatus.filter(
-                          (q) => q.courseId === courseId
-                        );
-                        const completedInCourse = courseQuizzes.filter((quiz) =>
-                          quiz.results.some(
-                            (r) => r.studentId === currentUser?._id
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {enrolledCourseIds
+                          .slice(
+                            (courseCurrentPage - 1) * itemsPerPage,
+                            courseCurrentPage * itemsPerPage
                           )
-                        ).length;
-                        const unlockedCount = courseQuizzes.filter(
-                          (q) => q.isUnlocked
-                        ).length;
+                          .map((courseId) => {
+                            const course = courses.find(
+                              (c) => c._id === courseId
+                            );
+                            const courseQuizzes = myQuizzesWithStatus.filter(
+                              (q) => q.courseId === courseId
+                            );
+                            const completedInCourse = courseQuizzes.filter(
+                              (quiz) =>
+                                quiz.results.some(
+                                  (r) => r.studentId === currentUser?._id
+                                )
+                            ).length;
+                            const unlockedCount = courseQuizzes.filter(
+                              (q) => q.isUnlocked
+                            ).length;
 
-                        return (
-                          <div
-                            key={courseId}
-                            onClick={() => setSelectedBatchForQuiz(courseId)}
-                            className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
-                          >
-                            <div className="card-body">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1">
-                                  <h3 className="card-title text-lg">
-                                    {course?.title || "Unknown Course"}
-                                  </h3>
-                                  <p className="text-sm text-gray-400 mt-1">
-                                    {course?.description?.substring(0, 50)}...
-                                  </p>
+                            return (
+                              <div
+                                key={courseId}
+                                onClick={() => {
+                                  setSelectedBatchForQuiz(courseId);
+                                  setQuizCurrentPage(1);
+                                }}
+                                className="card bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
+                              >
+                                <div className="card-body">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex-1">
+                                      <h3 className="card-title text-lg">
+                                        {course?.title || "Unknown Course"}
+                                      </h3>
+                                      <p className="text-sm text-gray-400 mt-1">
+                                        {course?.description?.substring(0, 50)}
+                                        ...
+                                      </p>
+                                    </div>
+                                    <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
+                                  </div>
+
+                                  <div className="divider my-2"></div>
+
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">
+                                        Total Quizzes:
+                                      </span>
+                                      <span className="badge badge-primary">
+                                        {courseQuizzes.length}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">
+                                        Unlocked:
+                                      </span>
+                                      <span className="badge badge-info">
+                                        {unlockedCount}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">
+                                        Completed:
+                                      </span>
+                                      <span className="badge badge-success">
+                                        {completedInCourse}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">
+                                        Pending:
+                                      </span>
+                                      <span className="badge badge-warning">
+                                        {lockedPendingQuizzes}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-4 text-center">
+                                    <button className="btn btn-primary btn-sm w-full">
+                                      View Quizzes
+                                    </button>
+                                  </div>
                                 </div>
-                                <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
                               </div>
+                            );
+                          })}
+                      </div>
 
-                              <div className="divider my-2"></div>
-
-                              <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">
-                                    Total Quizzes:
-                                  </span>
-                                  <span className="badge badge-primary">
-                                    {courseQuizzes.length}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">
-                                    Unlocked:
-                                  </span>
-                                  <span className="badge badge-info">
-                                    {unlockedCount}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">
-                                    Completed:
-                                  </span>
-                                  <span className="badge badge-success">
-                                    {completedInCourse}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">
-                                    Pending:
-                                  </span>
-                                  <span className="badge badge-warning">
-                                    {unlockedCount - completedInCourse}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 text-center">
-                                <button className="btn btn-primary btn-sm w-full">
-                                  View Quizzes
-                                </button>
-                              </div>
-                            </div>
+                      {/* Course Pagination */}
+                      {enrolledCourseIds.length > itemsPerPage && (
+                        <div className="flex justify-center mt-8">
+                          <div className="btn-group">
+                            <button
+                              className="btn btn-sm"
+                              onClick={() =>
+                                setCourseCurrentPage((prev) =>
+                                  Math.max(1, prev - 1)
+                                )
+                              }
+                              disabled={courseCurrentPage === 1}
+                            >
+                              «
+                            </button>
+                            {Array.from(
+                              {
+                                length: Math.ceil(
+                                  enrolledCourseIds.length / itemsPerPage
+                                ),
+                              },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <button
+                                key={page}
+                                className={`btn btn-sm ${
+                                  courseCurrentPage === page ? "btn-active" : ""
+                                }`}
+                                onClick={() => setCourseCurrentPage(page)}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                            <button
+                              className="btn btn-sm"
+                              onClick={() =>
+                                setCourseCurrentPage((prev) =>
+                                  Math.min(
+                                    Math.ceil(
+                                      enrolledCourseIds.length / itemsPerPage
+                                    ),
+                                    prev + 1
+                                  )
+                                )
+                              }
+                              disabled={
+                                courseCurrentPage ===
+                                Math.ceil(
+                                  enrolledCourseIds.length / itemsPerPage
+                                )
+                              }
+                            >
+                              »
+                            </button>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (
@@ -1590,6 +1668,7 @@ const StudentDashboard = () => {
                       onClick={() => {
                         setSelectedBatchForQuiz(null);
                         setQuizSearchTerm("");
+                        setQuizCurrentPage(1);
                       }}
                       className="btn btn-ghost btn-sm gap-2"
                     >
@@ -1663,17 +1742,7 @@ const StudentDashboard = () => {
                       </div>
                       <div className="stat-title">Pending</div>
                       <div className="stat-value text-warning">
-                        {
-                          myQuizzesWithStatus
-                            .filter((q) => q.courseId === selectedBatchForQuiz)
-                            .filter((q) => q.isUnlocked)
-                            .filter(
-                              (quiz) =>
-                                !quiz.results.some(
-                                  (r) => r.studentId === currentUser?._id
-                                )
-                            ).length
-                        }
+                        {lockedPendingQuizzes}
                       </div>
                     </div>
                   </div>
@@ -1681,8 +1750,8 @@ const StudentDashboard = () => {
                   {/* Search and View Toggle */}
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="form-control flex-1">
-                      <div className="input-group">
-                        <span className="bg-base-200">
+                      <div className="input-group flex justify-center items-center gap-3">
+                        <span>
                           <Search className="w-5 h-5" />
                         </span>
                         <input
@@ -1690,7 +1759,10 @@ const StudentDashboard = () => {
                           placeholder="Search quizzes..."
                           className="input input-bordered w-full"
                           value={quizSearchTerm}
-                          onChange={(e) => setQuizSearchTerm(e.target.value)}
+                          onChange={(e) => {
+                            setQuizSearchTerm(e.target.value);
+                            setQuizCurrentPage(1);
+                          }}
                         />
                       </div>
                     </div>
@@ -1725,6 +1797,14 @@ const StudentDashboard = () => {
                           .includes(quizSearchTerm.toLowerCase())
                       );
 
+                    const totalPages = Math.ceil(
+                      courseQuizzes.length / itemsPerPage
+                    );
+                    const paginatedQuizzes = courseQuizzes.slice(
+                      (quizCurrentPage - 1) * itemsPerPage,
+                      quizCurrentPage * itemsPerPage
+                    );
+
                     if (courseQuizzes.length === 0) {
                       return (
                         <div className="text-center py-20">
@@ -1756,168 +1836,393 @@ const StudentDashboard = () => {
 
                         {quizViewType === "grid" ? (
                           // Grid View
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {courseQuizzes.map((quiz) => {
-                              const myResult = quiz.results.find(
-                                (r) => r.studentId === currentUser?._id
-                              );
-                              const course = courses.find(
-                                (c) => c._id === quiz.courseId
-                              );
-                              const percentage = myResult
-                                ? (
-                                    (myResult.score / quiz.totalMarks) *
-                                    100
-                                  ).toFixed(1)
-                                : 0;
+                          <>
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                              {paginatedQuizzes.map((quiz) => {
+                                const myResult = quiz.results.find(
+                                  (r) => r.studentId === currentUser?._id
+                                );
+                                const course = courses.find(
+                                  (c) => c._id === quiz.courseId
+                                );
+                                const percentage = myResult
+                                  ? (
+                                      (myResult.score / quiz.totalMarks) *
+                                      100
+                                    ).toFixed(1)
+                                  : 0;
 
-                              return (
-                                <div
-                                  key={quiz._id}
-                                  className={`card shadow-xl hover:shadow-2xl transition-all ${
-                                    !quiz.isUnlocked
-                                      ? "bg-base-300 opacity-75"
-                                      : "bg-base-200"
-                                  }`}
-                                >
-                                  <div className="card-body">
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                          <h3 className="card-title text-lg">
-                                            {quiz.title}
-                                          </h3>
-                                          {!quiz.isUnlocked && (
-                                            <Lock className="w-5 h-5 text-error" />
-                                          )}
-                                        </div>
-                                        <p className="text-sm text-gray-400 mt-1">
-                                          Course: {course?.title}
-                                        </p>
-                                        <div className="flex gap-2 mt-2">
-                                          {!quiz.isUnlocked && (
-                                            <div className="badge badge-error badge-sm gap-1">
-                                              <Lock className="w-3 h-3" />
-                                              Locked
+                                return (
+                                  <div
+                                    key={quiz._id}
+                                    className={`card shadow-xl hover:shadow-2xl transition-all ${
+                                      !quiz.isUnlocked
+                                        ? "bg-base-300 opacity-75"
+                                        : "bg-base-200"
+                                    }`}
+                                  >
+                                    <div className="card-body">
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <h3 className="card-title text-lg">
+                                              {quiz.title}
+                                            </h3>
+                                          </div>
+                                          <p className="text-sm text-gray-400 mt-1">
+                                            কোর্স: {course?.title}
+                                          </p>
+                                          <div className="flex gap-2 mt-2">
+                                            {!quiz.isUnlocked && (
+                                              <div className="badge badge-error badge-sm gap-1">
+                                                <Lock className="w-3 h-3" />
+                                                Locked
+                                              </div>
+                                            )}
+                                            <div className="badge badge-neutral badge-sm">
+                                              MCQ নং #{quiz.quizIndex + 1}
                                             </div>
-                                          )}
-                                          <div className="badge badge-neutral badge-sm">
-                                            Quiz #{quiz.quizIndex + 1}
                                           </div>
                                         </div>
+                                        <Award className="w-8 h-8 text-primary flex-shrink-0" />
                                       </div>
-                                      <Award className="w-8 h-8 text-primary flex-shrink-0" />
-                                    </div>
 
-                                    <div className="divider my-2"></div>
+                                      <div className="divider my-2"></div>
 
-                                    {/* Show lock message if not unlocked */}
-                                    {!quiz.isUnlocked ? (
-                                      <div className="alert alert-warning">
-                                        <AlertCircle className="w-5 h-5" />
-                                        <div className="text-sm">
-                                          <div className="font-bold">
-                                            Quiz Locked
+                                      {!quiz.isUnlocked ? (
+                                        <div
+                                          className={`alert ${
+                                            !quiz.isUnlocked && quiz.isPending
+                                              ? "bg-error/20 border-2 border-error"
+                                              : !quiz.isUnlocked
+                                              ? "alert-warning"
+                                              : "alert-success"
+                                          }`}
+                                        >
+                                          <AlertCircle className="w-5 h-5" />
+                                          <div className="text-sm">
+                                            <div className="font-bold">
+                                              {quiz.isDateUnlocked
+                                                ? "কুইজ Pending"
+                                                : "কুইজ Locked"}
+                                            </div>
+                                            {quiz.quizIndex === 0 ? (
+                                              <div>
+                                                Unlocks on:{" "}
+                                                {new Date(
+                                                  quiz.unlockDate
+                                                ).toLocaleDateString("en-GB", {
+                                                  weekday: "short",
+                                                  year: "numeric",
+                                                  month: "short",
+                                                  day: "numeric",
+                                                })}
+                                              </div>
+                                            ) : quiz.isDateUnlocked ? (
+                                              <div>
+                                                আনলক করার জন্য আগের কুইজ সম্পন্ন
+                                                করুন
+                                              </div>
+                                            ) : (
+                                              <div>
+                                                কুইজ সম্পন্ন করুন #
+                                                {quiz.quizIndex} এবং অপেক্ষা
+                                                করুন{" "}
+                                                {new Date(
+                                                  quiz.unlockDate
+                                                ).toLocaleDateString("en-GB")}
+                                              </div>
+                                            )}
                                           </div>
-                                          {quiz.quizIndex === 0 ? (
-                                            <div>
-                                              Unlocks on:{" "}
-                                              {new Date(
-                                                quiz.unlockDate
-                                              ).toLocaleDateString("en-GB", {
-                                                weekday: "short",
-                                                year: "numeric",
-                                                month: "short",
-                                                day: "numeric",
-                                              })}
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                              <span className="text-gray-400">
+                                                মোট প্রশ্ন:
+                                              </span>
+                                              <span className="font-semibold">
+                                                {quiz.questions.length}
+                                              </span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                              <span className="text-gray-400">
+                                                মোট মার্ক:
+                                              </span>
+                                              <span className="font-semibold">
+                                                {quiz.totalMarks}
+                                              </span>
+                                            </div>
+                                            {myResult && (
+                                              <>
+                                                <div className="flex justify-between text-sm">
+                                                  <span className="text-gray-400">
+                                                    তোমার মার্ক:
+                                                  </span>
+                                                  <span className="font-bold text-primary">
+                                                    {myResult.score}/
+                                                    {quiz.totalMarks}
+                                                  </span>
+                                                </div>
+                                                <div className="flex justify-between text-sm">
+                                                  <span className="text-gray-400">
+                                                    গড় মার্ক:
+                                                  </span>
+                                                  <span
+                                                    className={`font-bold ${
+                                                      percentage >= 80
+                                                        ? "text-success"
+                                                        : percentage >= 60
+                                                        ? "text-warning"
+                                                        : "text-error"
+                                                    }`}
+                                                  >
+                                                    {percentage}%
+                                                  </span>
+                                                </div>
+                                              </>
+                                            )}
+                                          </div>
+
+                                          {myResult ? (
+                                            <div className="space-y-3 mt-4">
+                                              <div
+                                                className={`alert ${
+                                                  percentage >= 80
+                                                    ? "alert-success"
+                                                    : percentage >= 60
+                                                    ? "alert-warning"
+                                                    : "alert-error"
+                                                }`}
+                                              >
+                                                <CheckCircle className="w-6 h-6" />
+                                                <div>
+                                                  <div className="font-bold">
+                                                    {percentage >= 80
+                                                      ? "অসাধারণ!"
+                                                      : percentage >= 60
+                                                      ? "দারুণ!"
+                                                      : "উন্নতি প্রয়োজন"}
+                                                  </div>
+                                                  <div className="text-sm">
+                                                    সাবমিটেড:{" "}
+                                                    {new Date(
+                                                      myResult.submittedAt
+                                                    ).toLocaleDateString()}
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <button
+                                                onClick={() =>
+                                                  setResultModal({
+                                                    isOpen: true,
+                                                    quiz,
+                                                  })
+                                                }
+                                                className="btn btn-outline btn-primary btn-block gap-2"
+                                              >
+                                                <Eye className="w-5 h-5" />
+                                                View Result & Answers
+                                              </button>
                                             </div>
                                           ) : (
-                                            <div>
-                                              Complete Quiz #{quiz.quizIndex} to
-                                              unlock
-                                            </div>
+                                            <button
+                                              onClick={() =>
+                                                setQuizModal({
+                                                  isOpen: true,
+                                                  quiz,
+                                                })
+                                              }
+                                              className="btn btn-primary btn-block mt-4 gap-2"
+                                            >
+                                              <Clock className="w-5 h-5" />
+                                              Take Quiz
+                                            </button>
                                           )}
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <>
-                                        <div className="space-y-2">
-                                          <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">
-                                              Questions:
-                                            </span>
-                                            <span className="font-semibold">
-                                              {quiz.questions.length}
-                                            </span>
-                                          </div>
-                                          <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">
-                                              Total Marks:
-                                            </span>
-                                            <span className="font-semibold">
-                                              {quiz.totalMarks}
-                                            </span>
-                                          </div>
-                                          {myResult && (
-                                            <>
-                                              <div className="flex justify-between text-sm">
-                                                <span className="text-gray-400">
-                                                  Your Score:
-                                                </span>
-                                                <span className="font-bold text-primary">
-                                                  {myResult.score}/
-                                                  {quiz.totalMarks}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between text-sm">
-                                                <span className="text-gray-400">
-                                                  Percentage:
-                                                </span>
-                                                <span
-                                                  className={`font-bold ${
-                                                    percentage >= 80
-                                                      ? "text-success"
-                                                      : percentage >= 60
-                                                      ? "text-warning"
-                                                      : "text-error"
-                                                  }`}
-                                                >
-                                                  {percentage}%
-                                                </span>
-                                              </div>
-                                            </>
-                                          )}
-                                        </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
 
-                                        {myResult ? (
-                                          <div className="space-y-3 mt-4">
-                                            <div
-                                              className={`alert ${
+                            {/* Grid Pagination */}
+                            {totalPages > 1 && (
+                              <div className="flex justify-center mt-8">
+                                <div className="btn-group">
+                                  <button
+                                    className="btn btn-sm"
+                                    onClick={() =>
+                                      setQuizCurrentPage((prev) =>
+                                        Math.max(1, prev - 1)
+                                      )
+                                    }
+                                    disabled={quizCurrentPage === 1}
+                                  >
+                                    «
+                                  </button>
+                                  {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1
+                                  ).map((page) => (
+                                    <button
+                                      key={page}
+                                      className={`btn btn-sm ${
+                                        quizCurrentPage === page
+                                          ? "btn-active"
+                                          : ""
+                                      }`}
+                                      onClick={() => setQuizCurrentPage(page)}
+                                    >
+                                      {page}
+                                    </button>
+                                  ))}
+                                  <button
+                                    className="btn btn-sm"
+                                    onClick={() =>
+                                      setQuizCurrentPage((prev) =>
+                                        Math.min(totalPages, prev + 1)
+                                      )
+                                    }
+                                    disabled={quizCurrentPage === totalPages}
+                                  >
+                                    »
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          // Table View
+                          <>
+                            <div className="overflow-x-auto">
+                              <table className="table table-zebra w-full">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Quiz Title</th>
+                                    <th>Questions</th>
+                                    <th>Total Marks</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {paginatedQuizzes.map((quiz, index) => {
+                                    const myResult = quiz.results.find(
+                                      (r) => r.studentId === currentUser?._id
+                                    );
+                                    const percentage = myResult
+                                      ? (
+                                          (myResult.score / quiz.totalMarks) *
+                                          100
+                                        ).toFixed(1)
+                                      : 0;
+                                    const globalIndex =
+                                      (quizCurrentPage - 1) * itemsPerPage +
+                                      index +
+                                      1;
+
+                                    return (
+                                      <tr
+                                        key={quiz._id}
+                                        className={`hover ${
+                                          !quiz.isUnlocked ? "opacity-60" : ""
+                                        }`}
+                                      >
+                                        <td>{globalIndex}</td>
+                                        <td>
+                                          <div className="flex items-center gap-2">
+                                            {!quiz.isUnlocked && (
+                                              <Lock className="w-4 h-4 text-error" />
+                                            )}
+                                            <Award className="w-5 h-5 text-primary" />
+                                            <span className="font-semibold">
+                                              {quiz.title}
+                                            </span>
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <span className="badge badge-primary">
+                                            {quiz.questions.length}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          <span className="badge badge-info">
+                                            {quiz.totalMarks}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          {!quiz.isUnlocked ? (
+                                            <span className="badge badge-error gap-1">
+                                              <Lock className="w-3 h-3" />
+                                              Locked
+                                            </span>
+                                          ) : myResult ? (
+                                            <span
+                                              className={`badge ${
                                                 percentage >= 80
-                                                  ? "alert-success"
+                                                  ? "badge-success"
                                                   : percentage >= 60
-                                                  ? "alert-warning"
-                                                  : "alert-error"
+                                                  ? "badge-warning"
+                                                  : "badge-error"
                                               }`}
                                             >
-                                              <CheckCircle className="w-6 h-6" />
-                                              <div>
-                                                <div className="font-bold">
-                                                  {percentage >= 80
-                                                    ? "Excellent!"
+                                              Completed
+                                            </span>
+                                          ) : (
+                                            <span className="badge badge-ghost">
+                                              Pending
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td>
+                                          {!quiz.isUnlocked ? (
+                                            <span className="text-gray-400 text-xs">
+                                              {quiz.quizIndex === 0
+                                                ? new Date(
+                                                    quiz.unlockDate
+                                                  ).toLocaleDateString("en-GB")
+                                                : `Complete Quiz #${quiz.quizIndex}`}
+                                            </span>
+                                          ) : myResult ? (
+                                            <div className="flex flex-col">
+                                              <span className="font-bold">
+                                                {myResult.score}/
+                                                {quiz.totalMarks}
+                                              </span>
+                                              <span
+                                                className={`text-xs ${
+                                                  percentage >= 80
+                                                    ? "text-success"
                                                     : percentage >= 60
-                                                    ? "Good Job!"
-                                                    : "Need Improvement"}
-                                                </div>
-                                                <div className="text-sm">
-                                                  Submitted:{" "}
-                                                  {new Date(
-                                                    myResult.submittedAt
-                                                  ).toLocaleDateString()}
-                                                </div>
-                                              </div>
+                                                    ? "text-warning"
+                                                    : "text-error"
+                                                }`}
+                                              >
+                                                {percentage}%
+                                              </span>
                                             </div>
-
+                                          ) : (
+                                            <span className="text-gray-400">
+                                              -
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td>
+                                          {!quiz.isUnlocked ? (
+                                            <button
+                                              className="btn btn-ghost btn-xs gap-1"
+                                              disabled
+                                            >
+                                              <Lock className="w-4 h-4" />
+                                              Locked
+                                            </button>
+                                          ) : myResult ? (
                                             <button
                                               onClick={() =>
                                                 setResultModal({
@@ -1925,190 +2230,81 @@ const StudentDashboard = () => {
                                                   quiz,
                                                 })
                                               }
-                                              className="btn btn-outline btn-primary btn-block gap-2"
+                                              className="btn btn-ghost btn-xs gap-1"
+                                              title="View Result"
                                             >
-                                              <Eye className="w-5 h-5" />
-                                              View Result & Answers
+                                              <Eye className="w-4 h-4" />
+                                              View
                                             </button>
-                                          </div>
-                                        ) : (
-                                          <button
-                                            onClick={() =>
-                                              setQuizModal({
-                                                isOpen: true,
-                                                quiz,
-                                              })
-                                            }
-                                            className="btn btn-primary btn-block mt-4 gap-2"
-                                          >
-                                            <Clock className="w-5 h-5" />
-                                            Take Quiz
-                                          </button>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          // Table View
-                          <div className="overflow-x-auto">
-                            <table className="table table-zebra w-full">
-                              <thead>
-                                <tr>
-                                  <th>#</th>
-                                  <th>Quiz Title</th>
-                                  <th>Questions</th>
-                                  <th>Total Marks</th>
-                                  <th>Status</th>
-                                  <th>Score</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {courseQuizzes.map((quiz, index) => {
-                                  const myResult = quiz.results.find(
-                                    (r) => r.studentId === currentUser?._id
-                                  );
-                                  const percentage = myResult
-                                    ? (
-                                        (myResult.score / quiz.totalMarks) *
-                                        100
-                                      ).toFixed(1)
-                                    : 0;
-
-                                  return (
-                                    <tr
-                                      key={quiz._id}
-                                      className={`hover ${
-                                        !quiz.isUnlocked ? "opacity-60" : ""
-                                      }`}
-                                    >
-                                      <td>{index + 1}</td>
-                                      <td>
-                                        <div className="flex items-center gap-2">
-                                          {!quiz.isUnlocked && (
-                                            <Lock className="w-4 h-4 text-error" />
-                                          )}
-                                          <Award className="w-5 h-5 text-primary" />
-                                          <span className="font-semibold">
-                                            {quiz.title}
-                                          </span>
-                                        </div>
-                                      </td>
-                                      <td>
-                                        <span className="badge badge-primary">
-                                          {quiz.questions.length}
-                                        </span>
-                                      </td>
-                                      <td>
-                                        <span className="badge badge-info">
-                                          {quiz.totalMarks}
-                                        </span>
-                                      </td>
-                                      <td>
-                                        {!quiz.isUnlocked ? (
-                                          <span className="badge badge-error gap-1">
-                                            <Lock className="w-3 h-3" />
-                                            Locked
-                                          </span>
-                                        ) : myResult ? (
-                                          <span
-                                            className={`badge ${
-                                              percentage >= 80
-                                                ? "badge-success"
-                                                : percentage >= 60
-                                                ? "badge-warning"
-                                                : "badge-error"
-                                            }`}
-                                          >
-                                            Completed
-                                          </span>
-                                        ) : (
-                                          <span className="badge badge-ghost">
-                                            Pending
-                                          </span>
-                                        )}
-                                      </td>
-                                      <td>
-                                        {!quiz.isUnlocked ? (
-                                          <span className="text-gray-400 text-xs">
-                                            {quiz.quizIndex === 0
-                                              ? new Date(
-                                                  quiz.unlockDate
-                                                ).toLocaleDateString("en-GB")
-                                              : `Complete Quiz #${quiz.quizIndex}`}
-                                          </span>
-                                        ) : myResult ? (
-                                          <div className="flex flex-col">
-                                            <span className="font-bold">
-                                              {myResult.score}/{quiz.totalMarks}
-                                            </span>
-                                            <span
-                                              className={`text-xs ${
-                                                percentage >= 80
-                                                  ? "text-success"
-                                                  : percentage >= 60
-                                                  ? "text-warning"
-                                                  : "text-error"
-                                              }`}
+                                          ) : (
+                                            <button
+                                              onClick={() =>
+                                                setQuizModal({
+                                                  isOpen: true,
+                                                  quiz,
+                                                })
+                                              }
+                                              className="btn btn-primary btn-xs gap-1"
+                                              title="Take Quiz"
                                             >
-                                              {percentage}%
-                                            </span>
-                                          </div>
-                                        ) : (
-                                          <span className="text-gray-400">
-                                            -
-                                          </span>
-                                        )}
-                                      </td>
-                                      <td>
-                                        {!quiz.isUnlocked ? (
-                                          <button
-                                            className="btn btn-ghost btn-xs gap-1"
-                                            disabled
-                                          >
-                                            <Lock className="w-4 h-4" />
-                                            Locked
-                                          </button>
-                                        ) : myResult ? (
-                                          <button
-                                            onClick={() =>
-                                              setResultModal({
-                                                isOpen: true,
-                                                quiz,
-                                              })
-                                            }
-                                            className="btn btn-ghost btn-xs gap-1"
-                                            title="View Result"
-                                          >
-                                            <Eye className="w-4 h-4" />
-                                            View
-                                          </button>
-                                        ) : (
-                                          <button
-                                            onClick={() =>
-                                              setQuizModal({
-                                                isOpen: true,
-                                                quiz,
-                                              })
-                                            }
-                                            className="btn btn-primary btn-xs gap-1"
-                                            title="Take Quiz"
-                                          >
-                                            <Clock className="w-4 h-4" />
-                                            Start
-                                          </button>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
+                                              <Clock className="w-4 h-4" />
+                                              Start
+                                            </button>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Table Pagination */}
+                            {totalPages > 1 && (
+                              <div className="flex justify-center mt-8">
+                                <div className="btn-group">
+                                  <button
+                                    className="btn btn-sm"
+                                    onClick={() =>
+                                      setQuizCurrentPage((prev) =>
+                                        Math.max(1, prev - 1)
+                                      )
+                                    }
+                                    disabled={quizCurrentPage === 1}
+                                  >
+                                    «
+                                  </button>
+                                  {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1
+                                  ).map((page) => (
+                                    <button
+                                      key={page}
+                                      className={`btn btn-sm ${
+                                        quizCurrentPage === page
+                                          ? "btn-active"
+                                          : ""
+                                      }`}
+                                      onClick={() => setQuizCurrentPage(page)}
+                                    >
+                                      {page}
+                                    </button>
+                                  ))}
+                                  <button
+                                    className="btn btn-sm"
+                                    onClick={() =>
+                                      setQuizCurrentPage((prev) =>
+                                        Math.min(totalPages, prev + 1)
+                                      )
+                                    }
+                                    disabled={quizCurrentPage === totalPages}
+                                  >
+                                    »
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </>
                     );

@@ -1,0 +1,28 @@
+[
+  {
+    "_id": "69020a379a609757955ea217",
+    "studentId": "STU-0001",
+    "name": "iqbal",
+    "email": "alamgir@gmail.com",
+    "phone": "01511111111",
+    "password": "$2b$10$HuRVjpSyERY9ukZ.yDlXW.iSc0COj2VhabG7vm8Jwatyay4FHtTF.",
+    "gender": "male",
+    "eiin": "105862",
+    "address": "Khalilpur, Harishchar, Lalmai (Laksam), Cumilla",
+    "image": "https://i.ibb.co/LbG04VL/male.jpg",
+    "role": "student"
+  },
+  {
+    "_id": "69020d2f04211e9ebdce9718",
+    "studentId": "STU-002",
+    "name": "ayat",
+    "email": "ayat@gmail.com",
+    "phone": "01611111111",
+    "password": "$2b$10$pOETPZk7v1.QH8XeIF3fO.z11oytak7m8wJ/Sy7dyDnPJv8ZEXg36",
+    "gender": "female",
+    "eiin": "105862",
+    "address": "Khalilpur, Bhorajagotpur (Harischar)",
+    "image": "https://i.ibb.co/gFdhJ5Js/female.jpg",
+    "role": "student"
+  }
+]

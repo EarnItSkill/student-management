@@ -11,24 +11,35 @@ import { useMemo, useState } from "react";
 import { useAppContext } from "../context/useAppContext";
 
 const RankPage = () => {
-  const { students, batches, courses, quizzes, currentUser, mcqResult } =
+  const { rankingStudents, batches, courses, quizzes, currentUser, mcqResult } =
     useAppContext();
+
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [selectedBatch, setSelectedBatch] = useState("all");
-  const [genderFilter, setGenderFilter] = useState("all"); // all, male, female
-  const [timeFilter, setTimeFilter] = useState("all"); // all, month, year, all-time
-  const [eiinFilter, setEiinFilter] = useState("all"); // College Code filter
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [eiinFilter, setEiinFilter] = useState("all");
 
   // Calculate rankings
   const rankings = useMemo(() => {
-    // Get all quiz results with student and batch info
     const allResults = [];
 
+    // ✅ সব results থেকে data collect করুন
     mcqResult?.forEach((result) => {
-      const quiz = quizzes.find((q) => q._id === result.quizId);
-      const student = students.find((s) => s._id === result.studentId);
-      const batch = batches.find((b) => b._id === result.batchId);
-      const course = courses.find((c) => c._id === batch?.courseId);
+      const quiz = quizzes.find(
+        (q) => q._id?.toString() === result.quizId?.toString()
+      );
+
+      const student = rankingStudents.find(
+        (s) => s._id?.toString() === result.studentId?.toString()
+      );
+      // console.log(student);
+      const batch = batches.find(
+        (b) => b._id?.toString() === result.batchId?.toString()
+      );
+      const course = courses.find(
+        (c) => c._id?.toString() === batch?.courseId?.toString()
+      );
 
       if (quiz && student && batch && course) {
         allResults.push({
@@ -49,32 +60,34 @@ const RankPage = () => {
       }
     });
 
-    // Filter by course
+    // ✅ Course filter করুন - ObjectId comparison fix
     let filteredResults =
       selectedCourse === "all"
         ? allResults
-        : allResults.filter((r) => r.courseId === selectedCourse);
+        : allResults.filter(
+            (r) => r.courseId?.toString() === selectedCourse?.toString()
+          );
 
-    // Filter by batch
+    // ✅ Batch filter করুন - ObjectId comparison fix
     if (selectedBatch !== "all") {
       filteredResults = filteredResults.filter(
-        (r) => r.batchId === selectedBatch
+        (r) => r.batchId?.toString() === selectedBatch?.toString()
       );
     }
 
-    // Filter by gender
+    // Gender filter করুন
     if (genderFilter !== "all") {
       filteredResults = filteredResults.filter(
         (r) => r.gender === genderFilter
       );
     }
 
-    // Filter by EIIN (College Code)
+    // EIIN filter করুন
     if (eiinFilter !== "all") {
       filteredResults = filteredResults.filter((r) => r.eiin === eiinFilter);
     }
 
-    // Filter by time
+    // Time filter করুন
     const now = new Date();
     if (timeFilter === "month") {
       const oneMonthAgo = new Date(
@@ -96,11 +109,13 @@ const RankPage = () => {
       );
     }
 
-    // Group by student and calculate total scores
+    // ✅ Student এর মোট score calculate করুন
     const studentScores = {};
     filteredResults.forEach((result) => {
-      if (!studentScores[result.studentId]) {
-        studentScores[result.studentId] = {
+      const studentIdKey = result.studentId?.toString();
+
+      if (!studentScores[studentIdKey]) {
+        studentScores[studentIdKey] = {
           studentId: result.studentId,
           studentName: result.studentName,
           studentImage: result.studentImage,
@@ -114,14 +129,14 @@ const RankPage = () => {
         };
       }
 
-      studentScores[result.studentId].totalScore += result.score;
-      studentScores[result.studentId].totalMarks += result.totalMarks;
-      studentScores[result.studentId].quizCount += 1;
-      studentScores[result.studentId].batches.add(result.batchName);
-      studentScores[result.studentId].courses.add(result.courseName);
+      studentScores[studentIdKey].totalScore += result.score;
+      studentScores[studentIdKey].totalMarks += result.totalMarks;
+      studentScores[studentIdKey].quizCount += 1;
+      studentScores[studentIdKey].batches.add(result.batchName);
+      studentScores[studentIdKey].courses.add(result.courseName);
     });
 
-    // Convert to array and calculate percentage
+    // Array এ convert করুন এবং percentage calculate করুন
     const rankingArray = Object.values(studentScores).map((student) => ({
       ...student,
       percentage:
@@ -132,17 +147,17 @@ const RankPage = () => {
       courses: Array.from(student.courses),
     }));
 
-    // Sort by percentage (descending)
+    // Percentage দিয়ে sort করুন (বেশি থেকে কম)
     rankingArray.sort((a, b) => b.percentage - a.percentage);
 
-    // Add rank
+    // Rank যোগ করুন
     rankingArray.forEach((student, index) => {
       student.rank = index + 1;
     });
 
     return rankingArray;
   }, [
-    students,
+    rankingStudents,
     batches,
     courses,
     quizzes,
@@ -154,40 +169,46 @@ const RankPage = () => {
     eiinFilter,
   ]);
 
-  // Get available courses for filter
+  // Available courses পান
   const availableCourses = useMemo(() => {
     return courses.filter((course) =>
       mcqResult?.some((result) => {
-        const batch = batches.find((b) => b._id === result.batchId);
-        return batch?.courseId === course._id;
+        const batch = batches.find(
+          (b) => b._id?.toString() === result.batchId?.toString()
+        );
+        return batch?.courseId?.toString() === course._id?.toString();
       })
     );
   }, [courses, batches, mcqResult]);
 
-  // Get available batches for selected course
+  // Selected course এর জন্য available batches পান
   const availableBatches = useMemo(() => {
     if (selectedCourse === "all") return batches;
-    return batches.filter((batch) => batch.courseId === selectedCourse);
+    return batches.filter(
+      (batch) => batch.courseId?.toString() === selectedCourse?.toString()
+    );
   }, [batches, selectedCourse]);
 
-  // Get unique EIINs from students
+  // Unique EIINs পান
   const availableEIINs = useMemo(() => {
     const eiins = new Set();
-    students.forEach((student) => {
+    rankingStudents.forEach((student) => {
       if (student.eiin) {
         eiins.add(student.eiin);
       }
     });
     return Array.from(eiins).sort();
-  }, [students]);
+  }, [rankingStudents]);
 
-  // Find current user's rank
+  // Current user এর rank খুঁজুন
   const currentUserRank = useMemo(() => {
     if (!currentUser) return null;
-    return rankings.find((r) => r.studentId === currentUser._id);
+    return rankings.find(
+      (r) => r.studentId?.toString() === currentUser._id?.toString()
+    );
   }, [rankings, currentUser]);
 
-  // Get medal color
+  // Medal icon পান
   const getMedalIcon = (rank) => {
     if (rank === 1) return <Trophy className="w-8 h-8 text-yellow-500" />;
     if (rank === 2) return <Medal className="w-8 h-8 text-gray-400" />;
@@ -330,10 +351,6 @@ const RankPage = () => {
       {currentUserRank && (
         <div className="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-xl mb-6">
           <div className="card-body">
-            {/* <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-              <Trophy className="w-6 h-6" />
-              আপনার র‍্যাঙ্কিং
-            </h3> */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold">
@@ -444,7 +461,9 @@ const RankPage = () => {
                     <tr
                       key={student.studentId}
                       className={`hover ${
-                        currentUser && student.studentId === currentUser._id
+                        currentUser &&
+                        student.studentId?.toString() ===
+                          currentUser._id?.toString()
                           ? "bg-primary/10"
                           : ""
                       }`}
@@ -471,7 +490,8 @@ const RankPage = () => {
                             <div className="font-bold">
                               {student.studentName}
                               {currentUser &&
-                                student.studentId === currentUser._id && (
+                                student.studentId?.toString() ===
+                                  currentUser._id?.toString() && (
                                   <span className="badge badge-sm badge-primary ml-2">
                                     You
                                   </span>

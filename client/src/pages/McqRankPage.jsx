@@ -5,7 +5,7 @@ import { useAppContext } from "../context/useAppContext";
 
 const McqRankPage = () => {
   const navigate = useNavigate();
-  const { mcqQuizzes, students, batches, courses, currentUser } =
+  const { mcqExamResult, batches, courses, currentUser, rankingStudents } =
     useAppContext();
 
   const [genderFilter, setGenderFilter] = useState("all"); // all, male, female
@@ -15,14 +15,14 @@ const McqRankPage = () => {
 
   // Get unique EIINs (colleges)
   const colleges = useMemo(() => {
-    const eiins = [...new Set(students.map((s) => s.eiin))];
+    const eiins = [...new Set(rankingStudents.map((s) => s.eiin))];
     return eiins.filter((e) => e);
-  }, [students]);
+  }, [rankingStudents]);
 
   // Calculate rankings
   const rankings = useMemo(() => {
     // Filter quizzes based on time
-    let filteredQuizzes = mcqQuizzes;
+    let filteredQuizzes = mcqExamResult;
 
     if (timeFilter === "this-month") {
       const now = new Date();
@@ -63,7 +63,7 @@ const McqRankPage = () => {
 
     // Calculate average and prepare ranking data
     const rankingData = Object.keys(studentScores).map((studentId) => {
-      const student = students.find((s) => s._id === studentId);
+      const student = rankingStudents.find((s) => s._id === studentId);
       const data = studentScores[studentId];
       const averageScore = Math.round(data.totalScore / data.count);
 
@@ -145,8 +145,8 @@ const McqRankPage = () => {
     // Limit to top 50 by serial number
     return filtered.slice(0, 50);
   }, [
-    mcqQuizzes,
-    students,
+    mcqExamResult,
+    rankingStudents,
     genderFilter,
     batchFilter,
     timeFilter,

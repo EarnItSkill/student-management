@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "68eb1c8f200f2e5fb7efd582",
+    "studentId": "68ea6f2d6f4afcbeebf85f60",
+    "batchId": "68ea76ef6f4afcbeebf85f66",
+    "courseId": "68e609e49e158e162999fa2c",
+    "enrollDate": "2025-10-12",
+    "status": "active"
+  },
+  {
+    "_id": "68eb60f914c5bd7889cc09e0",
+    "studentId": "68ea75646f4afcbeebf85f64",
+    "batchId": "68ea66906f4afcbeebf85f5e",
+    "courseId": "68e609e49e158e162999fa2c",
+    "enrollDate": "2025-10-12",
+    "status": "active"
+  }
+]

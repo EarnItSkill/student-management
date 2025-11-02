@@ -37,7 +37,7 @@ const StudentForm = ({ student, onClose, onSuccess }) => {
       name: "",
       email: "",
       phone: "",
-      password: "student123",
+      password: "",
       gender: "",
       eiin: "",
       address: "",

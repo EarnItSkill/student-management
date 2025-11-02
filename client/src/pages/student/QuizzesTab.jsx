@@ -17,13 +17,10 @@ import ViewQuizResult from "../../components/quizzes/ViewQuizResult";
 import { useAppContext } from "../../context/useAppContext";
 
 const QuizzesTab = ({
-  // Data props
   enrolledCourseIds,
   myQuizzesWithStatus,
   completedQuizzes,
   lockedPendingQuizzes,
-
-  // State props
   selectedBatchForQuiz,
   setSelectedBatchForQuiz,
 }) => {
@@ -39,7 +36,9 @@ const QuizzesTab = ({
   return (
     <div>
       {!selectedBatchForQuiz ? (
-        // Course Selection View
+        // ========================
+        // COURSE SELECTION VIEW
+        // ========================
         <div>
           <h2 className="text-2xl font-bold mb-6">
             My Quizzes - Select Course
@@ -93,11 +92,17 @@ const QuizzesTab = ({
                   )
                   .map((courseId) => {
                     const course = courses.find((c) => c._id === courseId);
+                    // ✅ ObjectId comparison fix
                     const courseQuizzes = myQuizzesWithStatus.filter(
-                      (q) => q.courseId === courseId
+                      (q) => q.courseId?.toString() === courseId?.toString()
                     );
+                    // ✅ ObjectId comparison fix
                     const completedInCourse = courseQuizzes.filter((quiz) =>
-                      quiz.results.some((r) => r.studentId === currentUser?._id)
+                      quiz.results.some(
+                        (r) =>
+                          r.studentId?.toString() ===
+                          currentUser?._id?.toString()
+                      )
                     ).length;
                     const unlockedCount = courseQuizzes.filter(
                       (q) => q.isUnlocked
@@ -223,7 +228,9 @@ const QuizzesTab = ({
           )}
         </div>
       ) : (
-        // Quiz List View for Selected Course
+        // ========================
+        // QUIZ LIST VIEW
+        // ========================
         <div>
           {/* Header with Back Button */}
           <div className="flex items-center gap-3 mb-6">
@@ -261,7 +268,9 @@ const QuizzesTab = ({
               <div className="stat-value text-primary">
                 {
                   myQuizzesWithStatus.filter(
-                    (q) => q.courseId === selectedBatchForQuiz
+                    (q) =>
+                      q.courseId?.toString() ===
+                      selectedBatchForQuiz?.toString()
                   ).length
                 }
               </div>
@@ -274,7 +283,11 @@ const QuizzesTab = ({
               <div className="stat-value text-info">
                 {
                   myQuizzesWithStatus
-                    .filter((q) => q.courseId === selectedBatchForQuiz)
+                    .filter(
+                      (q) =>
+                        q.courseId?.toString() ===
+                        selectedBatchForQuiz?.toString()
+                    )
                     .filter((q) => q.isUnlocked).length
                 }
               </div>
@@ -287,9 +300,17 @@ const QuizzesTab = ({
               <div className="stat-value text-success">
                 {
                   myQuizzesWithStatus
-                    .filter((q) => q.courseId === selectedBatchForQuiz)
+                    .filter(
+                      (q) =>
+                        q.courseId?.toString() ===
+                        selectedBatchForQuiz?.toString()
+                    )
                     .filter((quiz) =>
-                      quiz.results.some((r) => r.studentId === currentUser?._id)
+                      quiz.results.some(
+                        (r) =>
+                          r.studentId?.toString() ===
+                          currentUser?._id?.toString()
+                      )
                     ).length
                 }
               </div>
@@ -343,10 +364,14 @@ const QuizzesTab = ({
             </div>
           </div>
 
-          {/* Quiz Display */}
+          {/* Quiz Display - Grid or Table */}
           {(() => {
+            // ✅ ObjectId comparison fix
             const courseQuizzes = myQuizzesWithStatus
-              .filter((q) => q.courseId === selectedBatchForQuiz)
+              .filter(
+                (q) =>
+                  q.courseId?.toString() === selectedBatchForQuiz?.toString()
+              )
               .filter((q) =>
                 q.title.toLowerCase().includes(quizSearchTerm.toLowerCase())
               );
@@ -387,12 +412,17 @@ const QuizzesTab = ({
                 )}
 
                 {quizViewType === "grid" ? (
-                  // Grid View
+                  // ========================
+                  // GRID VIEW
+                  // ========================
                   <>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                       {paginatedQuizzes.map((quiz) => {
+                        // ✅ ObjectId comparison fix
                         const myResult = quiz.results.find(
-                          (r) => r.studentId === currentUser?._id
+                          (r) =>
+                            r.studentId?.toString() ===
+                            currentUser?._id?.toString()
                         );
                         const course = courses.find(
                           (c) => c._id === quiz.courseId
@@ -415,11 +445,9 @@ const QuizzesTab = ({
                             <div className="card-body">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="card-title text-lg">
-                                      {quiz.title}
-                                    </h3>
-                                  </div>
+                                  <h3 className="card-title text-lg">
+                                    {quiz.title}
+                                  </h3>
                                   <p className="text-sm text-gray-400 mt-1">
                                     কোর্স: {course?.title}
                                   </p>
@@ -445,9 +473,7 @@ const QuizzesTab = ({
                                   className={`alert ${
                                     !quiz.isUnlocked && quiz.isPending
                                       ? "bg-error/20 border-2 border-error"
-                                      : !quiz.isUnlocked
-                                      ? "alert-warning"
-                                      : "alert-success"
+                                      : "alert-warning"
                                   }`}
                                 >
                                   <AlertCircle className="w-5 h-5" />
@@ -642,7 +668,9 @@ const QuizzesTab = ({
                     )}
                   </>
                 ) : (
-                  // Table View
+                  // ========================
+                  // TABLE VIEW
+                  // ========================
                   <>
                     <div className="overflow-x-auto">
                       <table className="table table-zebra w-full">
@@ -659,8 +687,11 @@ const QuizzesTab = ({
                         </thead>
                         <tbody>
                           {paginatedQuizzes.map((quiz, index) => {
+                            // ✅ ObjectId comparison fix
                             const myResult = quiz.results.find(
-                              (r) => r.studentId === currentUser?._id
+                              (r) =>
+                                r.studentId?.toString() ===
+                                currentUser?._id?.toString()
                             );
                             const percentage = myResult
                               ? (
@@ -850,7 +881,10 @@ const QuizzesTab = ({
           })()}
         </div>
       )}
-      {/* Quiz Taking Modal */}
+
+      {/* ======================== */}
+      {/* QUIZ TAKING MODAL */}
+      {/* ======================== */}
       {quizModal.isOpen && quizModal.quiz && (
         <TakeQuiz
           quiz={quizModal.quiz}
@@ -861,7 +895,9 @@ const QuizzesTab = ({
         />
       )}
 
-      {/* 👇 View Result Modal যোগ করুন */}
+      {/* ======================== */}
+      {/* VIEW RESULT MODAL */}
+      {/* ======================== */}
       {resultModal.isOpen && resultModal.quiz && (
         <ViewQuizResult
           quiz={resultModal.quiz}

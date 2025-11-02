@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/common/DashboardLayout";
 import Footer from "../components/common/Footer";
 import Navbar from "../components/common/Navbar";
@@ -37,6 +37,25 @@ const CourseDetails = () => {
   const [selectedClass, setSelectedClass] = useState(0);
   const [expandedGroups, setExpandedGroups] = useState([0]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const location = useLocation();
+
+  const handleBack = () => {
+    const fromTab = location.state?.fromTab;
+
+    if (fromTab) {
+      // Back করার আগে localStorage এ tab রাখো
+      localStorage.setItem("activeTab", fromTab);
+    }
+
+    // আগের পেজে ফিরে যাও
+    navigate(-1);
+
+    // navigate হওয়ার পর localStorage থেকে ট্যাব মুছে ফেলতে সামান্য delay
+    setTimeout(() => {
+      localStorage.removeItem("activeTab");
+    }, 100); // 100ms delay দিলে আগের পেজ ট্যাব ধরতে পারে
+  };
 
   const course = courses?.find((c) => c._id === id);
 
@@ -134,12 +153,19 @@ const CourseDetails = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-start gap-3">
           {/* Back Button */}
-          <button
+          {/* <button
             onClick={() => navigate(-1)}
             className="btn btn-ghost gap-2 mb-6 w-1/12"
           >
             <ArrowLeft className="w-5 h-5" />
             Back
+          </button> */}
+          {/* New */}
+          <button
+            onClick={handleBack}
+            className="btn btn-ghost gap-2 mb-6 w-1/12"
+          >
+            <ArrowLeft className="w-5 h-5" /> Back
           </button>
           {/* Class Progress (if enrolled) */}
           {isAuthenticated && studentBatch && (

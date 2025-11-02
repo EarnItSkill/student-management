@@ -368,7 +368,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                         Select Correct Answer(s) *
                       </span>
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       {[0, 1, 2, 3].map((optionIndex) => {
                         const isSelected =
                           watchQuestions[

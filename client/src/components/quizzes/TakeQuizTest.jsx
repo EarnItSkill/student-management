@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
 
 const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
-  const { currentUser, submitQuiz, enrollments } = useAppContext();
+  const { currentUser, submitQuiz, enrollments, submitMcq } = useAppContext();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
@@ -91,7 +91,8 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
 
     // Submit quiz result
 
-    submitQuiz(quizId, submissionData);
+    // submitQuiz(quizId, submissionData);
+    submitMcq(quizId, submissionData, 1);
 
     setShowResult(true);
   };

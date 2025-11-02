@@ -69,12 +69,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* <Route index element={<StudentOverview />} />
-        <Route path="courses" element={<StudentCourses />} />
-        <Route path="payments" element={<StudentPayments />} />
-        <Route path="attendance" element={<StudentAttendance />} />
-        <Route path="quizzes" element={<StudentQuizzes />} /> */}
-
         <Route path="profile" element={<StudentProfile />} />
         <Route path="cq" element={<StudentCqPage />} />
         <Route path="test-quiz" element={<TestQuiz />} />

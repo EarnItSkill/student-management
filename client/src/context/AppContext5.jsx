@@ -10,20 +10,15 @@ import {
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+// Import local JSON data
+// import attendanceData from "../data/attendance.json";
+
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  // ========================
-  // Authentication State - localStorage থেকে initialize করুন
-  // ========================
-  const [currentUser, setCurrentUser] = useState(() => {
-    const stored = localStorage.getItem("currentUser");
-    return stored ? JSON.parse(stored) : null;
-  });
-
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem("authToken");
-  });
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Data States
   const [students, setStudents] = useState([]);
@@ -33,10 +28,10 @@ export const AppProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  // New -----------------------
   const [mcqResult, setMcqResult] = useState([]);
-  const [rankingStudents, setRankingStudents] = useState([]);
+
   const [mcqQuizzes, setMcqQuizzes] = useState([]);
-  const [mcqExamResult, setMcqExamResult] = useState([]);
   const [chapterSchedules, setChapterSchedules] = useState([]);
   const [cqQuestions, setCqQuestions] = useState([]);
 
@@ -46,190 +41,69 @@ export const AppProvider = ({ children }) => {
   // For Dashboard
   const [isSideMenu, setIsSideMenu] = useState(true);
 
-  // ========================
-  // Axios Interceptor Setup (একবার চলাবে)
-  // ========================
-  useEffect(() => {
-    // Request Interceptor - Token যোগ করুন
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    // Response Interceptor - Error হ্যান্ডেল করুন
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        // ✅ 401 এ logout করুন
-        if (error.response?.status === 401) {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("currentUser");
-          setCurrentUser(null);
-          setIsAuthenticated(false);
-          window.location.href = "/login";
-          toast.error("সেশন এক্সপায়ার হয়েছে, আবার লগইন করুন");
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    // Cleanup
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
-    };
-  }, []);
-
-  // ========================
-  // localStorage এর সাথে currentUser sync রাখুন
-  // ========================
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem("currentUser");
-    }
-  }, [currentUser]);
-
-  // ========================
-  // localStorage এর সাথে isAuthenticated sync রাখুন
-  // ========================
-  useEffect(() => {
-    if (!isAuthenticated) {
-      localStorage.removeItem("authToken");
-    }
-  }, [isAuthenticated]);
-
-  // ========================
-  // রিলোডের পর localStorage থেকে পুনরুদ্ধার করুন
-  // ========================
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const user = localStorage.getItem("currentUser");
-
-    if (token && user) {
-      setCurrentUser(JSON.parse(user));
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  // ========================
-  // ডেটা লোড করুন (শুধুমাত্র logged in হলে)
-  // ========================
-
-  // useEffect(() => {
-  //   const getData = async () => {
-  //     try {
-  //       if (!isAuthenticated || !currentUser) {
-  //         setLoading(false);
-  //         return;
-  //       }
-
-  //       const promises = [
-  //         axios.get(`${import.meta.env.VITE_API_URL}/courses`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/batches`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/enrollments`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/attendance`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/quizzes`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/chapter-schedules`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/cq-questions`),
-  //       ];
-
-  //       // ✅ Admin হলে এই endpoints call করুন
-  //       if (currentUser.role === "admin") {
-  //         promises.push(
-  //           axios.get(`${import.meta.env.VITE_API_URL}/students`),
-  //           axios.get(`${import.meta.env.VITE_API_URL}/payments`),
-  //           axios.get(`${import.meta.env.VITE_API_URL}/results`) // ✅ সব results
-  //         );
-  //       } else {
-  //         // ✅ Student হলে
-  //         promises.push(
-  //           axios.get(`${import.meta.env.VITE_API_URL}/results`), // ✅ সব results (RankPage এর জন্য)
-  //           axios.get(`${import.meta.env.VITE_API_URL}/payments`) // ✅ নিজের payments
-  //         );
-  //       }
-
-  //       const results = await Promise.all(promises);
-
-  //       setCourses(results[0]?.data || []);
-  //       setBatches(results[1]?.data || []);
-  //       setEnrollments(results[2]?.data || []);
-  //       setAttendance(results[3]?.data || []);
-  //       setQuizzes(results[4]?.data || []);
-  //       setChapterSchedules(results[5]?.data || []);
-  //       setCqQuestions(results[6]?.data || []);
-
-  //       // Admin এর জন্য
-  //       if (currentUser.role === "admin") {
-  //         setStudents(results[7]?.data || []);
-  //         setPayments(results[8]?.data || []);
-  //         setMcqResult(results[9]?.data || []); // সব results
-  //       } else {
-  //         // ✅ Student এর জন্য
-  //         setMcqResult(results[7]?.data || []); // সব results (RankPage দেখায়)
-  //         setPayments(results[8]?.data || []); // নিজের payments
-  //       }
-
-  //       setLoading(false);
-  //     } catch (error) {
-  //       console.error("Error loading data:", error);
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   getData();
-  // }, [isAuthenticated, currentUser]);
+  // Load data from local JSON on mount
 
   useEffect(() => {
-    const getRankingData = async () => {
+    const getData = async () => {
       try {
-        if (!isAuthenticated || !currentUser) {
-          setLoading(false);
-          return;
-        }
+        const students = await axios.get(
+          `${import.meta.env.VITE_API_URL}/students`
+        );
+        setStudents(students?.data);
 
-        const promises = [
-          axios.get(`${import.meta.env.VITE_API_URL}/courses`),
-          axios.get(`${import.meta.env.VITE_API_URL}/batches`),
-          axios.get(`${import.meta.env.VITE_API_URL}/enrollments`),
-          axios.get(`${import.meta.env.VITE_API_URL}/attendance`),
-          axios.get(`${import.meta.env.VITE_API_URL}/quizzes`),
-          axios.get(`${import.meta.env.VITE_API_URL}/chapter-schedules`),
-          axios.get(`${import.meta.env.VITE_API_URL}/cq-questions`),
-          axios.get(`${import.meta.env.VITE_API_URL}/ranking-students`), // ✅ Ranking students
-          axios.get(`${import.meta.env.VITE_API_URL}/results`),
-          axios.get(`${import.meta.env.VITE_API_URL}/payments`),
-          axios.get(`${import.meta.env.VITE_API_URL}/mcqquizzes`),
-        ];
+        const courses = await axios.get(
+          `${import.meta.env.VITE_API_URL}/courses`
+        );
+        setCourses(courses?.data);
 
-        // ✅ Admin হলে শুধু সম্পূর্ণ students ডাটা
-        if (currentUser.role === "admin") {
-          promises.push(axios.get(`${import.meta.env.VITE_API_URL}/students`));
-        }
+        const batches = await axios.get(
+          `${import.meta.env.VITE_API_URL}/batches`
+        );
+        setBatches(batches.data);
 
-        const results = await Promise.all(promises);
+        const enrollments = await axios.get(
+          `${import.meta.env.VITE_API_URL}/enrollments`
+        );
+        setEnrollments(enrollments.data);
 
-        setCourses(results[0]?.data || []);
-        setBatches(results[1]?.data || []);
-        setEnrollments(results[2]?.data || []);
-        setAttendance(results[3]?.data || []);
-        setQuizzes(results[4]?.data || []);
-        setChapterSchedules(results[5]?.data || []);
-        setCqQuestions(results[6]?.data || []);
-        setRankingStudents(results[7]?.data || []); // ✅ Ranking students (সকলের জন্য)
-        setMcqResult(results[8]?.data || []);
-        setPayments(results[9]?.data || []);
-        setMcqExamResult(results[10]?.data || []);
+        const payments = await axios.get(
+          `${import.meta.env.VITE_API_URL}/payments`
+        );
+        setPayments(payments.data);
 
-        if (currentUser.role === "admin") {
-          setStudents(results[11]?.data || []); // ✅ সম্পূর্ণ students (Admin only)
+        const attendance = await axios.get(
+          `${import.meta.env.VITE_API_URL}/attendance`
+        );
+        setAttendance(attendance.data);
+
+        const quizzes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/quizzes`
+        );
+        setQuizzes(quizzes.data);
+
+        // New --------------------
+        const mcqResult = await axios.get(
+          `${import.meta.env.VITE_API_URL}/results`
+        );
+        setMcqResult(mcqResult.data);
+
+        const schedules = await axios.get(
+          `${import.meta.env.VITE_API_URL}/chapter-schedules`
+        );
+        setChapterSchedules(schedules?.data);
+
+        const cqs = await axios.get(
+          `${import.meta.env.VITE_API_URL}/cq-questions`
+        );
+        setCqQuestions(cqs?.data);
+
+        // ------------------------------------------------
+        // Check if user is logged in (from localStorage)
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+          const user = JSON.parse(savedUser);
+          setCurrentUser(user);
+          setIsAuthenticated(true);
         }
 
         setLoading(false);
@@ -237,59 +111,58 @@ export const AppProvider = ({ children }) => {
         console.error("Error loading data:", error);
         setLoading(false);
       }
+      setLoading(false);
     };
-
-    getRankingData();
-  }, [isAuthenticated, currentUser]);
+    getData();
+  }, []);
 
   // ============== Authentication Functions ==============
 
-  const login = async (identifier, password) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
-        { identifier, password }
-      );
-
-      if (response.data.success) {
-        const { user, token } = response.data;
-
-        // ✅ State update করুন
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-
-        // ✅ localStorage এ রাখুন
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        localStorage.setItem("authToken", token);
-
-        toast.success("লগইন সফল হয়েছে!");
-        return { success: true, user };
-      }
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "লগইন ব্যর্থ হয়েছে";
-      toast.error(errorMessage);
-      return { success: false, message: errorMessage };
+  const login = (identifier, password) => {
+    // Check admin login
+    if (identifier === "mrmozammal@gmail.com" && password === "admin123") {
+      const adminUser = {
+        id: 0,
+        name: "মো. মোজাম্মেল হক",
+        email: "mrmozammal@gmail.com",
+        role: "admin",
+        image: "https://avatars.githubusercontent.com/u/31990245?v=4",
+      };
+      setCurrentUser(adminUser);
+      setIsAuthenticated(true);
+      localStorage.setItem("currentUser", JSON.stringify(adminUser));
+      return { success: true, user: adminUser };
     }
+
+    // Check student login (email or phone)
+    const student = students.find(
+      (s) =>
+        (s.email === identifier || s.phone === identifier) &&
+        s.password === password
+    );
+
+    if (student) {
+      const user = { ...student };
+      delete user.password; // Remove password from user object
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      return { success: true, user };
+    }
+
+    return { success: false, message: "ইমেইল বা ফোন/পাসওয়ার্ড সঠিক নয়" };
   };
 
   const logout = () => {
     setCurrentUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem("currentUser");
-    localStorage.removeItem("authToken");
-    toast.success("লগআউট সফল হয়েছে");
   };
 
   // ============== Student CRUD Functions ==============
 
   const addStudent = async (newStudent) => {
     try {
-      if (!newStudent.password || newStudent.password.length < 6) {
-        toast.error("পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে");
-        return null;
-      }
-
       const studentData = {
         ...newStudent,
         role: "student",
@@ -305,45 +178,47 @@ export const AppProvider = ({ children }) => {
         studentData
       );
 
-      setStudents((prev) => [...prev, response.data.data]);
+      const createdStudent = response.data;
+      setStudents((prev) => [...prev, createdStudent]);
 
-      toast.success("ছাত্রটি সফলভাবে যোগ করা হয়েছে!", {
+      // ✅ সফল ম্যাসেজ
+      toast.success("ছাত্রটি সফলভাবে যোগ করা হয়েছে!", {
         icon: <UserPlus className="text-green-500" />,
       });
 
-      return response.data.data;
+      return createdStudent;
     } catch (error) {
       if (error.response?.status === 400) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
+        toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
           icon: <XCircle className="text-red-500" />,
         });
       }
-      return null;
     }
   };
 
   const updateStudent = async (id, updatedData) => {
     try {
-      // ✅ PATCH ব্যবহার করুন
-      const response = await axios.patch(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/student/${id}`,
         updatedData
       );
 
+      const updatedStudent = response.data;
+
       setStudents((prev) =>
-        prev.map((s) => (s._id === id ? { ...s, ...updatedData } : s))
+        prev.map((s) => (s._id === id ? updatedStudent : s))
       );
 
-      toast.success("ছাত্রের তথ্য সফলভাবে আপডেট হয়েছে!", {
+      toast.success("ছাত্রের তথ্য সফলভাবে আপডেট হয়েছে!", {
         icon: <Pencil className="text-blue-500" />,
       });
 
-      return response.data;
+      return updatedStudent;
     } catch (error) {
       console.error("Failed to update student:", error);
-      toast.error("ছাত্রের তথ্য আপডেট করতে ব্যর্থ হয়েছে!", {
+      toast.error("ছাত্রের তথ্য আপডেট করতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
       throw error;
@@ -356,12 +231,12 @@ export const AppProvider = ({ children }) => {
 
       setStudents((prev) => prev.filter((s) => s._id !== id));
 
-      toast.success("ছাত্রটি সফলভাবে মুছে ফেলা হয়েছে!", {
+      toast.success("ছাত্রটি সফলভাবে মুছে ফেলা হয়েছে!", {
         icon: <Trash2 className="text-orange-500" />,
       });
     } catch (error) {
       console.error("Failed to delete student:", error);
-      toast.error("ছাত্র মুছে ফেলতে ব্যর্থ হয়েছে!", {
+      toast.error("ছাত্র মুছে ফেলতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
       throw error;
@@ -377,17 +252,19 @@ export const AppProvider = ({ children }) => {
         newCourse
       );
 
-      setCourses([...courses, response.data.data]);
+      setCourses([...courses, response.data]);
 
-      toast.success("সফলতার সাথে কোর্স তৈরি হয়েছে!", {
+      // ✅ সফল toast
+      toast.success("সফলতার সাথে কোর্স তৈরি হয়েছে!", {
         icon: <BookPlus className="text-green-500" />,
       });
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error("Error adding course:", error);
 
-      toast.error("কোর্স তৈরি করতে ব্যর্থ হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error("কোর্স তৈরি করতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
 
@@ -402,21 +279,25 @@ export const AppProvider = ({ children }) => {
         updatedData
       );
 
+      const updatedCourseFromServer = response.data;
+
       setCourses(
         courses.map((course) =>
-          course._id === id ? { ...course, ...updatedData } : course
+          course._id === id ? updatedCourseFromServer : course
         )
       );
 
-      toast.success("সফলতার সাথে কোর্স আপডেট হয়েছে!", {
+      // ✅ সফল toast
+      toast.success("সফলতার সাথে কোর্স আপডেট হয়েছে!", {
         icon: <Pencil className="text-blue-500" />,
       });
 
-      return response.data;
+      return updatedCourseFromServer;
     } catch (error) {
       console.error("Error updating course:", error);
 
-      toast.error("কোর্স আপডেট করতে ব্যর্থ হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error("কোর্স আপডেট করতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
 
@@ -429,13 +310,15 @@ export const AppProvider = ({ children }) => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${id}`);
       setCourses(courses.filter((c) => c._id !== id));
 
-      toast.success("সফলতার সাথে কোর্স ডিলিট হয়েছে!", {
+      // ✅ সফল toast
+      toast.success("সফলতার সাথে কোর্স ডিলিট হয়েছে!", {
         icon: <Trash2 className="text-orange-500" />,
       });
     } catch (error) {
       console.error("Error deleting course:", error);
 
-      toast.error("কোর্স ডিলিট করতে সমস্যা হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error("কোর্স ডিলিট করতে সমস্যা হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
     }
@@ -450,17 +333,23 @@ export const AppProvider = ({ children }) => {
         newBatch
       );
 
-      setBatches((prevBatches) => [...prevBatches, response.data.data]);
+      const batchWithId = response.data;
 
-      toast.success("সফলতার সাথে নতুন ব্যাচ যোগ হয়েছে!", {
+      setBatches((prevBatches) => {
+        return [...prevBatches, batchWithId];
+      });
+
+      // ✅ সফল toast
+      toast.success("সফলতার সাথে নতুন ব্যাচ যোগ হয়েছে!", {
         icon: <Layers className="text-green-500" />,
       });
 
-      return response.data.data;
+      return batchWithId;
     } catch (error) {
       console.error("API-এর মাধ্যমে নতুন ব্যাচ যোগ করার সময় ত্রুটি:", error);
 
-      toast.error("ব্যাচ যোগ করতে ব্যর্থ হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error("ব্যাচ যোগ করতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
 
@@ -475,24 +364,28 @@ export const AppProvider = ({ children }) => {
         updatedBatchData
       );
 
+      const updatedBatch = response.data;
+
       setBatches((prevBatches) => {
         return prevBatches.map((batch) =>
-          batch._id === batchId ? { ...batch, ...updatedBatchData } : batch
+          batch._id === batchId ? updatedBatch : batch
         );
       });
 
-      toast.success("ব্যাচ সফলভাবে আপডেট হয়েছে!", {
+      // ✅ সফল toast
+      toast.success("ব্যাচ সফলভাবে আপডেট হয়েছে!", {
         icon: <Pencil className="text-blue-500" />,
       });
 
-      return response.data;
+      return updatedBatch;
     } catch (error) {
       console.error(
         `API-এর মাধ্যমে ব্যাচ ID: ${batchId} আপডেট করার সময় ত্রুটি:`,
         error
       );
 
-      toast.error(" ব্যাচ আপডেট করতে ব্যর্থ হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error(" ব্যাচ আপডেট করতে ব্যর্থ হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
 
@@ -508,7 +401,8 @@ export const AppProvider = ({ children }) => {
         return prevBatches.filter((batch) => batch._id !== batchId);
       });
 
-      toast.success("ব্যাচ সফলভাবে ডিলিট হয়েছে!", {
+      // ✅ সফল toast
+      toast.success("ব্যাচ সফলভাবে ডিলিট হয়েছে!", {
         icon: <Trash2 className="text-orange-500" />,
       });
 
@@ -519,7 +413,8 @@ export const AppProvider = ({ children }) => {
         error
       );
 
-      toast.error("ব্যাচ ডিলিট করতে সমস্যা হয়েছে!", {
+      // ❌ ব্যর্থ toast
+      toast.error("ব্যাচ ডিলিট করতে সমস্যা হয়েছে!", {
         icon: <XCircle className="text-red-500" />,
       });
 
@@ -544,10 +439,9 @@ export const AppProvider = ({ children }) => {
         enrollmentData
       );
 
-      setEnrollments((prevEnrollments) => [
-        ...prevEnrollments,
-        response.data.data,
-      ]);
+      const newEnrollment = response.data;
+
+      setEnrollments((prevEnrollments) => [...prevEnrollments, newEnrollment]);
 
       setBatches((prevBatches) =>
         prevBatches.map((b) =>
@@ -557,7 +451,7 @@ export const AppProvider = ({ children }) => {
         )
       );
 
-      return response.data.data;
+      return newEnrollment;
     } catch (error) {
       console.error("API-এর মাধ্যমে ছাত্র নথিভুক্ত করার সময় ত্রুটি:", error);
 
@@ -571,7 +465,7 @@ export const AppProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/enrollments/${enrollmentId}`
       );
 
-      const deletedEnrollment = response.data.data;
+      const deletedEnrollment = response.data;
       const batchId = deletedEnrollment.batchId;
 
       setEnrollments((prevEnrollments) =>
@@ -606,9 +500,11 @@ export const AppProvider = ({ children }) => {
         newPayment
       );
 
-      setPayments((prevPayments) => [...prevPayments, response.data.data]);
+      const paymentWithId = response.data;
 
-      return response.data.data;
+      setPayments((prevPayments) => [...prevPayments, paymentWithId]);
+
+      return paymentWithId;
     } catch (error) {
       console.error("API-এর মাধ্যমে নতুন পেমেন্ট যোগ করার সময় ত্রুটি:", error);
 
@@ -623,11 +519,13 @@ export const AppProvider = ({ children }) => {
         updatedData
       );
 
+      const updatedPayment = response.data;
+
       setPayments((prevPayments) =>
-        prevPayments.map((p) => (p._id === id ? { ...p, ...updatedData } : p))
+        prevPayments.map((p) => (p._id === id ? updatedPayment : p))
       );
 
-      return response.data;
+      return updatedPayment;
     } catch (error) {
       console.error(
         `API-এর মাধ্যমে পেমেন্ট ID: ${id} আপডেট করার সময় ত্রুটি:`,
@@ -644,8 +542,8 @@ export const AppProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/payments/${paymentId}`
       );
 
-      setPayments((prevPayments) => {
-        return prevPayments.filter((payment) => payment._id !== paymentId);
+      setPayments((prevBatches) => {
+        return prevBatches.filter((payment) => payment._id !== paymentId);
       });
 
       return true;
@@ -668,12 +566,11 @@ export const AppProvider = ({ children }) => {
         newAttendance
       );
 
-      setAttendance((prevAttendance) => [
-        ...prevAttendance,
-        response.data.data,
-      ]);
+      const attendanceWithId = response.data;
 
-      return response.data.data;
+      setAttendance((prevAttendance) => [...prevAttendance, attendanceWithId]);
+
+      return attendanceWithId;
     } catch (error) {
       console.error(
         "API-এর মাধ্যমে অ্যাটেন্ডেন্স যোগ করার সময় ত্রুটি:",
@@ -699,9 +596,11 @@ export const AppProvider = ({ children }) => {
         newQuiz
       );
 
-      setQuizzes((prevQuizzes) => [...prevQuizzes, response.data.data]);
+      const quizWithId = response.data;
 
-      return response.data.data;
+      setQuizzes((prevQuizzes) => [...prevQuizzes, quizWithId]);
+
+      return quizWithId;
     } catch (error) {
       console.error("API-এর মাধ্যমে নতুন কুইজ যোগ করার সময় ত্রুটি:", error);
 
@@ -718,11 +617,13 @@ export const AppProvider = ({ children }) => {
         dataToSend
       );
 
+      const updatedQuiz = response.data;
+
       setQuizzes((prevQuizzes) =>
-        prevQuizzes.map((q) => (q._id === id ? { ...q, ...dataToSend } : q))
+        prevQuizzes.map((q) => (q._id === id ? updatedQuiz : q))
       );
 
-      return response.data;
+      return updatedQuiz;
     } catch (error) {
       console.error(
         `API-এর মাধ্যমে কুইজ ID: ${id} আপডেট করার সময় ত্রুটি:`,
@@ -750,6 +651,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // New ------------------------
   const submitMcq = async (quizId, submissionData) => {
     try {
       const response = await axios.post(
@@ -766,34 +668,46 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // AppContext এ এই function টি add করুন
   const fetchStudentResults = async (studentId) => {
     try {
-      const id = studentId || currentUser?._id;
-
-      if (!id) {
-        console.error("Student ID not found");
-        return [];
-      }
-
-      // ✅ Token headers সহ request পাঠান
-      const token = localStorage.getItem("authToken");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/results/student/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `${import.meta.env.VITE_API_URL}/results/student/${studentId}`
       );
-      return response.data || [];
+      return response;
     } catch (error) {
       console.error("Student results fetch error:", error);
-      return [];
+      throw error;
     }
   };
 
-  // ============== MCQ Quiz Functions ==============
+  // const submitQuiz = async (quizId, newResult) => {
 
+  //   try {
+  //     const response = await axios.patch(
+  //       `${import.meta.env.VITE_API_URL}/quizzes/${quizId}/submit`,
+  //       newResult
+  //     );
+
+  //     const updatedQuiz = response.data;
+
+  //     setQuizzes((prevQuizzes) =>
+  //       prevQuizzes.map((q) => (q._id === quizId ? updatedQuiz : q))
+  //     );
+
+  //     return updatedQuiz;
+  //   } catch (error) {
+  //     console.error(
+  //       `API-এর মাধ্যমে কুইজ ID: ${quizId} সাবমিট করার সময় ত্রুটি:`,
+  //       error
+  //     );
+  //     throw error;
+  //   }
+  // };
+
+  // ================================== mcq Quizzes
+
+  // Functions যোগ করুন (return এর আগে)
   const checkQuizAttempt = async (studentId, batchId, chapter) => {
     try {
       const response = await axios.get(
@@ -816,6 +730,7 @@ export const AppProvider = ({ children }) => {
         attemptData
       );
 
+      // Update local state
       setMcqQuizzes([...mcqQuizzes, response.data.attempt]);
 
       return response.data;
@@ -839,8 +754,8 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ============== Chapter Schedule Functions ==============
-
+  // Chapter
+  // Functions (return এর আগে)
   const getSchedulesByBatch = async (batchId) => {
     try {
       const response = await axios.get(
@@ -874,6 +789,7 @@ export const AppProvider = ({ children }) => {
         scheduleData
       );
 
+      // Update local state
       const updatedSchedules = chapterSchedules.map((s) =>
         s._id === scheduleId ? { ...s, ...scheduleData } : s
       );
@@ -892,9 +808,11 @@ export const AppProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/chapter-schedule/${scheduleId}`
       );
 
+      // Update local state
       setChapterSchedules(chapterSchedules.filter((s) => s._id !== scheduleId));
     } catch (error) {
       console.error("Error deleting schedule:", error);
+      throw error;
     }
   };
 
@@ -904,6 +822,7 @@ export const AppProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/chapter-schedule/${scheduleId}/toggle`
       );
 
+      // Update local state
       const updatedSchedules = chapterSchedules.map((s) =>
         s._id === scheduleId ? { ...s, isActive: response.data.isActive } : s
       );
@@ -912,11 +831,11 @@ export const AppProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error("Error toggling schedule:", error);
+      throw error;
     }
   };
 
-  // ============== CQ Question Functions ==============
-
+  // CQ ==============================================
   const getCqQuestionsByCourse = async (courseId) => {
     try {
       const response = await axios.get(
@@ -969,12 +888,11 @@ export const AppProvider = ({ children }) => {
       setCqQuestions(cqQuestions.filter((cq) => cq._id !== cqId));
     } catch (error) {
       console.error("Error deleting CQ question:", error);
+      throw error;
     }
   };
 
-  // ========================
-  // Context Value
-  // ========================
+  // Context value
   const value = {
     // Dashboard
     isSideMenu,
@@ -994,56 +912,43 @@ export const AppProvider = ({ children }) => {
     payments,
     attendance,
     quizzes,
-    rankingStudents,
+    // New
     mcqResult,
     loading,
     mcqQuizzes,
-    mcqExamResult,
     chapterSchedules,
     cqQuestions,
 
-    // Student Functions
-    addStudent,
-    updateStudent,
-    deleteStudent,
-
-    // Course Functions
-    addCourse,
-    updateCourse,
-    deleteCourse,
-
-    // Batch Functions
-    addBatch,
-    updateBatch,
-    deleteBatch,
-
-    // Enrollment Functions
-    enrollStudent,
-    unenrollStudent,
-
-    // Payment Functions
-    addPayment,
-    updatePayment,
-    deletePayment,
-
-    // Attendance Functions
-    addAttendance,
-    updateAttendance,
-
-    // Quiz Functions
+    // CRUD Functions
     deleteQuiz,
     addQuiz,
     updateQuiz,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    addCourse,
+    updateCourse,
+    deleteCourse,
+    addBatch,
+    updateBatch,
+    deleteBatch,
+    enrollStudent,
+    unenrollStudent,
+    addPayment,
+    updatePayment,
+    deletePayment,
+    addAttendance,
+    updateAttendance,
+    // submitQuiz,
+    // New
     submitMcq,
     fetchStudentResults,
 
-    // MCQ Quiz Functions
     setMcqQuizzes,
     checkQuizAttempt,
     submitQuizAttempt,
     getMcqAttemptsByStudent,
 
-    // Chapter Schedule Functions
     setChapterSchedules,
     getSchedulesByBatch,
     createSchedule,
@@ -1051,7 +956,6 @@ export const AppProvider = ({ children }) => {
     deleteSchedule,
     toggleScheduleStatus,
 
-    // CQ Question Functions
     setCqQuestions,
     getCqQuestionsByCourse,
     addCqQuestion,

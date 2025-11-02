@@ -6,10 +6,13 @@ import {
   Eye,
   Grid3x3,
   List,
+  Maximize2,
+  Minimize2,
   Send,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -22,6 +25,8 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
   const [startTime] = useState(Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState("single"); // "single", "ten", "all"
+  const [isFullPage, setIsFullPage] = useState(false); // ✅ Toggle state
+  const questionsContainerRef = useRef(null); // ✅ Ref for scrolling
 
   // Shuffle function
   const shuffleArray = (array) => {
@@ -141,28 +146,54 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
   };
 
   const handleNext = () => {
+    const scrollToTop = () => {
+      if (isFullPage) {
+        // ✅ Full Page view এ questions container এ scroll করুন
+        questionsContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        // ✅ Modal view এ
+        document
+          .querySelector(".modal-box")
+          ?.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+
     if (
       viewMode === "single" &&
       currentQuestion < shuffledQuiz.questions.length - 1
     ) {
       setCurrentQuestion(currentQuestion + 1);
+      setTimeout(scrollToTop, 0);
     } else if (viewMode === "ten") {
       const currentGroup = Math.floor(currentQuestion / 10);
       const nextGroupStart = (currentGroup + 1) * 10;
       if (nextGroupStart < shuffledQuiz.questions.length) {
         setCurrentQuestion(nextGroupStart);
+        setTimeout(scrollToTop, 0);
       }
     }
   };
 
   const handlePrevious = () => {
+    const scrollToTop = () => {
+      if (isFullPage) {
+        questionsContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        document
+          .querySelector(".modal-box")
+          ?.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+
     if (viewMode === "single" && currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
+      setTimeout(scrollToTop, 0);
     } else if (viewMode === "ten") {
       const currentGroup = Math.floor(currentQuestion / 10);
       const prevGroupStart = (currentGroup - 1) * 10;
       if (prevGroupStart >= 0) {
         setCurrentQuestion(prevGroupStart);
+        setTimeout(scrollToTop, 0);
       }
     }
   };
@@ -292,410 +323,440 @@ const TakeQuizWithTimer = ({ quiz, onClose, onSuccess, onSubmit }) => {
     }
   };
 
-  return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-7xl max-h-[90vh] overflow-y-auto">
-        {!showResult ? (
-          <>
-            <div className="sticky top-0 bg-base-100 z-50 pb-4 border-b border-base-300 mb-6">
-              {/* Header with Timer */}
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
-                  <p className="text-sm text-gray-400">
-                    {viewMode === "single" &&
-                      `প্রশ্ন ${currentQuestion + 1} / ${
-                        shuffledQuiz.questions.length
-                      }`}
-                    {viewMode === "ten" &&
-                      `গ্রুপ ${
-                        Math.floor(currentQuestion / 10) + 1
-                      } / ${Math.ceil(shuffledQuiz.questions.length / 10)}`}
-                    {viewMode === "all" &&
-                      `সম্পূর্ণ ${shuffledQuiz.questions.length} টি প্রশ্ন`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  {/* Timer */}
-                  <div
-                    className={`flex items-center gap-2 font-mono text-2xl font-bold ${getTimerColor()}`}
-                  >
-                    <Clock className="w-6 h-6" />
-                    {formatTime(timeLeft)}
-                  </div>
-                  <button
-                    onClick={handleClose}
-                    className="btn btn-sm btn-circle btn-ghost"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+  // ✅ Main Content
+  const quizContent = (
+    <>
+      {!showResult ? (
+        <>
+          <div className="sticky top-0 bg-base-100 z-50 pb-4 border-b border-base-300 mb-6">
+            {/* Header with Timer */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-bold text-2xl">{shuffledQuiz.title}</h3>
+                <p className="text-sm text-gray-400">
+                  {viewMode === "single" &&
+                    `প্রশ্ন ${currentQuestion + 1} / ${
+                      shuffledQuiz.questions.length
+                    }`}
+                  {viewMode === "ten" &&
+                    `গ্রুপ ${
+                      Math.floor(currentQuestion / 10) + 1
+                    } / ${Math.ceil(shuffledQuiz.questions.length / 10)}`}
+                  {viewMode === "all" &&
+                    `সম্পূর্ণ ${shuffledQuiz.questions.length} টি প্রশ্ন`}
+                </p>
               </div>
-
-              {/* View Mode Selector */}
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => {
-                    setViewMode("single");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "single" ? "btn-primary" : "btn-outline"
-                  }`}
+              <div className="flex items-center gap-4">
+                {/* Timer */}
+                <div
+                  className={`flex items-center gap-2 font-mono text-2xl font-bold ${getTimerColor()}`}
                 >
-                  <Eye className="w-4 h-4" />
-                  ১টি করে
+                  <Clock className="w-6 h-6" />
+                  {formatTime(timeLeft)}
+                </div>
+                {/* ✅ Toggle Button */}
+                <button
+                  onClick={() => setIsFullPage(!isFullPage)}
+                  className="btn btn-sm btn-ghost gap-1"
+                  title={isFullPage ? "স্বাভাবিক ভিউ" : "সম্পূর্ণ স্ক্রিন"}
+                >
+                  {isFullPage ? (
+                    <Minimize2 className="w-4 h-4" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4" />
+                  )}
                 </button>
                 <button
-                  onClick={() => {
-                    setViewMode("ten");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "ten" ? "btn-primary" : "btn-outline"
-                  }`}
+                  onClick={handleClose}
+                  className="btn btn-sm btn-circle btn-ghost"
                 >
-                  <Grid3x3 className="w-4 h-4" />
-                  ১০টি করে
-                </button>
-                <button
-                  onClick={() => {
-                    setViewMode("all");
-                    setCurrentQuestion(0);
-                  }}
-                  className={`btn btn-sm gap-2 ${
-                    viewMode === "all" ? "btn-primary" : "btn-outline"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  সম্পূর্ণ
+                  <X className="w-5 h-5" />
                 </button>
               </div>
+            </div>
 
-              {/* Time Warning */}
-              {timeLeft <= 300 && (
-                <div className="alert alert-error mb-4">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span>
-                    সতর্কতা! মাত্র {Math.floor(timeLeft / 60)} মিনিট বাকি!
-                  </span>
-                </div>
-              )}
+            {/* View Mode Selector */}
+            <div className="flex gap-2 mb-6 flex-wrap">
+              <button
+                onClick={() => {
+                  setViewMode("single");
+                  setCurrentQuestion(0);
+                }}
+                className={`btn btn-sm gap-2 ${
+                  viewMode === "single" ? "btn-primary" : "btn-outline"
+                }`}
+              >
+                <Eye className="w-4 h-4" />
+                ১টি করে
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode("ten");
+                  setCurrentQuestion(0);
+                }}
+                className={`btn btn-sm gap-2 ${
+                  viewMode === "ten" ? "btn-primary" : "btn-outline"
+                }`}
+              >
+                <Grid3x3 className="w-4 h-4" />
+                ১০টি করে
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode("all");
+                  setCurrentQuestion(0);
+                }}
+                className={`btn btn-sm gap-2 ${
+                  viewMode === "all" ? "btn-primary" : "btn-outline"
+                }`}
+              >
+                <List className="w-4 h-4" />
+                সম্পূর্ণ
+              </button>
+            </div>
 
-              {/* Progress Bar */}
-              <div className="mb-6">
-                <progress
-                  className="progress progress-primary w-full"
-                  value={
+            {/* Time Warning */}
+            {timeLeft <= 300 && (
+              <div className="alert alert-error mb-4">
+                <AlertTriangle className="w-5 h-5" />
+                <span>
+                  সতর্কতা! মাত্র {Math.floor(timeLeft / 60)} মিনিট বাকি!
+                </span>
+              </div>
+            )}
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <progress
+                className="progress progress-primary w-full"
+                value={
+                  Object.keys(answers).filter((k) => answers[k]?.length > 0)
+                    .length
+                }
+                max={shuffledQuiz.questions.length}
+              ></progress>
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <span>
+                  অগ্রগতি:{" "}
+                  {Math.round(
+                    (Object.keys(answers).filter((k) => answers[k]?.length > 0)
+                      .length /
+                      shuffledQuiz.questions.length) *
+                      100
+                  )}
+                  %
+                </span>
+                <span>
+                  উত্তরিত:{" "}
+                  {
                     Object.keys(answers).filter((k) => answers[k]?.length > 0)
                       .length
                   }
-                  max={shuffledQuiz.questions.length}
-                ></progress>
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>
-                    অগ্রগতি:{" "}
-                    {Math.round(
-                      (Object.keys(answers).filter(
-                        (k) => answers[k]?.length > 0
-                      ).length /
-                        shuffledQuiz.questions.length) *
-                        100
+                  /{shuffledQuiz.questions.length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Questions Display */}
+          <div className="space-y-6 mb-6">
+            {questionsToShow.map((questionIndex) => {
+              const question = shuffledQuiz.questions[questionIndex];
+              const hasMultipleAnswers = question.correctAnswers.length > 1;
+              const isAnswered =
+                answers[questionIndex] !== undefined &&
+                answers[questionIndex].length > 0;
+
+              return (
+                <div
+                  key={questionIndex}
+                  className={`card shadow-lg border border-gray-600 ${
+                    isAnswered ? "bg-gray-800" : "bg-base-200"
+                  } `}
+                >
+                  <div className="card-body">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="text-lg font-bold flex-1">
+                        {questionIndex + 1}.{" "}
+                        {parseSpecialToJSX(question.question)}
+                      </h4>
+                      <div className="flex gap-2">
+                        {hasMultipleAnswers && (
+                          <span className="badge badge-info">একাধিক উত্তর</span>
+                        )}
+                        {isAnswered && (
+                          <span className="badge badge-success gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            উত্তরিত
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {hasMultipleAnswers && (
+                      <div className="alert alert-info mb-4">
+                        <span className="text-sm">
+                          ℹ️ এই প্রশ্নের একাধিক সঠিক উত্তর আছে। সব উত্তর
+                          নির্বাচন করুন।
+                        </span>
+                      </div>
                     )}
-                    %
-                  </span>
-                  <span>
-                    উত্তরিত:{" "}
-                    {
-                      Object.keys(answers).filter((k) => answers[k]?.length > 0)
-                        .length
-                    }
-                    /{shuffledQuiz.questions.length}
-                  </span>
+
+                    <div className="grid md:grid-cols-4 sm:grid-cols-1 gap-4">
+                      {question.options.map((option, optIndex) => {
+                        const isSelected =
+                          answers[questionIndex]?.includes(optIndex);
+
+                        return (
+                          <button
+                            key={optIndex}
+                            onClick={() =>
+                              handleAnswerSelect(questionIndex, optIndex)
+                            }
+                            className={`btn btn-block justify-start text-left h-auto py-4 ${
+                              isSelected ? "btn-primary" : "btn-outline"
+                            }`}
+                          >
+                            {hasMultipleAnswers ? (
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                readOnly
+                                className="checkbox checkbox-sm mr-3"
+                              />
+                            ) : (
+                              <span className="font-bold mr-3">
+                                {String.fromCharCode(65 + optIndex)}.
+                              </span>
+                            )}
+                            <span className="flex-1">
+                              {parseSpecialToJSX(option)}
+                            </span>
+                            {isSelected && !hasMultipleAnswers && (
+                              <CheckCircle className="w-5 h-5" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handlePrevious}
+              disabled={isFirstPage()}
+              className="btn btn-ghost"
+            >
+              ← পূর্ববর্তী
+            </button>
+
+            {isLastPage() ? (
+              <button
+                onClick={() => handleSubmit(false)}
+                disabled={!allAnswered || isSubmitting}
+                className="btn btn-success gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    জমা দেওয়া হচ্ছে...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    কুইজ জমা দিন
+                  </>
+                )}
+              </button>
+            ) : (
+              <button onClick={handleNext} className="btn btn-primary">
+                পরবর্তী →
+              </button>
+            )}
+          </div>
+
+          {/* Submit Warning */}
+          {!allAnswered && isLastPage() && (
+            <div className="alert alert-warning mt-4">
+              <span>⚠ কুইজ জমা দেওয়ার আগে সব প্রশ্নের উত্তর দিন</span>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Result Screen */}
+          <div className="text-center py-8">
+            <div
+              className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${
+                percentage >= 80
+                  ? "bg-success"
+                  : percentage >= 60
+                  ? "bg-warning"
+                  : "bg-error"
+              }`}
+            >
+              <Award className="w-12 h-12 text-white" />
+            </div>
+
+            <h3 className="text-3xl font-bold mb-2">
+              {percentage >= 80
+                ? "চমৎকার! 🎉"
+                : percentage >= 60
+                ? "ভালো করেছেন! 👍"
+                : "আরো চেষ্টা করুন! 💪"}
+            </h3>
+
+            <p className="text-gray-400 mb-6">আপনি কুইজটি সম্পন্ন করেছেন</p>
+
+            {/* Score Display */}
+            <div className="stats shadow mb-6">
+              <div className="stat">
+                <div className="stat-title">আপনার স্কোর</div>
+                <div
+                  className={`stat-value ${
+                    percentage >= 80
+                      ? "text-success"
+                      : percentage >= 60
+                      ? "text-warning"
+                      : "text-error"
+                  }`}
+                >
+                  {score}%
+                </div>
+                <div className="stat-desc">
+                  {shuffledQuiz.questions.length} টি প্রশ্নের মধ্যে{" "}
+                  {Math.round((score / 100) * shuffledQuiz.questions.length)} টি
+                  সঠিক
                 </div>
               </div>
             </div>
 
-            {/* Questions Display */}
-            <div className="space-y-6 mb-6">
-              {questionsToShow.map((questionIndex) => {
-                const question = shuffledQuiz.questions[questionIndex];
-                const hasMultipleAnswers = question.correctAnswers.length > 1;
-                const isAnswered =
-                  answers[questionIndex] !== undefined &&
-                  answers[questionIndex].length > 0;
-
-                return (
-                  <div
-                    key={questionIndex}
-                    className={`card  shadow-lg border border-gray-600 ${
-                      isAnswered ? "bg-gray-800" : "bg-base-200"
-                    } `}
-                  >
-                    <div className="card-body">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-lg font-bold flex-1">
-                          {questionIndex + 1}. {question.question}
-                        </h4>
-                        <div className="flex gap-2">
-                          {hasMultipleAnswers && (
-                            <span className="badge badge-info">
-                              একাধিক উত্তর
-                            </span>
-                          )}
-                          {isAnswered && (
-                            <span className="badge badge-success gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              উত্তরিত
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {hasMultipleAnswers && (
-                        <div className="alert alert-info mb-4">
-                          <span className="text-sm">
-                            ℹ️ এই প্রশ্নের একাধিক সঠিক উত্তর আছে। সব উত্তর
-                            নির্বাচন করুন।
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-4">
-                        {question.options.map((option, optIndex) => {
-                          const isSelected =
-                            answers[questionIndex]?.includes(optIndex);
-
-                          return (
-                            <button
-                              key={optIndex}
-                              onClick={() =>
-                                handleAnswerSelect(questionIndex, optIndex)
-                              }
-                              className={`btn btn-block justify-start text-left h-auto py-4 ${
-                                isSelected ? "btn-primary" : "btn-outline"
-                              }`}
-                            >
-                              {hasMultipleAnswers ? (
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  readOnly
-                                  className="checkbox checkbox-sm mr-3"
-                                />
-                              ) : (
-                                <span className="font-bold mr-3">
-                                  {String.fromCharCode(65 + optIndex)}.
-                                </span>
-                              )}
-                              <span className="flex-1">{option}</span>
-                              {isSelected && !hasMultipleAnswers && (
-                                <CheckCircle className="w-5 h-5" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between items-center">
-              <button
-                onClick={handlePrevious}
-                disabled={isFirstPage()}
-                className="btn btn-ghost"
-              >
-                ← পূর্ববর্তী
-              </button>
-
-              {isLastPage() ? (
-                <button
-                  onClick={() => handleSubmit(false)}
-                  disabled={!allAnswered || isSubmitting}
-                  className="btn btn-success gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm"></span>
-                      জমা দেওয়া হচ্ছে...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      কুইজ জমা দিন
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button onClick={handleNext} className="btn btn-primary">
-                  পরবর্তী →
-                </button>
+            {/* Performance Message */}
+            <div
+              className={`alert ${
+                percentage >= 80
+                  ? "alert-success"
+                  : percentage >= 60
+                  ? "alert-warning"
+                  : "alert-error"
+              } mb-6`}
+            >
+              {percentage >= 80 && (
+                <p>অসাধারণ! আপনি এই বিষয়ে দক্ষতা অর্জন করেছেন।</p>
+              )}
+              {percentage >= 60 && percentage < 80 && (
+                <p>ভালো কাজ! আরো উন্নতির জন্য বিষয়গুলো পুনরায় পড়ুন।</p>
+              )}
+              {percentage < 60 && (
+                <p>চিন্তা করবেন না! আরো অনুশীলন করলে আপনি আরো ভালো করবেন।</p>
               )}
             </div>
 
-            {/* Submit Warning */}
-            {!allAnswered && isLastPage() && (
-              <div className="alert alert-warning mt-4">
-                <span>⚠ কুইজ জমা দেওয়ার আগে সব প্রশ্নের উত্তর দিন</span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {/* Result Screen */}
-            <div className="text-center py-8">
-              <div
-                className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${
-                  percentage >= 80
-                    ? "bg-success"
-                    : percentage >= 60
-                    ? "bg-warning"
-                    : "bg-error"
-                }`}
-              >
-                <Award className="w-12 h-12 text-white" />
-              </div>
+            {/* Answer Review */}
+            <div className="text-left mb-6 max-h-96 overflow-y-auto">
+              <h4 className="font-bold text-lg mb-4">উত্তর পর্যালোচনা:</h4>
+              <div className="space-y-3">
+                {shuffledQuiz.questions.map((q, index) => {
+                  const userAnswers = answers[index] || [];
+                  const correctAnswers = q.correctAnswers;
 
-              <h3 className="text-3xl font-bold mb-2">
-                {percentage >= 80
-                  ? "চমৎকার! 🎉"
-                  : percentage >= 60
-                  ? "ভালো করেছেন! 👍"
-                  : "আরো চেষ্টা করুন! 💪"}
-              </h3>
+                  const isCorrect =
+                    userAnswers.length === correctAnswers.length &&
+                    userAnswers
+                      .sort()
+                      .every((val, idx) => val === correctAnswers.sort()[idx]);
 
-              <p className="text-gray-400 mb-6">আপনি কুইজটি সম্পন্ন করেছেন</p>
-
-              {/* Score Display */}
-              <div className="stats shadow mb-6">
-                <div className="stat">
-                  <div className="stat-title">আপনার স্কোর</div>
-                  <div
-                    className={`stat-value ${
-                      percentage >= 80
-                        ? "text-success"
-                        : percentage >= 60
-                        ? "text-warning"
-                        : "text-error"
-                    }`}
-                  >
-                    {score}%
-                  </div>
-                  <div className="stat-desc">
-                    {shuffledQuiz.questions.length} টি প্রশ্নের মধ্যে{" "}
-                    {Math.round((score / 100) * shuffledQuiz.questions.length)}{" "}
-                    টি সঠিক
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance Message */}
-              <div
-                className={`alert ${
-                  percentage >= 80
-                    ? "alert-success"
-                    : percentage >= 60
-                    ? "alert-warning"
-                    : "alert-error"
-                } mb-6`}
-              >
-                {percentage >= 80 && (
-                  <p>অসাধারণ! আপনি এই বিষয়ে দক্ষতা অর্জন করেছেন।</p>
-                )}
-                {percentage >= 60 && percentage < 80 && (
-                  <p>ভালো কাজ! আরো উন্নতির জন্য বিষয়গুলো পুনরায় পড়ুন।</p>
-                )}
-                {percentage < 60 && (
-                  <p>চিন্তা করবেন না! আরো অনুশীলন করলে আপনি আরো ভালো করবেন।</p>
-                )}
-              </div>
-
-              {/* Answer Review */}
-              <div className="text-left mb-6 max-h-96 overflow-y-auto">
-                <h4 className="font-bold text-lg mb-4">উত্তর পর্যালোচনা:</h4>
-                <div className="space-y-3">
-                  {shuffledQuiz.questions.map((q, index) => {
-                    const userAnswers = answers[index] || [];
-                    const correctAnswers = q.correctAnswers;
-
-                    const isCorrect =
-                      userAnswers.length === correctAnswers.length &&
-                      userAnswers
-                        .sort()
-                        .every(
-                          (val, idx) => val === correctAnswers.sort()[idx]
-                        );
-
-                    return (
-                      <div
-                        key={index}
-                        className={`card ${
-                          isCorrect ? "bg-success/10" : "bg-error/10"
-                        } shadow`}
-                      >
-                        <div className="card-body p-4">
-                          <div className="flex items-start gap-2">
-                            {isCorrect ? (
-                              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-1" />
-                            ) : (
-                              <X className="w-5 h-5 text-error flex-shrink-0 mt-1" />
-                            )}
-                            <div className="flex-1">
-                              <p className="font-semibold text-sm">
-                                {index + 1}. {q.question}
-                              </p>
-                              <div className="text-xs mt-2">
-                                <div
-                                  className={
-                                    isCorrect ? "text-success" : "text-error"
-                                  }
-                                >
-                                  আপনার উত্তর:{" "}
-                                  {userAnswers.length > 0
-                                    ? userAnswers
-                                        .map(
-                                          (idx) =>
-                                            `${String.fromCharCode(
-                                              65 + idx
-                                            )}. ${q.options[idx]}`
-                                        )
-                                        .join(", ")
-                                    : "কোন উত্তর দেননি"}
-                                </div>
-                                {!isCorrect && (
-                                  <div className="text-success mt-1">
-                                    সঠিক উত্তর:{" "}
-                                    {correctAnswers
+                  return (
+                    <div
+                      key={index}
+                      className={`card ${
+                        isCorrect ? "bg-success/10" : "bg-error/10"
+                      } shadow`}
+                    >
+                      <div className="card-body p-4">
+                        <div className="flex items-start gap-2">
+                          {isCorrect ? (
+                            <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-1" />
+                          ) : (
+                            <X className="w-5 h-5 text-error flex-shrink-0 mt-1" />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">
+                              {index + 1}. {q.question}
+                            </p>
+                            <div className="text-xs mt-2">
+                              <div
+                                className={
+                                  isCorrect ? "text-success" : "text-error"
+                                }
+                              >
+                                আপনার উত্তর:{" "}
+                                {userAnswers.length > 0
+                                  ? userAnswers
                                       .map(
                                         (idx) =>
                                           `${String.fromCharCode(65 + idx)}. ${
                                             q.options[idx]
                                           }`
                                       )
-                                      .join(", ")}
-                                  </div>
-                                )}
+                                      .join(", ")
+                                  : "কোন উত্তর দেননি"}
                               </div>
+                              {!isCorrect && (
+                                <div className="text-success mt-1">
+                                  সঠিক উত্তর:{" "}
+                                  {correctAnswers
+                                    .map(
+                                      (idx) =>
+                                        `${String.fromCharCode(65 + idx)}. ${
+                                          q.options[idx]
+                                        }`
+                                    )
+                                    .join(", ")}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Close Button */}
-              <button onClick={handleClose} className="btn btn-primary btn-lg">
-                বন্ধ করুন
-              </button>
             </div>
-          </>
-        )}
+
+            {/* Close Button */}
+            <button onClick={handleClose} className="btn btn-primary btn-lg">
+              বন্ধ করুন
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+
+  // ✅ Full Page View
+  if (isFullPage) {
+    return (
+      <div
+        className="fixed inset-0 bg-base-100 z-50 overflow-y-auto"
+        ref={questionsContainerRef}
+      >
+        <div className="p-6 max-w-7xl mx-auto">{quizContent}</div>
+      </div>
+    );
+  }
+
+  // ✅ Modal View
+  return (
+    <div className="modal modal-open">
+      <div className="modal-box max-w-7xl max-h-[90vh] overflow-y-auto">
+        {quizContent}
       </div>
     </div>
   );

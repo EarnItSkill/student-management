@@ -11,7 +11,9 @@ import { useMemo, useState } from "react";
 import { useAppContext } from "../context/useAppContext";
 
 const RankPage = () => {
-  const { students, batches, courses, quizzes, currentUser } = useAppContext();
+  const { students, batches, courses, quizzes, currentUser, mcqResult } =
+    useAppContext();
+
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all"); // all, male, female
@@ -23,30 +25,29 @@ const RankPage = () => {
     // Get all quiz results with student and batch info
     const allResults = [];
 
-    quizzes.forEach((quiz) => {
-      quiz.results.forEach((result) => {
-        const student = students.find((s) => s._id === result.studentId);
-        const batch = batches.find((b) => b._id === result.batchId);
-        const course = courses.find((c) => c._id === batch?.courseId);
+    mcqResult?.forEach((result) => {
+      const quiz = quizzes.find((q) => q._id === result.quizId);
+      const student = students.find((s) => s._id === result.studentId);
+      const batch = batches.find((b) => b._id === result.batchId);
+      const course = courses.find((c) => c._id === batch?.courseId);
 
-        if (student && batch && course) {
-          allResults.push({
-            studentId: student._id,
-            studentName: student.name,
-            studentImage: student.image,
-            gender: student.gender,
-            eiin: student.eiin,
-            batchId: batch._id,
-            batchName: batch.batchName,
-            courseId: course._id,
-            courseName: course.title,
-            quizTitle: quiz.title,
-            score: result.score,
-            totalMarks: quiz.totalMarks,
-            submittedAt: new Date(result.submittedAt),
-          });
-        }
-      });
+      if (quiz && student && batch && course) {
+        allResults.push({
+          studentId: student._id,
+          studentName: student.name,
+          studentImage: student.image,
+          gender: student.gender,
+          eiin: student.eiin,
+          batchId: batch._id,
+          batchName: batch.batchName,
+          courseId: course._id,
+          courseName: course.title,
+          quizTitle: quiz.title,
+          score: result.score,
+          totalMarks: quiz.totalMarks,
+          submittedAt: new Date(result.submittedAt),
+        });
+      }
     });
 
     // Filter by course
@@ -146,6 +147,7 @@ const RankPage = () => {
     batches,
     courses,
     quizzes,
+    mcqResult,
     selectedCourse,
     selectedBatch,
     genderFilter,
@@ -156,13 +158,12 @@ const RankPage = () => {
   // Get available courses for filter
   const availableCourses = useMemo(() => {
     return courses.filter((course) =>
-      quizzes.some((quiz) =>
-        batches.some(
-          (batch) => batch.courseId === course._id && quiz.results.length > 0
-        )
-      )
+      mcqResult?.some((result) => {
+        const batch = batches.find((b) => b._id === result.batchId);
+        return batch?.courseId === course._id;
+      })
     );
-  }, [courses, quizzes, batches]);
+  }, [courses, batches, mcqResult]);
 
   // Get available batches for selected course
   const availableBatches = useMemo(() => {

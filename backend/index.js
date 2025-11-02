@@ -1,4 +1,6 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
@@ -16,15 +18,11 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// Moza123@#$
-
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ndv8bw5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -33,111 +31,178 @@ const client = new MongoClient(uri, {
   },
 });
 
+// ========================
+// JWT Middleware - টোকেন ভেরিফাই করার জন্য
+// ========================
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send({
+      success: false,
+      message: "টোকেন প্রয়োজন",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).send({
+      success: false,
+      message: "টোকেন অবৈধ বা এক্সপায়ার হয়েছে",
+    });
+  }
+};
+
+// ========================
+// Admin Middleware
+// ========================
+const verifyAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).send({
+      success: false,
+      message: "শুধুমাত্র Admin এই অপারেশন করতে পারবেন",
+    });
+  }
+  next();
+};
+
 async function run() {
   try {
-    // =========================
     // Collections
-    // =========================
-
     const studentCollection = client
       .db(process.env.DB_NAME)
       .collection("students");
-
     const coursesCollection = client
       .db(process.env.DB_NAME)
       .collection("courses");
-
     const batchCollection = client
       .db(process.env.DB_NAME)
       .collection("batches");
-
     const enrollmentCollection = client
       .db(process.env.DB_NAME)
       .collection("enrollments");
-
     const paymentCollection = client
       .db(process.env.DB_NAME)
       .collection("payments");
-
     const attendanceCollection = client
       .db(process.env.DB_NAME)
       .collection("attendance");
-
     const quizzesCollection = client
       .db(process.env.DB_NAME)
       .collection("quizzes");
-
-    // New -------------
     const resultsCollection = client
       .db(process.env.DB_NAME)
       .collection("results");
-
     const mcqQuizzesCollection = client
       .db(process.env.DB_NAME)
       .collection("mcqQuizzes");
-
     const chapterSchedulesCollection = client
       .db(process.env.DB_NAME)
       .collection("chapterSchedules");
-
     const cqQuestionsCollection = client
       .db(process.env.DB_NAME)
       .collection("cqQuestions");
 
     // =========================
-    // About Students
+    // AUTHENTICATION
     // =========================
 
-    // CREATE (Add a new Student)
-    // app.post("/student", async (req, res) => {
-    //   const newStudent = req.body;
-    //   const result = await studentCollection.insertOne(newStudent);
-    //   res.send(result);
-    // });
+    // লগইন
+    app.post("/login", async (req, res) => {
+      try {
+        const { identifier, password } = req.body;
 
-    // app.post("/student", async (req, res) => {
-    //   try {
-    //     const newStudent = req.body;
+        if (!identifier || !password) {
+          return res.status(400).send({
+            success: false,
+            message: "ইমেইল/ফোন এবং পাসওয়ার্ড প্রয়োজন",
+          });
+        }
 
-    //     // ইমেল আছে কিনা চেক করুন
-    //     const existingStudent = await studentCollection.findOne({
-    //       email: newStudent.email,
-    //     });
+        // Admin চেক
+        if (identifier === process.env.ADMIN_EMAIL) {
+          if (password === process.env.ADMIN_PASSWORD) {
+            const adminUser = {
+              id: 0,
+              name: "মো. মোজাম্মেল হক",
+              email: process.env.ADMIN_EMAIL,
+              role: "admin",
+              image: "https://avatars.githubusercontent.com/u/31990245?v=4",
+            };
 
-    //     if (existingStudent) {
-    //       return res.status(400).send({
-    //         success: false,
-    //         message: "এই ইমেইল দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
-    //       });
-    //     }
+            const token = jwt.sign(adminUser, process.env.JWT_SECRET, {
+              expiresIn: "30d",
+            });
 
-    //     // ২️⃣ নতুন ছাত্র সেভ করুন
-    //     const result = await studentCollection.insertOne(newStudent);
+            return res.send({
+              success: true,
+              user: adminUser,
+              token: token,
+            });
+          } else {
+            return res.status(401).send({
+              success: false,
+              message: "ইমেইল বা পাসওয়ার্ড সঠিক নয়",
+            });
+          }
+        }
 
-    //     res.send({
-    //       success: true,
-    //       message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
-    //       data: result,
-    //     });
-    //   } catch (error) {
-    //     console.error("Student Insert Error:", error);
-    //     res.status(500).send({
-    //       success: false,
-    //       message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
-    //     });
-    //   }
-    // });
+        // Student চেক
+        const student = await studentCollection.findOne({
+          $or: [{ email: identifier }, { phone: identifier }],
+        });
 
+        if (!student) {
+          return res.status(401).send({
+            success: false,
+            message: "ইমেইল বা ফোন/পাসওয়ার্ড সঠিক নয়",
+          });
+        }
+
+        const isValidPassword = await bcrypt.compare(
+          password,
+          student.password
+        );
+
+        if (!isValidPassword) {
+          return res.status(401).send({
+            success: false,
+            message: "ইমেইল বা ফোন/পাসওয়ার্ড সঠিক নয়",
+          });
+        }
+
+        const { password: _, ...userWithoutPassword } = student;
+
+        const token = jwt.sign(userWithoutPassword, process.env.JWT_SECRET, {
+          expiresIn: "7d",
+        });
+
+        res.send({
+          success: true,
+          user: userWithoutPassword,
+          token: token,
+        });
+      } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর হয়েছে",
+        });
+      }
+    });
+
+    // =========================
+    // STUDENTS
+    // =========================
+
+    // নতুন ছাত্র যোগ (Public - Admin থেকে)
     app.post("/student", async (req, res) => {
       try {
         const newStudent = req.body;
 
-        // ইমেল আছে কিনা চেক করুন
-        // const existingStudent = await studentCollection.findOne({
-        //  email: newStudent.email,
-        //  });
-
-        // ✅ Email অথবা Phone ইতিমধ্যে আছে কি না চেক
         const existingStudent = await studentCollection.findOne({
           $or: [{ email: newStudent.email }, { phone: newStudent.phone }],
         });
@@ -146,17 +211,30 @@ async function run() {
           return res.status(400).send({
             success: false,
             message:
-              "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
+              "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
           });
         }
 
-        // ✅ নতুন স্টুডেন্ট সেভ করা
-        const result = await studentCollection.insertOne(newStudent);
+        if (!newStudent.password || newStudent.password.length < 6) {
+          return res.status(400).send({
+            success: false,
+            message: "পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে",
+          });
+        }
+
+        const hashedPassword = await bcrypt.hash(newStudent.password, 10);
+
+        const studentToInsert = {
+          ...newStudent,
+          password: hashedPassword,
+        };
+
+        const result = await studentCollection.insertOne(studentToInsert);
 
         res.send({
           success: true,
-          message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
-          data: result,
+          message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
+          data: { ...studentToInsert, _id: result.insertedId },
         });
       } catch (error) {
         console.error("Student Insert Error:", error);
@@ -167,521 +245,665 @@ async function run() {
       }
     });
 
-    // READ (Get all Students)
-    app.get("/students", async (req, res) => {
-      const cursor = studentCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+    // // সব ছাত্র পাওয়া (Admin only)
+    app.get("/students", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await studentCollection.find().toArray();
+
+        const studentsWithoutPasswords = result.map((student) => {
+          const { password: _, ...userWithoutPassword } = student;
+          return userWithoutPassword;
+        });
+
+        res.send(studentsWithoutPasswords);
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর হয়েছে",
+        });
+      }
     });
 
-    // READ: Get single student by id
-    app.get("/student/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const student = await studentCollection.findOne(query);
-      res.send(student);
+    // আমার প্রোফাইল (Protected)
+    app.get("/student-profile", verifyToken, async (req, res) => {
+      try {
+        const student = await studentCollection.findOne({
+          _id: new ObjectId(req.user._id),
+        });
+
+        if (!student) {
+          return res.status(404).send({
+            success: false,
+            message: "ছাত্র পাওয়া যায়নি",
+          });
+        }
+
+        const { password: _, ...userWithoutPassword } = student;
+
+        res.send({
+          success: true,
+          user: userWithoutPassword,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর হয়েছে",
+        });
+      }
     });
 
-    // Delete a single student
-    app.delete("/student/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await studentCollection.deleteOne(query);
-      res.send(result);
+    // ছাত্র আপডেট (Protected)
+    app.patch("/student/:id", verifyToken, async (req, res) => {
+      try {
+        const studentId = req.params.id;
+        const updateData = req.body;
+
+        if (req.user._id !== studentId && req.user.role !== "admin") {
+          return res.status(403).send({
+            success: false,
+            message: "আপনি এই প্রোফাইল আপডেট করতে পারবেন না",
+          });
+        }
+
+        if (updateData.password) {
+          if (updateData.password.length < 6) {
+            return res.status(400).send({
+              success: false,
+              message: "পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে",
+            });
+          }
+          updateData.password = await bcrypt.hash(updateData.password, 10);
+        }
+
+        const result = await studentCollection.updateOne(
+          { _id: new ObjectId(studentId) },
+          { $set: updateData }
+        );
+
+        res.send({
+          success: true,
+          message: "ছাত্র তথ্য সফলভাবে আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর হয়েছে",
+        });
+      }
     });
 
-    // Update a single student
-    app.put("/student/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedData = req.body;
-
-      delete updatedData._id;
-
-      const query = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: updatedData,
-      };
-
-      const result = await studentCollection.updateOne(query, updateDoc);
-      res.send(result);
-    });
-
-    // =========================
-    // About Course
-    // =========================
-
-    // CREATE (Add a new course)
-    app.post("/courses", async (req, res) => {
-      const newCourse = req.body;
-      const result = await coursesCollection.insertOne(newCourse);
-      res.send(result);
-    });
-
-    // READ (Get all courses)
-    app.get("/courses", async (req, res) => {
-      const cursor = coursesCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    // Get a single Course by ID
-    app.get("/course/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const course = await coursesCollection.findOne(query);
-      res.send(course);
-    });
-
-    // app.get("/course/:id", async (req, res) => {
-    //   try {
-    //     const id = req.params.id;
-
-    //     // Check if ID is valid ObjectId
-    //     if (!ObjectId.isValid(id)) {
-    //       return res.status(400).send({ error: "Invalid course ID" });
-    //     }
-
-    //     const query = { _id: new ObjectId(id) };
-    //     const course = await coursesCollection.findOne(query);
-
-    //     if (!course) {
-    //       return res.status(404).send({ error: "Course not found" });
-    //     }
-
-    //     res.send(course);
-    //   } catch (error) {
-    //     console.error("Error fetching course:", error);
-    //     res.status(500).send({ error: "Failed to fetch course" });
-    //   }
-    // });
-
-    // Update a single course
-    app.put("/course/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedData = req.body;
-
-      delete updatedData._id;
-
-      const query = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: updatedData,
-      };
-
-      const result = await coursesCollection.updateOne(query, updateDoc);
-      res.send(result);
-    });
-
-    app.delete("/courses/:id", async (req, res) => {
+    // ছাত্র ডিলিট (Admin only)
+    app.delete("/student/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await coursesCollection.deleteOne(query);
-
-        if (result.deletedCount === 1) {
-          res
-            .status(200)
-            .send({ success: true, message: "Course deleted successfully" });
-        } else {
-          res.status(404).send({ success: false, message: "Course not found" });
-        }
-      } catch (error) {
-        console.error("Error deleting course:", error);
-        res.status(500).send({ success: false, message: "Server error" });
-      }
-    });
-
-    // =========================
-    // Add Batches
-    // =========================
-
-    // CREATE (Add a new course)
-    app.post("/batches", async (req, res) => {
-      const newCourse = req.body;
-      const result = await batchCollection.insertOne(newCourse);
-      res.send(result);
-    });
-
-    // READ (Get all courses)
-    app.get("/batches", async (req, res) => {
-      const cursor = batchCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    // Get a single Course by ID
-    app.get("/batch/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const course = await batchCollection.findOne(query);
-      res.send(course);
-    });
-
-    // Delete a single cours
-    app.delete("/batches/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await batchCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    // // Update a single course
-    // app.put("/batch/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const updatedData = req.body;
-
-    //   delete updatedData._id;
-
-    //   const query = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: updatedData,
-    //   };
-
-    //   const result = await batchCollection.updateOne(query, updateDoc);
-    //   res.send(result);
-    // });
-
-    // // Update a single batch
-    // app.put("/batch/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const updateDoc = req.body; // ফ্রন্ট-এন্ড থেকে {$inc: {totalSeats: -1, enrolledStudents: 1}} আসবে
-
-    //   const query = { _id: new ObjectId(id) };
-
-    //   // ফ্রন্ট-এন্ড থেকে আসা updateDoc-এ যদি $inc থাকে, তবে সেটি সরাসরি ব্যবহার করুন
-    //   // অন্যথায়, পুরনো $set লজিক ব্যবহার করুন (যদি অন্যান্য ফিল্ড আপডেট করতে হয়)
-    //   const result = await batchCollection.updateOne(query, updateDoc);
-
-    //   // আপডেট হওয়ার পর সর্বশেষ ডকুমেন্টটি ফ্রন্ট-এন্ডে ফেরত পাঠানোর জন্য
-    //   const updatedBatch = await batchCollection.findOne(query);
-
-    //   if (result.matchedCount > 0) {
-    //     res.send(updatedBatch); // আপডেট করা ব্যাচ ফেরত পাঠান
-    //   } else {
-    //     res.status(404).send({ message: "Batch not found" });
-    //   }
-    // });
-
-    // Update a single batch
-    app.put("/batch/:id", async (req, res) => {
-      const id = req.params.id;
-      const incomingData = req.body;
-      let updateDoc = {};
-
-      const query = { _id: new ObjectId(id) };
-
-      // ১. incomingData-তে কোনো MongoDB অপারেটর (যেমন: $, $inc) আছে কি না তা পরীক্ষা করা।
-      const isUpdateOperator = Object.keys(incomingData).some((key) =>
-        key.startsWith("$")
-      );
-
-      if (isUpdateOperator) {
-        // ২. যদি অপারেটর থাকে, তবে এটি সরাসরি {$inc: { ... }} বা {$set: { ... }} হিসেবে ব্যবহার করা হবে।
-        // এই লজিকটি এনরোলমেন্ট ও আন-এনরোলমেন্টের জন্য ব্যবহৃত হবে।
-        updateDoc = incomingData;
-      } else {
-        // ৩. যদি কোনো অপারেটর না থাকে, তবে এটি একটি সাধারণ ব্যাচ আপডেট হিসেবে বিবেচিত হবে।
-        // এই ক্ষেত্রে, আপনার পুরনো লজিক অনুযায়ী ডেটাকে $set এর ভেতরে মোড়ানো হবে।
-
-        // _id রিমুভ করে নতুন একটি অবজেক্ট তৈরি করা
-        const updatedDataForSet = { ...incomingData };
-        delete updatedDataForSet._id;
-
-        updateDoc = {
-          $set: updatedDataForSet,
-        };
-      }
-
-      try {
-        // ৪. আপডেট অপারেশন চালানো।
-        const result = await batchCollection.updateOne(query, updateDoc);
-
-        // ৫. আপডেট নিশ্চিত হওয়ার পর সর্বশেষ ডকুমেন্টটি ফ্রন্ট-এন্ডে ফেরত পাঠানো।
-        // এটি AppContext.jsx-এর setBatches লজিকের জন্য প্রয়োজনীয়।
-        if (result.matchedCount > 0) {
-          const updatedBatch = await batchCollection.findOne(query);
-          res.send(updatedBatch);
-        } else {
-          res.status(404).send({ message: "Batch not found" });
-        }
-      } catch (error) {
-        console.error(`Error updating batch ID: ${id}:`, error);
-        res
-          .status(500)
-          .send({ message: "Failed to update batch", error: error.message });
-      }
-    });
-
-    // =========================
-    // Add Enrollments
-    // =========================
-
-    // CREATE (Add a new course)
-    app.post("/enrollments", async (req, res) => {
-      const newCourse = req.body;
-      const result = await enrollmentCollection.insertOne(newCourse);
-      res.send(result);
-    });
-
-    // READ (Get all courses)
-    app.get("/enrollments", async (req, res) => {
-      const cursor = enrollmentCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    // Delete a single cours
-    app.delete("/enrollments/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await enrollmentCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    // =========================
-    // Add Payments
-    // =========================
-
-    // CREATE (Add a new course)
-    app.post("/payments", async (req, res) => {
-      const newCourse = req.body;
-      const result = await paymentCollection.insertOne(newCourse);
-      res.send(result);
-    });
-
-    // READ (Get all courses)
-    app.get("/payments", async (req, res) => {
-      const cursor = paymentCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    // Delete a single cours
-    app.delete("/payments/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await paymentCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    // Update a single course
-    app.put("/payments/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedData = req.body;
-
-      delete updatedData._id;
-
-      const query = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: updatedData,
-      };
-
-      const result = await paymentCollection.updateOne(query, updateDoc);
-      res.send(result);
-    });
-
-    // =========================
-    // Add Attendance
-    // =========================
-
-    // POST: /attendances
-    app.post("/attendances", async (req, res) => {
-      const newAttendance = req.body;
-      // সার্ভার থেকে তারিখ সেট করা হলো
-      newAttendance.date = new Date().toISOString().split("T")[0];
-
-      try {
-        const result = await attendanceCollection.insertOne(newAttendance);
-        const attendanceWithId = await attendanceCollection.findOne({
-          _id: result.insertedId,
+        const result = await studentCollection.deleteOne({
+          _id: new ObjectId(id),
         });
 
-        res.status(201).send(attendanceWithId);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to record attendance", error });
-      }
-    });
-
-    // READ (Get all courses)
-    app.get("/attendance", async (req, res) => {
-      const cursor = attendanceCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    // Delete a single cours
-    app.delete("/attendance/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await attendanceCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    // Update a single course
-    app.put("/attendance/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedData = req.body;
-
-      delete updatedData._id;
-
-      const query = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: updatedData,
-      };
-
-      const result = await attendanceCollection.updateOne(query, updateDoc);
-      res.send(result);
-    });
-
-    // =========================
-    // Add Quizzes
-    // =========================
-
-    // READ (Get all courses)
-    app.get("/quizzes", async (req, res) => {
-      const cursor = quizzesCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
-    app.post("/quizzes", async (req, res) => {
-      const newQuiz = req.body;
-
-      newQuiz.results = [];
-
-      try {
-        const result = await quizzesCollection.insertOne(newQuiz);
-
-        const quizWithId = await quizzesCollection.findOne({
-          _id: result.insertedId,
+        res.send({
+          success: true,
+          message: "ছাত্র ডিলিট হয়েছে",
+          data: result,
         });
-
-        res.status(201).send(quizWithId);
       } catch (error) {
-        console.error("Failed to add quiz:", error);
-        res
-          .status(500)
-          .send({ message: "Failed to add quiz", error: error.message });
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর",
+        });
       }
     });
 
-    app.patch("/quizzes/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedData = req.body;
+    // =========================
+    // COURSES
+    // =========================
 
+    app.post("/courses", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const objectId = new ObjectId(id);
+        const result = await coursesCollection.insertOne(req.body);
+        res.send({
+          success: true,
+          message: "কোর্স যোগ হয়েছে",
+          data: { ...req.body, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
 
+    app.get("/courses", verifyToken, async (req, res) => {
+      try {
+        const result = await coursesCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/course/:id", verifyToken, async (req, res) => {
+      try {
+        const course = await coursesCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
+        res.send(course);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.put("/course/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const updatedData = req.body;
         delete updatedData._id;
 
-        if (updatedData.results) {
-          delete updatedData.results;
+        const result = await coursesCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: updatedData }
+        );
+
+        res.send({
+          success: true,
+          message: "কোর্স আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.delete("/courses/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await coursesCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+        res.send({
+          success: true,
+          message: "কোর্স ডিলিট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // =========================
+    // BATCHES
+    // =========================
+
+    app.post("/batches", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await batchCollection.insertOne(req.body);
+        res.send({
+          success: true,
+          message: "ব্যাচ যোগ হয়েছে",
+          data: { ...req.body, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/batches", verifyToken, async (req, res) => {
+      try {
+        const result = await batchCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/batch/:id", verifyToken, async (req, res) => {
+      try {
+        const batch = await batchCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
+        res.send(batch);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.put("/batch/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const incomingData = req.body;
+        let updateDoc = {};
+
+        const isUpdateOperator = Object.keys(incomingData).some((key) =>
+          key.startsWith("$")
+        );
+
+        if (isUpdateOperator) {
+          updateDoc = incomingData;
+        } else {
+          const updatedDataForSet = { ...incomingData };
+          delete updatedDataForSet._id;
+          updateDoc = { $set: updatedDataForSet };
         }
 
-        const query = { _id: objectId };
-        const updateDoc = { $set: updatedData };
-
-        const updateResult = await quizzesCollection.updateOne(
-          query,
+        const result = await batchCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
           updateDoc
         );
 
-        if (updateResult.matchedCount === 0) {
-          return res.status(404).send({ message: "Quiz not found" });
-        }
-
-        const updatedQuiz = await quizzesCollection.findOne(query);
-        res.send(updatedQuiz);
-      } catch (error) {
-        if (error.name === "BSONTypeError") {
-          return res.status(400).send({ message: "Invalid Quiz ID format." });
-        }
-        console.error("Server Error during quiz update:", error);
-        res.status(500).send({
-          message: "Failed to update quiz due to server error.",
-          error: error.message,
-        });
-      }
-    });
-
-    // Delete Quizz
-    // DELETE: /quizzes/:id
-    app.delete("/quizzes/:id", async (req, res) => {
-      const id = req.params.id;
-
-      try {
-        const objectId = new ObjectId(id);
-        const query = { _id: objectId };
-
-        // 1. কুইজ রেকর্ডটি ডাটাবেজ থেকে ডিলিট করা
-        const result = await quizzesCollection.deleteOne(query);
-
-        if (result.deletedCount === 1) {
-          // 2. সফলভাবে ডিলিট হলে 200 OK বা 204 No Content রেসপন্স পাঠানো
-          res.status(200).send({ message: "Quiz deleted successfully" });
+        if (result.matchedCount > 0) {
+          const updatedBatch = await batchCollection.findOne({
+            _id: new ObjectId(req.params.id),
+          });
+          res.send(updatedBatch);
         } else {
-          // 3. ID ভ্যালিড কিন্তু ডকুমেন্ট না পেলে
-          res.status(404).send({ message: "Quiz not found" });
+          res.status(404).send({ message: "ব্যাচ পাওয়া যায়নি" });
         }
       } catch (error) {
-        // 4. ত্রুটি হ্যান্ডেলিং
-        if (error.name === "BSONTypeError") {
-          return res.status(400).send({ message: "Invalid Quiz ID format." });
-        }
-        console.error("Server Error during quiz deletion:", error);
-        res.status(500).send({
-          message: "Failed to delete quiz due to server error.",
-          error: error.message,
-        });
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
       }
     });
 
-    // PATCH: /quizzes/:id/submit
-    app.patch("/quizzes/:id/submit", async (req, res) => {
-      const quizId = req.params.id;
-      const newResult = req.body; // ফ্রন্টএন্ড থেকে আসা নতুন রেজাল্ট অবজেক্ট
-
+    app.delete("/batches/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const objectId = new ObjectId(quizId);
-        const query = { _id: objectId };
+        const result = await batchCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+        res.send({
+          success: true,
+          message: "ব্যাচ ডিলিট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
 
-        // $push অপারেটর ব্যবহার করে results অ্যারেতে নতুন রেজাল্ট যোগ করা
-        const updateDoc = {
-          $push: { results: newResult },
-        };
+    // =========================
+    // ENROLLMENTS
+    // =========================
 
-        // FindOneAndUpdate ব্যবহার করে আপডেট হওয়া ডকুমেন্টটি ফেরত নেওয়া হলো
-        const result = await quizzesCollection.findOneAndUpdate(
-          query,
-          updateDoc,
-          // { returnDocument: "after" } // আপডেটের পর নতুন ডকুমেন্টটি ফেরত দিন
-          { returnOriginal: false }
+    app.post("/enrollments", verifyToken, async (req, res) => {
+      try {
+        const result = await enrollmentCollection.insertOne(req.body);
+        res.send({
+          success: true,
+          message: "এনরোল হয়েছে",
+          data: { ...req.body, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/enrollments", verifyToken, async (req, res) => {
+      try {
+        const result = await enrollmentCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // ✅ ছাত্রের নিজের এনরোলমেন্ট দেখা
+    app.get("/my-enrollments", verifyToken, async (req, res) => {
+      try {
+        const enrollments = await enrollmentCollection
+          .find({ studentId: req.user._id })
+          .toArray();
+
+        const enrollmentsWithCourses = await Promise.all(
+          enrollments.map(async (enrollment) => {
+            const course = await coursesCollection.findOne({
+              _id: new ObjectId(enrollment.courseId),
+            });
+            return {
+              ...enrollment,
+              course: course,
+            };
+          })
         );
 
-        if (result.value) {
-          // সফল হলে আপডেট হওয়া ডকুমেন্টটি ফ্রন্টএন্ডে ফেরত দিন
-          res.send(result.value);
-        } else {
-          res.status(404).send({ message: "Quiz not found" });
-        }
+        res.send({
+          success: true,
+          data: enrollmentsWithCourses,
+        });
       } catch (error) {
-        // ত্রুটি হ্যান্ডেলিং
-        if (error.name === "BSONTypeError") {
-          return res.status(400).send({ message: "Invalid Quiz ID format." });
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.delete("/enrollments/:id", verifyToken, async (req, res) => {
+      try {
+        const enrollment = await enrollmentCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        if (!enrollment) {
+          return res.status(404).send({
+            success: false,
+            message: "এনরোলমেন্ট পাওয়া যায়নি",
+          });
         }
-        console.error("Server Error during quiz submission:", error);
+
+        if (
+          enrollment.studentId !== req.user._id &&
+          req.user.role !== "admin"
+        ) {
+          return res.status(403).send({
+            success: false,
+            message: "এই এনরোলমেন্ট ডিলিট করতে পারবেন না",
+          });
+        }
+
+        const result = await enrollmentCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        res.send({
+          success: true,
+          message: "এনরোলমেন্ট ডিলিট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // =========================
+    // PAYMENTS
+    // =========================
+
+    app.post("/payments", verifyToken, async (req, res) => {
+      try {
+        const result = await paymentCollection.insertOne(req.body);
+        res.send({
+          success: true,
+          message: "পেমেন্ট যোগ হয়েছে",
+          data: { ...req.body, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/payments", verifyToken, async (req, res) => {
+      try {
+        let query = {};
+
+        // Student নিজের payment দেখতে পাবে
+        if (req.user.role !== "admin") {
+          query = { studentId: req.user._id };
+        }
+
+        const result = await paymentCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.put("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const updatedData = req.body;
+        delete updatedData._id;
+
+        const result = await paymentCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: updatedData }
+        );
+
+        res.send({
+          success: true,
+          message: "পেমেন্ট আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.delete("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await paymentCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        res.send({
+          success: true,
+          message: "পেমেন্ট ডিলিট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // =========================
+    // ATTENDANCE
+    // =========================
+
+    app.post("/attendances", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const newAttendance = {
+          ...req.body,
+          date: new Date().toISOString().split("T")[0],
+        };
+
+        const result = await attendanceCollection.insertOne(newAttendance);
+
+        res.send({
+          success: true,
+          message: "অ্যাটেন্ডেন্স যোগ হয়েছে",
+          data: { ...newAttendance, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/attendance", verifyToken, async (req, res) => {
+      try {
+        const result = await attendanceCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.put("/attendance/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const updatedData = req.body;
+        delete updatedData._id;
+
+        const result = await attendanceCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: updatedData }
+        );
+
+        res.send({
+          success: true,
+          message: "অ্যাটেন্ডেন্স আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.delete(
+      "/attendance/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await attendanceCollection.deleteOne({
+            _id: new ObjectId(req.params.id),
+          });
+
+          res.send({
+            success: true,
+            message: "অ্যাটেন্ডেন্স ডিলিট হয়েছে",
+            data: result,
+          });
+        } catch (error) {
+          res.status(500).send({ success: false, message: "সার্ভার এরর" });
+        }
+      }
+    );
+
+    // =========================
+    // QUIZZES
+    // =========================
+
+    app.post("/quizzes", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const newQuiz = { ...req.body, results: [] };
+        const result = await quizzesCollection.insertOne(newQuiz);
+
+        res.send({
+          success: true,
+          message: "কুইজ যোগ হয়েছে",
+          data: { ...newQuiz, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/quizzes", verifyToken, async (req, res) => {
+      try {
+        const result = await quizzesCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.patch("/quizzes/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const updatedData = req.body;
+        delete updatedData._id;
+        delete updatedData.results;
+
+        const result = await quizzesCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: updatedData }
+        );
+
+        res.send({
+          success: true,
+          message: "কুইজ আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.delete("/quizzes/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await quizzesCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        res.send({
+          success: true,
+          message: "কুইজ ডিলিট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // ✅ Ranking Page এর জন্য - সকলে MCQ অংশগ্রহণকারী ছাত্র/ছাত্রীর নাম ও ইমেজ পাবে
+    app.get("/ranking-students", verifyToken, async (req, res) => {
+      try {
+        const result = await studentCollection
+          .find()
+          .project({
+            _id: 1,
+            name: 1,
+            image: 1,
+            eiin: 1,
+            gender: 1,
+          })
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
         res.status(500).send({
-          message: "Failed to submit quiz due to server error.",
-          error: error.message,
+          success: false,
+          message: "সার্ভার এরর হয়েছে",
         });
       }
     });
 
     // =========================
-    // About MCQ Quiz Attempts
+    // RESULTS
     // =========================
 
-    // CREATE - Submit a new MCQ Quiz Attempt
-    app.post("/mcqquiz", async (req, res) => {
+    app.post("/results", verifyToken, async (req, res) => {
+      try {
+        const result = await resultsCollection.insertOne(req.body);
+        res.send({
+          success: true,
+          message: "রেজাল্ট সাবমিট হয়েছে",
+          data: { ...req.body, _id: result.insertedId },
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/results", verifyToken, async (req, res) => {
+      try {
+        const result = await resultsCollection
+          .find({})
+          .sort({ submittedAt: -1 })
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/results/student/:studentId", verifyToken, async (req, res) => {
+      try {
+        const result = await resultsCollection
+          .find({ studentId: req.params.studentId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/results/quiz/:quizId", verifyToken, async (req, res) => {
+      try {
+        const result = await resultsCollection
+          .find({ quizId: req.params.quizId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    app.get("/results/batch/:batchId", verifyToken, async (req, res) => {
+      try {
+        const result = await resultsCollection
+          .find({ batchId: req.params.batchId })
+          .sort({ submittedAt: -1 })
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // =========================
+    // MCQ QUIZZES
+    // =========================
+
+    app.post("/mcqquiz", verifyToken, async (req, res) => {
       try {
         const {
           studentId,
@@ -697,12 +919,10 @@ async function run() {
           timeTaken,
         } = req.body;
 
-        // Validation
         if (!studentId || !batchId || !chapter) {
           return res.status(400).send({ error: "Missing required fields" });
         }
 
-        // Check if already attempted
         const existingAttempt = await mcqQuizzesCollection.findOne({
           studentId,
           batchId,
@@ -716,7 +936,6 @@ async function run() {
           });
         }
 
-        // Create new attempt
         const newAttempt = {
           studentId,
           batchId,
@@ -745,24 +964,20 @@ async function run() {
       }
     });
 
-    // READ - Get all MCQ Quiz Attempts
-    app.get("/mcqquizzes", async (req, res) => {
+    app.get("/mcqquizzes", verifyToken, async (req, res) => {
       try {
-        const cursor = mcqQuizzesCollection.find();
-        const result = await cursor.toArray();
+        const result = await mcqQuizzesCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching MCQ quizzes:", error);
         res.status(500).send({ error: "Failed to fetch MCQ quizzes" });
       }
     });
 
-    // READ - Get single MCQ attempt by id
-    app.get("/mcqquiz/:id", async (req, res) => {
+    app.get("/mcqquiz/:id", verifyToken, async (req, res) => {
       try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const attempt = await mcqQuizzesCollection.findOne(query);
+        const attempt = await mcqQuizzesCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
 
         if (!attempt) {
           return res.status(404).send({ error: "Attempt not found" });
@@ -770,29 +985,27 @@ async function run() {
 
         res.send(attempt);
       } catch (error) {
-        console.error("Error fetching attempt:", error);
         res.status(500).send({ error: "Failed to fetch attempt" });
       }
     });
 
-    // READ - Get MCQ Attempts by Student and Batch
     app.get(
       "/mcqquizzes/student/:studentId/batch/:batchId",
+      verifyToken,
       async (req, res) => {
         try {
           const { studentId, batchId } = req.params;
-          const cursor = mcqQuizzesCollection.find({ studentId, batchId });
-          const result = await cursor.toArray();
+          const result = await mcqQuizzesCollection
+            .find({ studentId, batchId })
+            .toArray();
           res.send(result);
         } catch (error) {
-          console.error("Error fetching student attempts:", error);
           res.status(500).send({ error: "Failed to fetch attempts" });
         }
       }
     );
 
-    // READ - Check if Student has attempted a specific chapter
-    app.get("/mcqquizzes/check", async (req, res) => {
+    app.get("/mcqquizzes/check", verifyToken, async (req, res) => {
       try {
         const { studentId, batchId, chapter } = req.query;
 
@@ -811,147 +1024,129 @@ async function run() {
           attempt: attempt || null,
         });
       } catch (error) {
-        console.error("Error checking attempt:", error);
         res.status(500).send({ error: "Failed to check attempt" });
       }
     });
 
-    // READ - Get Leaderboard by Chapter and Batch
-    app.get(
-      "/mcqquizzes/leaderboard/chapter/:chapter/batch/:batchId",
-      async (req, res) => {
-        try {
-          const { chapter, batchId } = req.params;
-
-          const cursor = mcqQuizzesCollection
-            .find({ chapter, batchId })
-            .sort({ score: -1, submittedAt: 1 }); // Highest score first
-
-          const result = await cursor.toArray();
-          res.send(result);
-        } catch (error) {
-          console.error("Error fetching leaderboard:", error);
-          res.status(500).send({ error: "Failed to fetch leaderboard" });
-        }
-      }
-    );
-
-    // UPDATE - Update a single MCQ attempt (Admin only)
-    app.put("/mcqquiz/:id", async (req, res) => {
+    app.put("/mcqquiz/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const id = req.params.id;
         const updatedData = req.body;
-
         delete updatedData._id;
 
-        const query = { _id: new ObjectId(id) };
-        const updateDoc = {
-          $set: { ...updatedData, updatedAt: new Date().toISOString() },
-        };
+        const result = await mcqQuizzesCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: { ...updatedData, updatedAt: new Date().toISOString() } }
+        );
 
-        const result = await mcqQuizzesCollection.updateOne(query, updateDoc);
-        res.send(result);
+        res.send({
+          success: true,
+          message: "Attempt updated",
+          data: result,
+        });
       } catch (error) {
-        console.error("Error updating attempt:", error);
         res.status(500).send({ error: "Failed to update attempt" });
       }
     });
 
-    // DELETE - Delete a single MCQ attempt (Admin only)
-    app.delete("/mcqquiz/:id", async (req, res) => {
+    app.delete("/mcqquiz/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await mcqQuizzesCollection.deleteOne(query);
-        res.send(result);
+        const result = await mcqQuizzesCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        res.send({
+          success: true,
+          message: "Attempt deleted",
+          data: result,
+        });
       } catch (error) {
-        console.error("Error deleting attempt:", error);
         res.status(500).send({ error: "Failed to delete attempt" });
       }
     });
 
     // =========================
-    // About Chapter Schedules (Admin)
+    // CHAPTER SCHEDULES
     // =========================
 
-    // CREATE - Add a new Chapter Schedule
-    app.post("/chapter-schedule", async (req, res) => {
-      try {
-        const { batchId, chapter, startDate, endDate } = req.body;
+    app.post(
+      "/chapter-schedule",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const { batchId, chapter, startDate, endDate } = req.body;
 
-        // Validation
-        if (!batchId || !chapter || !startDate || !endDate) {
-          return res.status(400).send({ error: "Missing required fields" });
-        }
+          if (!batchId || !chapter || !startDate || !endDate) {
+            return res.status(400).send({ error: "Missing required fields" });
+          }
 
-        // Check if schedule already exists for this batch and chapter
-        const existingSchedule = await chapterSchedulesCollection.findOne({
-          batchId,
-          chapter,
-        });
-
-        if (existingSchedule) {
-          return res.status(400).send({
-            error: "Schedule already exists for this batch and chapter",
-            scheduleId: existingSchedule._id,
+          const existingSchedule = await chapterSchedulesCollection.findOne({
+            batchId,
+            chapter,
           });
+
+          if (existingSchedule) {
+            return res.status(400).send({
+              error: "Schedule already exists for this batch and chapter",
+              scheduleId: existingSchedule._id,
+            });
+          }
+
+          const newSchedule = {
+            batchId,
+            chapter,
+            startDate,
+            endDate,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          const result = await chapterSchedulesCollection.insertOne(
+            newSchedule
+          );
+
+          res.send({
+            success: true,
+            message: "Schedule created successfully",
+            schedule: { ...newSchedule, _id: result.insertedId },
+          });
+        } catch (error) {
+          res.status(500).send({ error: "Failed to create schedule" });
         }
+      }
+    );
 
-        // Create new schedule
-        const newSchedule = {
-          batchId,
-          chapter,
-          startDate,
-          endDate,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+    app.get("/chapter-schedules", verifyToken, async (req, res) => {
+      try {
+        const result = await chapterSchedulesCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: "Failed to fetch schedules" });
+      }
+    });
 
-        const result = await chapterSchedulesCollection.insertOne(newSchedule);
-        res.send({
-          success: true,
-          message: "Schedule created successfully",
-          scheduleId: result.insertedId,
-          schedule: { ...newSchedule, _id: result.insertedId },
+    app.get(
+      "/chapter-schedules/batch/:batchId",
+      verifyToken,
+      async (req, res) => {
+        try {
+          const { batchId } = req.params;
+          const result = await chapterSchedulesCollection
+            .find({ batchId })
+            .toArray();
+          res.send(result);
+        } catch (error) {
+          res.status(500).send({ error: "Failed to fetch schedules" });
+        }
+      }
+    );
+
+    app.get("/chapter-schedule/:id", verifyToken, async (req, res) => {
+      try {
+        const schedule = await chapterSchedulesCollection.findOne({
+          _id: new ObjectId(req.params.id),
         });
-      } catch (error) {
-        console.error("Error creating schedule:", error);
-        res.status(500).send({ error: "Failed to create schedule" });
-      }
-    });
-
-    // READ - Get all Chapter Schedules
-    app.get("/chapter-schedules", async (req, res) => {
-      try {
-        const cursor = chapterSchedulesCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching schedules:", error);
-        res.status(500).send({ error: "Failed to fetch schedules" });
-      }
-    });
-
-    // READ - Get schedules by Batch ID
-    app.get("/chapter-schedules/batch/:batchId", async (req, res) => {
-      try {
-        const { batchId } = req.params;
-        const cursor = chapterSchedulesCollection.find({ batchId });
-        const result = await cursor.toArray();
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching batch schedules:", error);
-        res.status(500).send({ error: "Failed to fetch schedules" });
-      }
-    });
-
-    // READ - Get single schedule by ID
-    app.get("/chapter-schedule/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const schedule = await chapterSchedulesCollection.findOne(query);
 
         if (!schedule) {
           return res.status(404).send({ error: "Schedule not found" });
@@ -959,102 +1154,106 @@ async function run() {
 
         res.send(schedule);
       } catch (error) {
-        console.error("Error fetching schedule:", error);
         res.status(500).send({ error: "Failed to fetch schedule" });
       }
     });
 
-    // UPDATE - Update a Chapter Schedule
-    app.put("/chapter-schedule/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const updatedData = req.body;
+    app.put(
+      "/chapter-schedule/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const updatedData = req.body;
+          delete updatedData._id;
 
-        delete updatedData._id;
+          const result = await chapterSchedulesCollection.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: { ...updatedData, updatedAt: new Date().toISOString() } }
+          );
 
-        const query = { _id: new ObjectId(id) };
-        const updateDoc = {
-          $set: { ...updatedData, updatedAt: new Date().toISOString() },
-        };
+          if (result.matchedCount === 0) {
+            return res.status(404).send({ error: "Schedule not found" });
+          }
 
-        const result = await chapterSchedulesCollection.updateOne(
-          query,
-          updateDoc
-        );
-
-        if (result.matchedCount === 0) {
-          return res.status(404).send({ error: "Schedule not found" });
+          res.send({
+            success: true,
+            message: "Schedule updated successfully",
+          });
+        } catch (error) {
+          res.status(500).send({ error: "Failed to update schedule" });
         }
-
-        res.send({ success: true, message: "Schedule updated successfully" });
-      } catch (error) {
-        console.error("Error updating schedule:", error);
-        res.status(500).send({ error: "Failed to update schedule" });
       }
-    });
+    );
 
-    // DELETE - Delete a Chapter Schedule
-    app.delete("/chapter-schedule/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await chapterSchedulesCollection.deleteOne(query);
+    app.delete(
+      "/chapter-schedule/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await chapterSchedulesCollection.deleteOne({
+            _id: new ObjectId(req.params.id),
+          });
 
-        if (result.deletedCount === 0) {
-          return res.status(404).send({ error: "Schedule not found" });
+          if (result.deletedCount === 0) {
+            return res.status(404).send({ error: "Schedule not found" });
+          }
+
+          res.send({
+            success: true,
+            message: "Schedule deleted successfully",
+          });
+        } catch (error) {
+          res.status(500).send({ error: "Failed to delete schedule" });
         }
-
-        res.send({ success: true, message: "Schedule deleted successfully" });
-      } catch (error) {
-        console.error("Error deleting schedule:", error);
-        res.status(500).send({ error: "Failed to delete schedule" });
       }
-    });
+    );
 
-    // TOGGLE - Toggle schedule active status
-    app.patch("/chapter-schedule/:id/toggle", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
+    app.patch(
+      "/chapter-schedule/:id/toggle",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const schedule = await chapterSchedulesCollection.findOne({
+            _id: new ObjectId(req.params.id),
+          });
 
-        const schedule = await chapterSchedulesCollection.findOne(query);
-        if (!schedule) {
-          return res.status(404).send({ error: "Schedule not found" });
-        }
+          if (!schedule) {
+            return res.status(404).send({ error: "Schedule not found" });
+          }
 
-        const updateDoc = {
-          $set: {
+          await chapterSchedulesCollection.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            {
+              $set: {
+                isActive: !schedule.isActive,
+                updatedAt: new Date().toISOString(),
+              },
+            }
+          );
+
+          res.send({
+            success: true,
+            message: "Schedule status updated",
             isActive: !schedule.isActive,
-            updatedAt: new Date().toISOString(),
-          },
-        };
-
-        await chapterSchedulesCollection.updateOne(query, updateDoc);
-        res.send({
-          success: true,
-          message: "Schedule status updated",
-          isActive: !schedule.isActive,
-        });
-      } catch (error) {
-        console.error("Error toggling schedule:", error);
-        res.status(500).send({ error: "Failed to toggle schedule" });
+          });
+        } catch (error) {
+          res.status(500).send({ error: "Failed to toggle schedule" });
+        }
       }
-    });
+    );
 
-    // =================================================================
+    // =========================
+    // CQ QUESTIONS
+    // =========================
 
-    // CREATE - Add a new CQ Question
-    app.post("/cq-question", async (req, res) => {
+    app.post("/cq-question", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const {
-          courseId,
-          chapter,
-          stimulusType, // "text" or "image"
-          stimulusContent, // text content or image URL
-          questions, // Array of 2 questions
-        } = req.body;
+        const { courseId, chapter, stimulusType, stimulusContent, questions } =
+          req.body;
 
-        // Validation
         if (
           !courseId ||
           !chapter ||
@@ -1071,74 +1270,52 @@ async function run() {
             .send({ error: "Exactly 2 questions are required" });
         }
 
-        // Create new CQ
         const newCQ = {
           courseId,
           chapter,
           stimulusType,
           stimulusContent,
-          questions, // [{ question: "...", marks: 5 }, { question: "...", marks: 5 }]
+          questions,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
 
         const result = await cqQuestionsCollection.insertOne(newCQ);
+
         res.send({
           success: true,
           message: "CQ question created successfully",
-          cqId: result.insertedId,
           cq: { ...newCQ, _id: result.insertedId },
         });
       } catch (error) {
-        console.error("Error creating CQ:", error);
         res.status(500).send({ error: "Failed to create CQ question" });
       }
     });
 
-    // READ - Get all CQ Questions
-    app.get("/cq-questions", async (req, res) => {
+    app.get("/cq-questions", verifyToken, async (req, res) => {
       try {
-        const cursor = cqQuestionsCollection.find();
-        const result = await cursor.toArray();
+        const result = await cqQuestionsCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching CQ questions:", error);
         res.status(500).send({ error: "Failed to fetch CQ questions" });
       }
     });
 
-    // READ - Get CQ Questions by Course ID
-    app.get("/cq-questions/course/:courseId", async (req, res) => {
+    app.get("/cq-questions/course/:courseId", verifyToken, async (req, res) => {
       try {
         const { courseId } = req.params;
-        const cursor = cqQuestionsCollection.find({ courseId });
-        const result = await cursor.toArray();
+        const result = await cqQuestionsCollection.find({ courseId }).toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching CQ questions:", error);
         res.status(500).send({ error: "Failed to fetch CQ questions" });
       }
     });
 
-    // READ - Get CQ Questions by Chapter
-    app.get("/cq-questions/chapter/:chapter", async (req, res) => {
+    app.get("/cq-question/:id", verifyToken, async (req, res) => {
       try {
-        const { chapter } = req.params;
-        const cursor = cqQuestionsCollection.find({ chapter });
-        const result = await cursor.toArray();
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching CQ questions:", error);
-        res.status(500).send({ error: "Failed to fetch CQ questions" });
-      }
-    });
-
-    // READ - Get single CQ Question by ID
-    app.get("/cq-question/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const cq = await cqQuestionsCollection.findOne(query);
+        const cq = await cqQuestionsCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
 
         if (!cq) {
           return res.status(404).send({ error: "CQ question not found" });
@@ -1146,25 +1323,19 @@ async function run() {
 
         res.send(cq);
       } catch (error) {
-        console.error("Error fetching CQ question:", error);
         res.status(500).send({ error: "Failed to fetch CQ question" });
       }
     });
 
-    // UPDATE - Update a CQ Question
-    app.put("/cq-question/:id", async (req, res) => {
+    app.put("/cq-question/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const id = req.params.id;
         const updatedData = req.body;
-
         delete updatedData._id;
 
-        const query = { _id: new ObjectId(id) };
-        const updateDoc = {
-          $set: { ...updatedData, updatedAt: new Date().toISOString() },
-        };
-
-        const result = await cqQuestionsCollection.updateOne(query, updateDoc);
+        const result = await cqQuestionsCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: { ...updatedData, updatedAt: new Date().toISOString() } }
+        );
 
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "CQ question not found" });
@@ -1175,123 +1346,35 @@ async function run() {
           message: "CQ question updated successfully",
         });
       } catch (error) {
-        console.error("Error updating CQ question:", error);
         res.status(500).send({ error: "Failed to update CQ question" });
       }
     });
 
-    // DELETE - Delete a CQ Question
-    app.delete("/cq-question/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await cqQuestionsCollection.deleteOne(query);
-
-        if (result.deletedCount === 0) {
-          return res.status(404).send({ error: "CQ question not found" });
-        }
-
-        res.send({
-          success: true,
-          message: "CQ question deleted successfully",
-        });
-      } catch (error) {
-        console.error("Error deleting CQ question:", error);
-        res.status(500).send({ error: "Failed to delete CQ question" });
-      }
-    });
-
-    // =================================================================
-
-    // New -----------------------------
-
-    // POST: নতুন result submit করা
-    app.post("/results", async (req, res) => {
-      const resultData = req.body;
-
-      try {
-        const result = await resultsCollection.insertOne(resultData);
-
-        if (result.insertedId) {
-          res.status(201).send({
-            message: "Result submitted successfully",
-            resultId: result.insertedId,
+    app.delete(
+      "/cq-question/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await cqQuestionsCollection.deleteOne({
+            _id: new ObjectId(req.params.id),
           });
-        } else {
-          res.status(500).send({ message: "Failed to submit result" });
+
+          if (result.deletedCount === 0) {
+            return res.status(404).send({ error: "CQ question not found" });
+          }
+
+          res.send({
+            success: true,
+            message: "CQ question deleted successfully",
+          });
+        } catch (error) {
+          res.status(500).send({ error: "Failed to delete CQ question" });
         }
-      } catch (error) {
-        console.error("Error submitting result:", error);
-        res.status(500).send({
-          message: "Server error",
-          error: error.message,
-        });
       }
-    });
+    );
 
-    // GET: সব results পাওয়া
-    app.get("/results", async (req, res) => {
-      try {
-        const results = await resultsCollection
-          .find({})
-          .sort({ submittedAt: -1 })
-          .toArray();
-
-        res.send(results);
-      } catch (error) {
-        console.error("Error fetching results:", error);
-        res.status(500).send({ message: "Failed to fetch results" });
-      }
-    });
-
-    // GET: /results/student/:studentId (একজন student-এর সব results)
-    app.get("/results/student/:studentId", async (req, res) => {
-      try {
-        const results = await resultsCollection
-          .find({ studentId: req.params.studentId })
-          .sort({ submittedAt: -1 })
-          .toArray();
-
-        res.send(results);
-      } catch (error) {
-        console.error("Error fetching student results:", error);
-        res.status(500).send({ message: "Failed to fetch results" });
-      }
-    });
-
-    // GET: /results/quiz/:quizId (একটি quiz-এর সব results)
-    app.get("/results/quiz/:quizId", async (req, res) => {
-      try {
-        const results = await resultsCollection
-          .find({ quizId: req.params.quizId })
-          .sort({ submittedAt: -1 })
-          .toArray();
-
-        res.send(results);
-      } catch (error) {
-        console.error("Error fetching quiz results:", error);
-        res.status(500).send({ message: "Failed to fetch results" });
-      }
-    });
-
-    // GET: /results/batch/:batchId (একটি batch-এর সব results)
-    app.get("/results/batch/:batchId", async (req, res) => {
-      try {
-        const results = await resultsCollection
-          .find({ batchId: req.params.batchId })
-          .sort({ submittedAt: -1 })
-          .toArray();
-
-        res.send(results);
-      } catch (error) {
-        console.error("Error fetching batch results:", error);
-        res.status(500).send({ message: "Failed to fetch results" });
-      }
-    });
-
-    // New --------------------------------
-
-    // Send a ping to confirm a successful connection
+    // Health check
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
@@ -1300,6 +1383,7 @@ async function run() {
     // Ensures that the client will close when you finish/error
   }
 }
+
 run().catch(console.dir);
 
 app.get("/", (req, res) => {

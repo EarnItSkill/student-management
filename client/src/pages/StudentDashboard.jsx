@@ -45,7 +45,9 @@ const StudentDashboard = () => {
     fetchStudentResults,
   } = useAppContext();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(
+    localStorage.getItem("activeTab") || "overview"
+  );
   const [selectedBatchForQuiz, setSelectedBatchForQuiz] = useState(null);
   const [selectedBatchForAttendance, setSelectedBatchForAttendance] =
     useState(null);
@@ -60,7 +62,7 @@ const StudentDashboard = () => {
       if (currentUser?._id) {
         try {
           const results = await fetchStudentResults(currentUser._id);
-          setStudentResults(results.data);
+          setStudentResults(results);
         } catch (error) {
           console.error("Results load করতে সমস্যা:", error);
         }
@@ -69,9 +71,9 @@ const StudentDashboard = () => {
     loadStudentResults();
   }, [currentUser]);
 
-  // Get student's data
+  // ✅ ObjectId comparison fix - .toString() যোগ করা
   const myEnrollments = enrollments.filter(
-    (e) => e.studentId === currentUser?._id
+    (e) => e.studentId?.toString() === currentUser?._id?.toString()
   );
 
   const myBatches = myEnrollments.map((enrollment) => {
@@ -80,20 +82,29 @@ const StudentDashboard = () => {
     return { ...batch, course, enrollment };
   });
 
-  const myPayments = payments.filter((p) => p.studentId === currentUser?._id);
+  // ✅ ObjectId comparison fix
+  const myPayments = payments.filter(
+    (p) => p.studentId?.toString() === currentUser?._id?.toString()
+  );
+
+  // ✅ ObjectId comparison fix
   const myAttendance = attendance.filter(
-    (a) => a.studentId === currentUser?._id
+    (a) => a.studentId?.toString() === currentUser?._id?.toString()
   );
 
   // Student এর enrolled courses থেকে courseIds বের করা
   const enrolledCourseIds = myBatches.map((batch) => batch.courseId);
 
-  // ⭐ CHANGE: quizzes এর সাথে results merge করা
+  // ✅ Quiz results merge - ObjectId comparison fix
   const myQuizzes = quizzes
     .filter((quiz) => enrolledCourseIds.includes(quiz.courseId))
     .map((quiz) => ({
       ...quiz,
-      results: studentResults.filter((r) => r.quizId === quiz._id),
+      results: studentResults.filter((r) => {
+        return (
+          r.quizId?.toString() === quiz._id?.toString() || r.quizId === quiz._id
+        );
+      }),
     }));
 
   // Generate unlock dates for each batch
@@ -123,9 +134,11 @@ const StudentDashboard = () => {
       .filter((q) => q.courseId === quiz.courseId)
       .sort((a, b) => a._id.localeCompare(b._id));
 
-    // Get student's quiz results for this course (in order)
+    // ✅ Get student's quiz results for this course - ObjectId comparison fix
     const studentQuizResults = courseQuizzes.map((q) =>
-      q.results.find((r) => r.studentId === currentUser?._id)
+      q.results.find(
+        (r) => r.studentId?.toString() === currentUser?._id?.toString()
+      )
     );
 
     const currentQuizIndex = courseQuizzes.findIndex((q) => q._id === quiz._id);
@@ -138,20 +151,20 @@ const StudentDashboard = () => {
 
     const unlockDate = getClassUnlockDate(currentQuizIndex, unlockDates);
 
-    // ⭐ NEW: Check if date unlocked but quiz locked (pending state)
     const isDateUnlocked = isClassUnlocked(currentQuizIndex, unlockDates);
+    // ✅ ObjectId comparison fix
     const isCompleted = quiz.results.some(
-      (r) => r.studentId === currentUser?._id
+      (r) => r.studentId?.toString() === currentUser?._id?.toString()
     );
-    const isPending = isDateUnlocked && !isCompleted; // সময় হয়েছে কিন্তু দেওয়া হয়নি
+    const isPending = isDateUnlocked && !isCompleted;
 
     return {
       ...quiz,
       isUnlocked,
       unlockDate,
       quizIndex: currentQuizIndex,
-      isPending, // ⭐ NEW property
-      isDateUnlocked, // ⭐ সময় হয়েছে কিনা
+      isPending,
+      isDateUnlocked,
     };
   });
 
@@ -165,11 +178,14 @@ const StudentDashboard = () => {
     myAttendance.length > 0
       ? ((presentCount / myAttendance.length) * 100).toFixed(1)
       : 0;
+
+  // ✅ Completed quizzes - ObjectId comparison fix
   const completedQuizzes = myQuizzes.filter((quiz) =>
-    quiz.results.some((r) => r.studentId === currentUser?._id)
+    quiz.results.some(
+      (r) => r.studentId?.toString() === currentUser?._id?.toString()
+    )
   ).length;
 
-  // const pendingQuizzes = myQuizzes.length - completedQuizzes;
   const pendingQuizzes = myQuizzesWithStatus.filter(
     (q) => q.isPending && q.isUnlocked
   ).length;
@@ -177,9 +193,13 @@ const StudentDashboard = () => {
     (q) => q.isPending && !q.isUnlocked
   ).length;
 
-  // Calculate average quiz score
+  // ✅ Calculate average quiz score - ObjectId comparison fix
   const myQuizResults = myQuizzes
-    .map((quiz) => quiz.results.find((r) => r.studentId === currentUser?._id))
+    .map((quiz) =>
+      quiz.results.find(
+        (r) => r.studentId?.toString() === currentUser?._id?.toString()
+      )
+    )
     .filter(Boolean);
   const averageScore =
     myQuizResults.length > 0
@@ -374,7 +394,7 @@ const StudentDashboard = () => {
                       ? "Excellent!"
                       : attendancePercentage >= 60
                       ? "Good"
-                      : "উন্নতি প্রয়োজন"}
+                      : "উন্নতি প্রয়োজন"}
                   </div>
                 </div>
 
@@ -464,113 +484,6 @@ const StudentDashboard = () => {
                 )}
               </div>
 
-              {/* Two Column Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* My Courses Progress */}
-                <div className="card bg-base-200 shadow-xl">
-                  <div className="card-body">
-                    <h3 className="card-title flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-primary" />
-                      My Courses
-                    </h3>
-                    {myBatches.length === 0 ? (
-                      <div className="text-center py-8">
-                        <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                        <p className="text-gray-500 text-sm">
-                          No courses enrolled
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {myBatches.slice(0, 3).map((batch) => (
-                          <div
-                            key={batch._id}
-                            className="card bg-base-100 shadow"
-                          >
-                            <div className="card-body p-4">
-                              <h4 className="font-bold text-sm">
-                                {batch.course?.title}
-                              </h4>
-                              <p className="text-xs text-gray-400">
-                                {batch.batchName}
-                              </p>
-                              <div className="badge badge-success badge-sm mt-2">
-                                {batch.enrollment?.status} fsdf
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="card-actions justify-end mt-4">
-                      <button
-                        onClick={() => setActiveTab("courses")}
-                        className="btn btn-sm btn-primary"
-                      >
-                        View All
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Attendance */}
-                <div className="card bg-base-200 shadow-xl">
-                  <div className="card-body">
-                    <h3 className="card-title flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-accent" />
-                      Recent Attendance
-                    </h3>
-                    {recentAttendance.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                        <p className="text-gray-500 text-sm">
-                          No attendance records
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="table table-sm">
-                          <thead>
-                            <tr>
-                              <th>Date</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {recentAttendance.map((record) => (
-                              <tr key={record._id}>
-                                <td className="text-sm">{record.date}</td>
-                                <td>
-                                  {record.status === "present" ? (
-                                    <span className="badge badge-success badge-sm gap-1">
-                                      <CheckCircle className="w-3 h-3" />
-                                      Present
-                                    </span>
-                                  ) : (
-                                    <span className="badge badge-error badge-sm gap-1">
-                                      <XCircle className="w-3 h-3" />
-                                      Absent
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    <div className="card-actions justify-end mt-4">
-                      <button
-                        onClick={() => setActiveTab("attendance")}
-                        className="btn btn-sm btn-accent"
-                      >
-                        View All
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Recent Payments */}
               <div className="card bg-base-200 shadow-xl">
                 <div className="card-body">
@@ -599,8 +512,11 @@ const StudentDashboard = () => {
                         </thead>
                         <tbody>
                           {recentPayments.map((payment) => {
+                            // ✅ ObjectId comparison fix
                             const batch = batches.find(
-                              (b) => b._id === payment.batchId
+                              (b) =>
+                                b._id?.toString() ===
+                                payment.batchId?.toString()
                             );
                             return (
                               <tr key={payment._id}>
@@ -662,11 +578,14 @@ const StudentDashboard = () => {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {recentQuizzes.map((quiz) => {
+                        // ✅ ObjectId comparison fix
                         const myResult = quiz.results.find(
-                          (r) => r.studentId === currentUser?._id
+                          (r) =>
+                            r.studentId?.toString() ===
+                            currentUser?._id?.toString()
                         );
-                        const batch = batches.find(
-                          (b) => b._id === quiz.batchId
+                        const course = courses.find(
+                          (c) => c._id === quiz.courseId
                         );
 
                         return (
@@ -679,7 +598,7 @@ const StudentDashboard = () => {
                                 {quiz.title}
                               </h4>
                               <p className="text-xs text-gray-400">
-                                {batch?.batchName}
+                                {course?.title}
                               </p>
                               {myResult ? (
                                 <div className="badge badge-success mt-2">
@@ -751,7 +670,6 @@ const StudentDashboard = () => {
                             alt={batch.course?.title}
                             className="w-full h-full object-cover"
                           />
-                          {/* Unlock Badge on Image */}
                           <div className="absolute top-2 right-2 badge badge-primary gap-1">
                             <Lock className="w-3 h-3" />
                             {unlockedClassesCount}/
@@ -768,7 +686,6 @@ const StudentDashboard = () => {
 
                           <div className="divider my-2"></div>
 
-                          {/* Batch Info */}
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="w-4 h-4 text-primary" />
@@ -807,7 +724,6 @@ const StudentDashboard = () => {
                             </div>
                           </div>
 
-                          {/* Class Progress */}
                           <div className="mt-3">
                             <div className="flex justify-between text-xs mb-1">
                               <span className="font-semibold">
@@ -825,7 +741,6 @@ const StudentDashboard = () => {
                             ></progress>
                           </div>
 
-                          {/* Classes Grid Preview */}
                           {batch.course?.classes &&
                             batch.course.classes.length > 0 && (
                               <div className="mt-3">
@@ -886,12 +801,14 @@ const StudentDashboard = () => {
                               </div>
                             )}
 
-                          {/* Action Buttons */}
                           <div className="flex justify-between mt-4">
                             <button
-                              onClick={() =>
-                                navigate(`/course/${batch.courseId}`)
-                              }
+                              onClick={() => {
+                                // localStorage.setItem("activeTab", "courses");
+                                navigate(`/course/${batch.courseId}`, {
+                                  state: { fromTab: "courses" },
+                                });
+                              }}
                               className="btn btn-primary btn-sm gap-1"
                             >
                               <Eye className="w-4 h-4" />
@@ -918,7 +835,6 @@ const StudentDashboard = () => {
             <div>
               <h2 className="text-2xl font-bold mb-4">Payment History</h2>
 
-              {/* Payment Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="stat bg-base-200 rounded-lg shadow-lg">
                   <div className="stat-figure text-primary">
@@ -973,8 +889,11 @@ const StudentDashboard = () => {
                         </thead>
                         <tbody>
                           {myPayments.map((payment) => {
+                            // ✅ ObjectId comparison fix
                             const batch = batches.find(
-                              (b) => b._id === payment.batchId
+                              (b) =>
+                                b._id?.toString() ===
+                                payment.batchId?.toString()
                             );
                             return (
                               <tr key={payment._id}>
@@ -1020,13 +939,11 @@ const StudentDashboard = () => {
           {activeTab === "attendance" && (
             <div>
               {!selectedBatchForAttendance ? (
-                // Batch Selection View
                 <div>
                   <h2 className="text-2xl font-bold mb-6">
                     Attendance Record - Select Batch
                   </h2>
 
-                  {/* Overall Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="stat bg-base-200 rounded-lg shadow-lg">
                       <div className="stat-figure text-primary">
@@ -1057,7 +974,6 @@ const StudentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Batch Cards */}
                   {myBatches.length === 0 ? (
                     <div className="text-center py-20">
                       <BookOpen className="w-20 h-20 mx-auto text-gray-400 mb-4" />
@@ -1074,8 +990,9 @@ const StudentDashboard = () => {
                         const course = courses.find(
                           (c) => c._id === batch.courseId
                         );
+                        // ✅ ObjectId comparison fix
                         const batchAttendance = myAttendance.filter(
-                          (a) => a.batchId === batch._id
+                          (a) => a.batchId?.toString() === batch._id?.toString()
                         );
                         const batchPresentCount = batchAttendance.filter(
                           (a) => a.status === "present"
@@ -1119,8 +1036,8 @@ const StudentDashboard = () => {
                                   <span className="text-gray-400">
                                     Schedule:
                                   </span>
-                                  <span className="font-semibold text-xs">
-                                    {batch.schedule}
+                                  <span className="badge badge-primary">
+                                    {batch.scheduleType}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -1166,9 +1083,7 @@ const StudentDashboard = () => {
                   )}
                 </div>
               ) : (
-                // Attendance List View for Selected Batch
                 <div>
-                  {/* Header with Back Button */}
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
@@ -1204,10 +1119,12 @@ const StudentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Batch Attendance Stats */}
                   {(() => {
+                    // ✅ ObjectId comparison fix
                     const batchAttendance = myAttendance.filter(
-                      (a) => a.batchId === selectedBatchForAttendance
+                      (a) =>
+                        a.batchId?.toString() ===
+                        selectedBatchForAttendance?.toString()
                     );
                     const batchPresentCount = batchAttendance.filter(
                       (a) => a.status === "present"
@@ -1259,7 +1176,6 @@ const StudentDashboard = () => {
                     );
                   })()}
 
-                  {/* Date Filter and View Toggle */}
                   <div className="flex-1 gap-4 mb-6">
                     <div className="flex flex-col md:flex-row gap-4">
                       <div className="form-control flex-1">
@@ -1299,10 +1215,14 @@ const StudentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Attendance Display */}
                   {(() => {
+                    // ✅ ObjectId comparison fix
                     const batchAttendance = myAttendance
-                      .filter((a) => a.batchId === selectedBatchForAttendance)
+                      .filter(
+                        (a) =>
+                          a.batchId?.toString() ===
+                          selectedBatchForAttendance?.toString()
+                      )
                       .filter(
                         (a) =>
                           !attendanceDateFilter ||
@@ -1339,7 +1259,6 @@ const StudentDashboard = () => {
                         )}
 
                         {attendanceViewType === "table" ? (
-                          // Table View
                           <div className="card bg-base-200 shadow-xl">
                             <div className="card-body">
                               <div className="overflow-x-auto">
@@ -1379,7 +1298,6 @@ const StudentDashboard = () => {
                             </div>
                           </div>
                         ) : (
-                          // Cards View
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {batchAttendance.map((record) => (
                               <div
@@ -1444,12 +1362,10 @@ const StudentDashboard = () => {
 
           {activeTab === "quizzes" && (
             <QuizzesTab
-              // Data props
               enrolledCourseIds={enrolledCourseIds}
               myQuizzesWithStatus={myQuizzesWithStatus}
               completedQuizzes={completedQuizzes}
               lockedPendingQuizzes={lockedPendingQuizzes}
-              // State props
               selectedBatchForQuiz={selectedBatchForQuiz}
               setSelectedBatchForQuiz={setSelectedBatchForQuiz}
             />

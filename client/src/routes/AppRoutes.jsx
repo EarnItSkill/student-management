@@ -4,6 +4,11 @@ import { useAppContext } from "../context/useAppContext";
 // Pages
 import AttendanceList from "../components/attendence/AttendanceList";
 import BatchList from "../components/batches/BatchList";
+import UpComming from "../components/batches/UpComming";
+import PaymentForm from "../components/common/PaymentForm";
+import PrivacyPolicy from "../components/common/PrivacyPolicy";
+import RefundPolicy from "../components/common/RefundPolicy";
+import TermsConditions from "../components/common/TermsConditions";
 import CourseList from "../components/courses/CourseList";
 import EnrollmentList from "../components/enrollments/EnrollmentList";
 import BatchDetails from "../components/home/BatchDetails";
@@ -16,6 +21,7 @@ import AdminQuizResults from "../pages/admin/AdminQuizResults";
 import BatchDetailsPage from "../pages/admin/BatchDetailsPage";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
+import PaymentInfo from "../pages/admin/PaymentInfo";
 import AdminDashboard from "../pages/AdminDashboard";
 import CourseDetails from "../pages/CourseDetails";
 import ForgotCredentials from "../pages/ForgotCredentials";
@@ -25,6 +31,7 @@ import McqRankPage from "../pages/McqRankPage";
 import NotFound from "../pages/NotFound";
 import RankPage from "../pages/RankPage";
 import Registration from "../pages/Registration";
+import Certificates from "../pages/student/Certificates";
 import StudentCqPage from "../pages/StudentCqPage";
 import StudentDashboard from "../pages/StudentDashboard";
 import StudentDetails from "../pages/StudentDetails";
@@ -59,6 +66,11 @@ const AppRoutes = () => {
       <Route path="/registration" element={<Registration />} />
       <Route path="/forgot" element={<ForgotCredentials />} />
       <Route path="/course-details/:batchType" element={<BatchDetails />} />
+      <Route path="/up-comming" element={<UpComming />} />
+      <Route path="/certificate" element={<Certificates />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-conditions" element={<TermsConditions />} />
+      <Route path="/refund-policy" element={<RefundPolicy />} />
 
       {/* Protected Student Routes */}
       <Route
@@ -76,6 +88,7 @@ const AppRoutes = () => {
         <Route path="quiz-results" element={<StudentQuizResults />} />
         <Route path="rankings" element={<McqRankPage />} />
         <Route path="ranks" element={<RankPage />} />
+        <Route path="payment-info" element={<PaymentForm />} />
       </Route>
 
       {/* Protected Admin Routes */}
@@ -101,6 +114,7 @@ const AppRoutes = () => {
         <Route path="chapter-schedules" element={<AdminChapterSchedule />} />
         <Route path="quiz-results" element={<AdminQuizResults />} />
         <Route path="rankings" element={<McqRankPage />} />
+        <Route path="payment-info" element={<PaymentInfo />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

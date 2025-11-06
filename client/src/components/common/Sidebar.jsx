@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Calendar,
+  CircleDollarSign,
   FileText,
   Home,
   LayoutDashboard,
@@ -30,48 +31,6 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       isDash: true,
     },
-    // {
-    //   path: "/dashboard/admin/students",
-    //   label: "Students",
-    //   icon: Users,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/courses",
-    //   label: "Courses",
-    //   icon: BookOpen,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/batches",
-    //   label: "Batches",
-    //   icon: GraduationCap,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/enrollments",
-    //   label: "Enrollments",
-    //   icon: UserCheck,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/payments",
-    //   label: "Payments",
-    //   icon: DollarSign,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/attendance",
-    //   label: "Attendance",
-    //   icon: Calendar,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/admin/quizzes",
-    //   label: "Quizzes",
-    //   icon: ClipboardList,
-    //   isDash: false,
-    // },
     {
       path: "/dashboard/admin/students/search",
       label: "Students Search",
@@ -109,6 +68,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/payment-info",
+      label: "Payment",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,
@@ -120,38 +85,14 @@ const Sidebar = () => {
   const studentMenuItems = [
     {
       path: "/dashboard/student",
-      label: "ডেশবোর্ড",
+      label: "ড্যাশবোর্ড",
       icon: LayoutDashboard,
       isDash: true,
       requiredEnrollment: false,
     },
-    // {
-    //   path: "/dashboard/student/courses",
-    //   label: "My Courses",
-    //   icon: BookOpen,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/student/payments",
-    //   label: "Payments",
-    //   icon: DollarSign,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/student/attendance",
-    //   label: "Attendance",
-    //   icon: Calendar,
-    //   isDash: false,
-    // },
-    // {
-    //   path: "/dashboard/student/quizzes",
-    //   label: "Quizzes",
-    //   icon: Award,
-    //   isDash: false,
-    // },
     {
       path: "/dashboard/student/profile",
-      label: "আমার প্রোপাইল",
+      label: "আমার প্রোফাইল",
       icon: User,
       isDash: false,
       requiredEnrollment: false,
@@ -172,7 +113,7 @@ const Sidebar = () => {
     },
     {
       path: "/dashboard/student/test-quiz",
-      label: "আমাকে যাচাই করি",
+      label: "নিজেকে যাচাই করি",
       icon: BookOpen,
       isDash: false,
       requiredEnrollment: false,
@@ -197,6 +138,13 @@ const Sidebar = () => {
       icon: Trophy,
       isDash: false,
       requiredEnrollment: true,
+    },
+    {
+      path: "/dashboard/student/payment-info",
+      label: "পেমেন্ট তথ্য",
+      icon: CircleDollarSign,
+      isDash: false,
+      requiredEnrollment: false,
     },
   ];
 

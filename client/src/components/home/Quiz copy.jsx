@@ -1,6 +1,5 @@
 import {
   Award,
-  BookOpen,
   CheckCircle2,
   Sparkles,
   Target,
@@ -48,7 +47,7 @@ export default function Quiz() {
       position: 1,
       emoji: "🥇",
       title: "গোল্ড মেডেল",
-      subtitle: "প্রথম স্থান",
+      subtitle: "চ্যাম্পিয়ন",
       score: "95%+",
       benefits: ["৳৫০০ / বই পুরস্কার", "সার্টিফিকেট", "র‍্যাংকিং পয়েন্ট"],
       color: "from-yellow-400 to-yellow-600",
@@ -58,7 +57,7 @@ export default function Quiz() {
       position: 2,
       emoji: "🥈",
       title: "সিলভার মেডেল",
-      subtitle: "দ্বিতীয় স্থান",
+      subtitle: "রানার-আপ",
       score: "90%+",
       benefits: ["৳৩০০ / বই পুরস্কার", "সার্টিফিকেট", "র‍্যাংকিং পয়েন্ট"],
       color: "from-gray-300 to-gray-600",
@@ -76,11 +75,26 @@ export default function Quiz() {
     },
   ];
 
+  const certificateTypes = [
+    {
+      icon: "📜",
+      title: "কোর্স সম্পন্ন সার্টিফিকেট",
+      description: "কোর্সের সকল মডিউল সম্পন্ন করে পান",
+    },
+    {
+      icon: "⭐",
+      title: "পারফরম্যান্স এক্সিলেন্স সার্টিফিকেট",
+      description: "৮৫%+ স্কোর অর্জনকারী শিক্ষার্থীদের জন্য",
+    },
+    {
+      icon: "🎖️",
+      title: "র‍্যাংকার সার্টিফিকেট",
+      description: "র‍্যাঙ্কিং এ শীর্ষ ১০ স্থান অধিকারকারীদের জন্য",
+    },
+  ];
+
   return (
-    <section
-      id="mcq-quiz"
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-24 px-4 relative overflow-hidden"
-    >
+    <section className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-24 px-4 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 opacity-10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500 opacity-10 rounded-full blur-3xl"></div>
@@ -100,7 +114,8 @@ export default function Quiz() {
           </h2>
 
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            নিয়মিত MCQ তে অংশগ্রহণের মাধ্যমে নিজের দক্ষতা যাচাই করুন
+            নিয়মিত কুইজের মাধ্যমে নিজের দক্ষতা যাচাই করুন এবং সার্টিফিকেট অর্জন
+            করুন
           </p>
         </div>
 
@@ -160,7 +175,7 @@ export default function Quiz() {
               র‍্যাংকিং এবং পুরস্কার সিস্টেম
             </h3>
             <p className="text-slate-300 max-w-2xl mx-auto">
-              প্রতিটি অধ্যায় ভিত্তিক MCQ পরীক্ষায় অংশগ্রহণ করে পারফরম্যান্স
+              অধ্যায় ভিত্তিক MCQ পরীক্ষায় অংশগ্রহণ করে আপনার পারফরম্যান্স
               অনুযায়ী রংকিং এবং আকর্ষণীয় পুরস্কার জিতুন
             </p>
           </div>
@@ -227,115 +242,49 @@ export default function Quiz() {
           </div>
         </div>
 
-        {/* Achievement & Recognition Section */}
+        {/* Certificate Section */}
         <div className="relative group mb-20">
           {/* Glowing Background */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 opacity-20 group-hover:opacity-30 rounded-2xl blur-xl transition-opacity duration-500"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 opacity-20 group-hover:opacity-30 rounded-2xl blur-xl transition-opacity duration-500"></div>
 
           <div className="relative bg-slate-800 bg-opacity-80 backdrop-blur-xl rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
             <div className="p-8 md:p-12">
               <div className="text-center mb-12">
-                <Award className="w-12 h-12 text-amber-400 mx-auto mb-4 animate-bounce" />
+                <Sparkles className="w-12 h-12 text-green-400 mx-auto mb-4" />
                 <h3 className="text-4xl font-black text-white mb-3">
-                  সম্মাননা এবং স্বীকৃতি
+                  সার্টিফিকেশন প্রোগ্রাম
                 </h3>
                 <p className="text-slate-300 max-w-2xl mx-auto">
-                  নিয়মিত উপস্থিতি এবং উচ্চ পারফরম্যান্সের জন্য বিশেষ সম্মাননা
-                  পত্র প্রদান করা হয়
+                  আপনার যোগ্যতা অনুযায়ী বিভিন্ন ধরনের আন্তর্জাতিক মানের
+                  সার্টিফিকেট অর্জন করুন
                 </p>
               </div>
 
-              {/* Achievement Criteria */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {/* Attendance Excellence */}
-                <div className="p-6 bg-gradient-to-br from-blue-600/10 to-cyan-600/10 rounded-xl border border-blue-600/30 hover:border-blue-600/60 transition-all duration-300 group/card">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center group-hover/card:scale-110 transition-transform">
-                      <BookOpen className="w-6 h-6 text-white" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {certificateTypes.map((cert, index) => (
+                  <div
+                    key={index}
+                    className="p-6 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-green-500/50 transition-all duration-300 group/cert"
+                  >
+                    <div className="text-5xl mb-4 group-hover/cert:scale-110 transition-transform">
+                      {cert.icon}
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-bold text-white mb-2">
-                        নিয়মিত উপস্থিতি পত্র
-                      </h4>
-                      <div className="space-y-2">
-                        <p className="text-sm text-slate-300">
-                          ✓ কোর্স সময়কালে ৯০%+ উপস্থিতি
-                        </p>
-                        <p className="text-sm text-slate-400">
-                          নিয়মিত ক্লাসে অংশগ্রহণের জন্য বিশেষ স্বীকৃতি
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Performance Excellence */}
-                <div className="p-6 bg-gradient-to-br from-green-600/10 to-emerald-600/10 rounded-xl border border-green-600/30 hover:border-green-600/60 transition-all duration-300 group/card">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-green-600 to-emerald-600 flex items-center justify-center group-hover/card:scale-110 transition-transform">
-                      <TrendingUp className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-bold text-white mb-2">
-                        পারফরম্যান্স এক্সিলেন্স পত্র
-                      </h4>
-                      <div className="space-y-2">
-                        <p className="text-sm text-slate-300">
-                          ✓ সমস্ত কুইজে ৮৫%+ গড় স্কোর
-                        </p>
-                        <p className="text-sm text-slate-400">
-                          অসাধারণ শিক্ষাগত অর্জনের জন্য স্বীকৃতি
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Combined Achievement */}
-              <div className="p-8 bg-gradient-to-r from-amber-600/20 via-orange-600/20 to-red-600/20 rounded-xl border-2 border-amber-600/50 hover:border-amber-600/80 transition-all duration-300">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <Sparkles className="w-8 h-8 text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-xl font-black text-white mb-3">
-                      প্রিমিয়াম সম্মাননা পত্র
+                    <h4 className="text-lg font-bold text-white mb-2">
+                      {cert.title}
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-amber-300 font-semibold mb-2">
-                          যোগ্যতা:
-                        </p>
-                        <ul className="space-y-1 text-sm text-slate-300">
-                          <li>✓ ৯০%+ উপস্থিতি</li>
-                          <li>✓ ৮৫%+ গড় স্কোর</li>
-                          <li>✓ র‍্যাঙ্কিং শীর্ষ ১০ এ</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-sm text-amber-300 font-semibold mb-2">
-                          সুবিধা:
-                        </p>
-                        <ul className="space-y-1 text-sm text-slate-300">
-                          <li>✓ বিশেষ সম্মাননা পত্র</li>
-                          <li>✓ প্রশংসাপত্র ডিপ্লোমায় উল্লেখ</li>
-                          <li>✓ পোর্টফোলিও হাইলাইট</li>
-                        </ul>
-                      </div>
-                    </div>
+                    <p className="text-sm text-slate-400">{cert.description}</p>
                   </div>
-                </div>
+                ))}
               </div>
 
-              {/* Recognition Display */}
-              <div className="mt-8 p-6 bg-slate-700/50 rounded-xl border border-slate-600">
+              {/* Certificate Benefits */}
+              <div className="mt-8 p-6 bg-gradient-to-r from-green-600/10 to-emerald-600/10 border border-green-600/30 rounded-xl">
                 <p className="text-center text-slate-300">
-                  <span className="font-bold text-white block mb-2">
-                    📜 প্রদত্ত সম্মাননা পত্র:
-                  </span>
-                  সকল সম্মাননা পত্র আপনার অফিশিয়াল একাউন্টে ডাউনলোডযোগ্য থাকবে
-                  এবং প্রয়োজনে শেয়ার করা যাবে
+                  <span className="font-bold text-white">
+                    ✓ সার্টিফিকেট সুবিধা:
+                  </span>{" "}
+                  চাকরির ক্ষেত্রে প্রাধান্য পায় • মূল্য সংযোজন করে CV তে •
+                  পেশাদার স্বীকৃতি প্রদান করে • আপনার দক্ষতার প্রমাণ
                 </p>
               </div>
             </div>

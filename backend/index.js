@@ -105,6 +105,9 @@ async function run() {
     const cqQuestionsCollection = client
       .db(process.env.DB_NAME)
       .collection("cqQuestions");
+    const paymentInfoCollection = client
+      .db(process.env.DB_NAME)
+      .collection("paymentInfo");
 
     // =========================
     // AUTHENTICATION
@@ -1370,6 +1373,378 @@ async function run() {
           });
         } catch (error) {
           res.status(500).send({ error: "Failed to delete CQ question" });
+        }
+      }
+    );
+
+    // =========================
+    // PAYMENT INFO
+    // =========================
+    // app.post("/payment-info", async (req, res) => {
+    //   try {
+    //     const { studentId, batchId, studentMobile } = req.body;
+
+    //     // একই তথ্য দিয়ে ইতিমধ্যে পেমেন্ট আছে কিনা চেক করা
+    //     const existingPayment = await paymentInfoCollection.findOne({
+    //       studentId: studentId,
+    //       batchId: batchId,
+    //       studentMobile: studentMobile,
+    //     });
+
+    //     if (existingPayment) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message:
+    //           "এই তথ্য দিয়ে ইতিমধ্যে একটি পেমেন্ট রেকর্ড আছে। একবারই পেমেন্ট করা যায়।",
+    //       });
+    //     }
+
+    //     const paymentData = {
+    //       ...req.body,
+    //       createdAt: new Date(),
+    //       updatedAt: new Date(),
+    //     };
+
+    //     const result = await paymentInfoCollection.insertOne(paymentData);
+
+    //     res.send({
+    //       success: true,
+    //       message: "পেমেন্ট তথ্য যোগ হয়েছে",
+    //       data: { ...paymentData, _id: result.insertedId },
+    //     });
+    //   } catch (error) {
+    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
+    //   }
+    // });
+
+    // app.post("/payment-info", async (req, res) => {
+    //   try {
+    //     const { studentId, batchId, studentMobile } = req.body;
+
+    //     // 🔹 1️⃣ চেক করো আগে এই studentId বা mobile দিয়ে কোনো payment আছে কিনা
+    //     const existingStudent = await paymentInfoCollection.findOne({
+    //       $or: [{ studentId: studentId }, { studentMobile: studentMobile }],
+    //     });
+
+    //     // 🔹 2️⃣ যদি কোনো রেকর্ড না থাকে, মানে নতুন student — সরাসরি insert করা যাবে
+    //     if (!existingStudent) {
+    //       const paymentData = {
+    //         ...req.body,
+    //         createdAt: new Date(),
+    //         updatedAt: new Date(),
+    //       };
+
+    //       const result = await paymentInfoCollection.insertOne(paymentData);
+
+    //       return res.send({
+    //         success: true,
+    //         message: "প্রথমবারের মতো পেমেন্ট তথ্য যোগ হয়েছে।",
+    //         data: { ...paymentData, _id: result.insertedId },
+    //       });
+    //     }
+
+    //     // 🔹 3️⃣ আগে রেকর্ড আছে কিন্তু studentId ও mobile এর কোনটা mismatch হলে — allow করবে না
+    //     if (
+    //       existingStudent.studentId !== studentId ||
+    //       existingStudent.studentMobile !== studentMobile
+    //     ) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message:
+    //           "Student ID ও Mobile নম্বর পূর্বের তথ্যের সাথে মেলে না। এগুলো পরিবর্তন করা যাবে না।",
+    //       });
+    //     }
+
+    //     // 🔹 4️⃣ চেক করো একই student একই batch এ পেমেন্ট করেছে কিনা
+    //     const existingPaymentSameBatch = await paymentInfoCollection.findOne({
+    //       studentId: studentId,
+    //       studentMobile: studentMobile,
+    //       batchId: batchId,
+    //     });
+
+    //     if (existingPaymentSameBatch) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message:
+    //           "এই ব্যাচের জন্য আপনি ইতিমধ্যে পেমেন্ট করেছেন। একই ব্যাচে একবারই পেমেন্ট করা যায়।",
+    //       });
+    //     }
+
+    //     // 🔹 5️⃣ সব ঠিক থাকলে নতুন ব্যাচে পেমেন্ট insert করো
+    //     const paymentData = {
+    //       ...req.body,
+    //       createdAt: new Date(),
+    //       updatedAt: new Date(),
+    //     };
+
+    //     const result = await paymentInfoCollection.insertOne(paymentData);
+
+    //     res.send({
+    //       success: true,
+    //       message: "নতুন ব্যাচের জন্য পেমেন্ট তথ্য যোগ হয়েছে।",
+    //       data: { ...paymentData, _id: result.insertedId },
+    //     });
+    //   } catch (error) {
+    //     console.error(error);
+    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
+    //   }
+    // });
+
+    app.post("/payment-info", async (req, res) => {
+      try {
+        const { studentId, batchId, studentMobile } = req.body;
+
+        // 🔹 1️⃣ প্রথমে studentCollection এ ওই studentId আছে কিনা দেখা
+        const existingStudentInfo = await studentCollection.findOne({
+          studentId: studentId,
+        });
+
+        if (!existingStudentInfo) {
+          return res.status(404).send({
+            success: false,
+            message:
+              "এই Student ID পাওয়া যায়নি। বৈধ Student ID ছাড়া পেমেন্ট করা যাবে না।",
+          });
+        }
+
+        // 🔹 2️⃣ এরপর payment collection এ আগে কোনো রেকর্ড আছে কিনা দেখা
+        const existingStudentPayment = await paymentInfoCollection.findOne({
+          $or: [{ studentId: studentId }, { studentMobile: studentMobile }],
+        });
+
+        // 🔹 3️⃣ যদি আগে কোনো payment না থাকে, প্রথমবার পেমেন্ট হিসেবে insert করো
+        if (!existingStudentPayment) {
+          const paymentData = {
+            ...req.body,
+            isOk: "no",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          const result = await paymentInfoCollection.insertOne(paymentData);
+
+          return res.send({
+            success: true,
+            message: "প্রথমবারের মতো পেমেন্ট তথ্য যোগ হয়েছে।",
+            data: { ...paymentData, _id: result.insertedId },
+          });
+        }
+
+        // 🔹 4️⃣ আগে রেকর্ড আছে কিন্তু Student ID বা Mobile আলাদা হলে রিজেক্ট করো
+        if (
+          existingStudentPayment.studentId !== studentId ||
+          existingStudentPayment.studentMobile !== studentMobile
+        ) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "Student ID ও Mobile নম্বর পূর্বের তথ্যের সাথে মেলে না। এগুলো পরিবর্তন করা যাবে না।",
+          });
+        }
+
+        // 🔹 5️⃣ একই ব্যাচে আগে পেমেন্ট করা হয়েছে কিনা চেক করো
+        const existingPaymentSameBatch = await paymentInfoCollection.findOne({
+          studentId: studentId,
+          studentMobile: studentMobile,
+          batchId: batchId,
+        });
+
+        if (existingPaymentSameBatch) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "এই ব্যাচের জন্য আপনি ইতিমধ্যে পেমেন্ট করেছেন। একই ব্যাচে একবারই পেমেন্ট করা যায়।",
+          });
+        }
+
+        // 🔹 6️⃣ সব ঠিক থাকলে নতুন ব্যাচের পেমেন্ট insert করো
+        const paymentData = {
+          ...req.body,
+          isOk: "no",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const result = await paymentInfoCollection.insertOne(paymentData);
+
+        res.send({
+          success: true,
+          message: "নতুন ব্যাচের জন্য পেমেন্ট তথ্য যোগ হয়েছে।",
+          data: { ...paymentData, _id: result.insertedId },
+        });
+      } catch (error) {
+        console.error("Payment error:", error);
+        res.status(500).send({
+          success: false,
+          message: "সার্ভার এরর, অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
+        });
+      }
+    });
+
+    // GET - সকল পেমেন্ট তথ্য (Admin only)
+    app.get("/payment-info", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const result = await paymentInfoCollection.find().toArray();
+        res.send({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // GET - একটি নির্দিষ্ট পেমেন্ট তথ্য (Admin only)
+    app.get("/payment-info/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const payment = await paymentInfoCollection.findOne({
+          _id: new ObjectId(req.params.id),
+        });
+
+        if (!payment) {
+          return res
+            .status(404)
+            .send({ success: false, message: "পেমেন্ট তথ্য পাওয়া যায়নি" });
+        }
+
+        res.send({
+          success: true,
+          data: payment,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // PUT - পেমেন্ট তথ্য সম্পূর্ণ আপডেট করা (Admin only)
+    app.put("/payment-info/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const updatedData = req.body;
+        delete updatedData._id;
+
+        updatedData.updatedAt = new Date();
+
+        const result = await paymentInfoCollection.updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: updatedData }
+        );
+
+        if (result.matchedCount === 0) {
+          return res
+            .status(404)
+            .send({ success: false, message: "পেমেন্ট তথ্য পাওয়া যায়নি" });
+        }
+
+        res.send({
+          success: true,
+          message: "পেমেন্ট তথ্য আপডেট হয়েছে",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
+    // PATCH - পেমেন্ট তথ্যের কিছু ফিল্ড আপডেট করা (Admin only)
+    app.patch(
+      "/payment-info/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const partialData = req.body;
+          delete partialData._id;
+
+          partialData.updatedAt = new Date();
+
+          const result = await paymentInfoCollection.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: partialData }
+          );
+
+          if (result.matchedCount === 0) {
+            return res
+              .status(404)
+              .send({ success: false, message: "পেমেন্ট তথ্য পাওয়া যায়নি" });
+          }
+
+          res.send({
+            success: true,
+            message: "পেমেন্ট তথ্য আপডেট হয়েছে",
+            data: result,
+          });
+        } catch (error) {
+          res.status(500).send({ success: false, message: "সার্ভার এরর" });
+        }
+      }
+    );
+
+    // DELETE - পেমেন্ট তথ্য মুছে ফেলা (Admin only)
+    app.delete(
+      "/payment-info/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await paymentInfoCollection.deleteOne({
+            _id: new ObjectId(req.params.id),
+          });
+
+          if (result.deletedCount === 0) {
+            return res
+              .status(404)
+              .send({ success: false, message: "পেমেন্ট তথ্য পাওয়া যায়নি" });
+          }
+
+          res.send({
+            success: true,
+            message: "পেমেন্ট তথ্য ডিলিট হয়েছে",
+            data: result,
+          });
+        } catch (error) {
+          res.status(500).send({ success: false, message: "সার্ভার এরর" });
+        }
+      }
+    );
+
+    // GET - Student ID দিয়ে পেমেন্ট তথ্য খুঁজা (Admin only)
+    app.get(
+      "/payment-info-by-id/:studentId",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await paymentInfoCollection
+            .find({ studentId: req.params.studentId })
+            .toArray();
+
+          res.send({
+            success: true,
+            data: result,
+          });
+        } catch (error) {
+          res.status(500).send({ success: false, message: "সার্ভার এরর" });
+        }
+      }
+    );
+
+    // GET - Bkash নম্বর দিয়ে পেমেন্ট তথ্য খুঁজা (Admin only)
+    app.get(
+      "/payment-info-by-bkash/:bkashNo",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const result = await paymentInfoCollection
+            .find({ bkashNo: req.params.bkashNo })
+            .toArray();
+
+          res.send({
+            success: true,
+            data: result,
+          });
+        } catch (error) {
+          res.status(500).send({ success: false, message: "সার্ভার এরর" });
         }
       }
     );

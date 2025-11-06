@@ -1,4 +1,13 @@
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"; // lucide-react আইকন
+import {
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Home,
+  Loader2,
+  Lock,
+  Mail,
+  UserPlus,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
@@ -11,7 +20,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  let [count, setCount] = useState(0);
+  const [count, setCount] = useState(0);
 
   // Redirect if already logged in
   if (isAuthenticated) {
@@ -27,25 +36,25 @@ const Login = () => {
     );
   }
 
-  const handleGoogleLogin = async () => {
-    try {
-      // const result = await loginWithGoogle(); // তোমার context ফাংশন
-      // if (result.success) navigate("/dashboard");
-    } catch (err) {
-      console.log(err);
-      setError("Google লগইনে সমস্যা হয়েছে");
-    }
-  };
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     // const result = await loginWithGoogle();
+  //     // if (result.success) navigate("/dashboard");
+  //   } catch (err) {
+  //     console.log(err);
+  //     setError("Google লগইনে সমস্যা হয়েছে");
+  //   }
+  // };
 
-  const handleGithubLogin = async () => {
-    try {
-      // const result = await loginWithGoogle(); // তোমার context ফাংশন
-      // if (result.success) navigate("/dashboard");
-    } catch (err) {
-      console.log(err);
-      setError("Google লগইনে সমস্যা হয়েছে");
-    }
-  };
+  // const handleGithubLogin = async () => {
+  //   try {
+  //     // const result = await loginWithGithub();
+  //     // if (result.success) navigate("/dashboard");
+  //   } catch (err) {
+  //     console.log(err);
+  //     setError("GitHub লগইনে সমস্যা হয়েছে");
+  //   }
+  // };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,7 +65,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setCount(() => count++);
+    setCount(count + 1);
 
     if (!formData.identifier || !formData.password) {
       setError("সব ফিল্ড পূরণ করুন");
@@ -85,124 +94,187 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-indigo-600">লগইন করুন</h1>
-          <p className="text-gray-500 mt-2">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 opacity-10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500 opacity-10 rounded-full blur-3xl"></div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Card */}
+        <div className="relative group">
+          {/* Glowing Background */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-20 group-hover:opacity-30 rounded-2xl blur-xl transition-opacity duration-500"></div>
+
+          {/* Form Container */}
+          <div className="relative bg-slate-800 bg-opacity-80 backdrop-blur-xl rounded-2xl border border-slate-700 p-8 shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="inline-block mb-4 p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl">
+                <Lock className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-black text-white mb-2">লগইন করুন</h1>
+              <p className="text-slate-400">
+                আপনার অ্যাকাউন্টে প্রবেশ করুন এবং শিখতে শুরু করুন
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-600/20 border border-red-600/50 rounded-xl flex items-start gap-3 animate-in fade-in duration-300">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-300 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Forgot Password Link */}
+            {count > 3 && (
+              <div className="mb-6 p-4 bg-blue-600/20 border border-blue-600/50 rounded-xl">
+                <Link
+                  to="/forgot"
+                  className="flex items-center justify-between text-blue-300 hover:text-blue-200 transition-colors font-semibold"
+                >
+                  <span>🔑 ইউজার নেম বা পাসওয়ার্ড ভুলে গেছেন?</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5 mb-6">
+              {/* Email/Phone Input */}
+              <div>
+                <label className="block text-white font-semibold mb-2 text-sm">
+                  ইমেইল অথবা ফোন নম্বর
+                </label>
+                <div className="relative group/input">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within/input:text-blue-400 transition-colors" />
+                  <input
+                    type="text"
+                    name="identifier"
+                    placeholder="example@email.com অথবা 01xxx-xxx"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-slate-700/80 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={formData.identifier}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label className="block text-white font-semibold mb-2 text-sm">
+                  পাসওয়ার্ড
+                </label>
+                <div className="relative group/input">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within/input:text-blue-400 transition-colors" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-12 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-slate-700/80 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none mt-6"
+              >
+                {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+                {loading ? "লগইন হচ্ছে..." : "লগইন করুন"}
+              </button>
+            </form>
+
+            {/* Divider */}
+            {/* <div className="flex items-center gap-3 my-6">
+              <div className="flex-grow h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+              <span className="text-slate-400 text-sm font-semibold">অথবা</span>
+              <div className="flex-grow h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+            </div> */}
+
+            {/* Social Login */}
+            {/* <div className="space-y-3 mb-6">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-700/50 border border-slate-600 hover:border-blue-500/50 hover:bg-slate-700 rounded-xl transition-all duration-300 group"
+              >
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
+                <span className="text-slate-300 font-semibold group-hover:text-white transition-colors">
+                  Google দিয়ে লগইন
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGithubLogin}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-700/50 border border-slate-600 hover:border-purple-500/50 hover:bg-slate-700 rounded-xl transition-all duration-300 group"
+              >
+                <img
+                  src="https://www.svgrepo.com/show/512317/github-142.svg"
+                  alt="GitHub"
+                  className="w-5 h-5"
+                />
+                <span className="text-slate-300 font-semibold group-hover:text-white transition-colors">
+                  GitHub দিয়ে লগইন
+                </span>
+              </button>
+            </div> */}
+
+            {/* Footer Links */}
+            <div className="border-t border-slate-700 pt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+                >
+                  <Home className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  হোমপেজ
+                </Link>
+
+                <div className="hidden sm:block w-1 h-1 bg-slate-600 rounded-full"></div>
+
+                <Link
+                  to="/registration"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-600/50 text-blue-300 hover:text-blue-200 rounded-lg transition-all duration-300 group font-semibold"
+                >
+                  <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  নতুন অ্যাকাউন্ট তৈরি করুন
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded-lg mb-4 text-sm font-medium">
-            ⚠️ {error}
-          </div>
-        )}
-        {count > 3 && (
+        {/* Bottom Text */}
+        <p className="text-center text-slate-400 text-sm mt-6">
+          আমরা আপনার তথ্য সুরক্ষিত রাখি। আমাদের{" "}
           <Link
-            to="/forgot"
-            className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg block text-sm font-medium"
+            to="/privacy"
+            className="text-blue-400 hover:text-blue-300 underline"
           >
-            Forgot UID or Password!
-          </Link>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4 my-4">
-          {/* Email */}
-          <div>
-            <label className="block text-gray-700 mb-1">ইমেইল</label>
-            {/* <input
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              value={formData.email}
-              onChange={handleChange}
-            /> */}
-            <input
-              type="text"
-              name="identifier"
-              placeholder="ইমেইল অথবা ফোন দিন"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              value={formData.identifier}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Password */}
-          <div className="relative">
-            <label className="block text-gray-800 mb-1">পাসওয়ার্ড</label>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="••••••"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-9 text-gray-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition font-semibold"
-          >
-            {loading && <Loader2 className="animate-spin" size={18} />}
-            {loading ? "লগইন হচ্ছে..." : "লগইন করুন"}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="flex items-center my-4">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-2 text-gray-400 text-sm">অথবা</span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-
-        {/* Social Login Buttons */}
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={handleGoogleLogin} // 🔹 এই ফাংশনটি তুমি context বা auth ফাইলে ডিফাইন করবে
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
-          >
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="w-5 h-5"
-            />
-            <span className="text-gray-700 font-medium">Google দিয়ে লগইন</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGithubLogin} // 🔹 এটাও context/auth এ যোগ করবে
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
-          >
-            <img
-              src="https://www.svgrepo.com/show/512317/github-142.svg"
-              alt="GitHub"
-              className="w-5 h-5"
-            />
-            <span className="text-gray-700 font-medium">GitHub দিয়ে লগইন</span>
-          </button>
-        </div>
-
-        <div className="text-center mt-6 text-sm gap-4">
-          <a href="/" className="text-indigo-600 hover:underline">
-            ← হোমপেজে
-          </a>
-          <span className="font-bold text-sm text-blue-500 px-4">অথবা</span>
-          <Link className="text-indigo-600 hover:underline" to="/registration">
-            রেজিস্ট্রেশন →
-          </Link>
-        </div>
+            গোপনীয়তা নীতি
+          </Link>{" "}
+          দেখুন।
+        </p>
       </div>
     </div>
   );

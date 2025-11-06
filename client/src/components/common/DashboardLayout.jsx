@@ -1,12 +1,14 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 import Navbar from "./Navbar";
+import NavbarD from "./NavbarD";
 import Sidebar from "./Sidebar";
 
 const DashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
   const { isSideMenu } = useAppContext();
 
@@ -14,10 +16,13 @@ const DashboardLayout = ({ children }) => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const path = location.pathname;
+
   return (
     <div className="min-h-screen bg-base-200">
       {/* Navbar */}
-      <Navbar />
+      {path === "/" && <Navbar />}
+      <NavbarD />
 
       {/* Dashboard Container */}
       <div className="drawer lg:drawer-open">

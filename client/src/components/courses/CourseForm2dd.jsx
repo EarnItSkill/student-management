@@ -21,7 +21,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
         instructorDesignation: course.instructorDesignation || "",
         instructorImage: course.instructorImage || "",
         classes: course.classes || [],
-        videoUrl: course.videoUrl || "",
       };
     }
     return {
@@ -34,7 +33,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
       instructorDesignation: "",
       instructorImage: "",
       classes: [],
-      videoUrl: "",
     };
   };
 
@@ -95,7 +93,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
         classes: data.classes.map((classItem, classIndex) => ({
           id: classIndex + 1,
           topic: classItem.topic || [],
-          videoUrl: classItem.videoUrl || "",
           quesAns: (classItem.quesAns || []).map((qa, index) => ({
             ...qa,
             id: index + 1,
@@ -821,22 +818,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
               Add Word
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Video URL */}
-      <div className="collapse collapse-arrow bg-base-200">
-        <input type="checkbox" />
-        <div className="collapse-title font-semibold text-gray-300">
-          ভিডিও লিংক
-        </div>
-        <div className="collapse-content">
-          <input
-            type="url"
-            placeholder="https://example.com/video.mp4"
-            className="input input-md text-gray-400 input-bordered w-full mt-2"
-            {...register(`classes.${classIndex}.videoUrl`)}
-          />
         </div>
       </div>
     </div>

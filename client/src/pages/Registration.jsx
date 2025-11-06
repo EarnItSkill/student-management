@@ -45,6 +45,9 @@ const Registration = () => {
       eiin: "",
       address: "",
       image: "",
+      rollNumber: "",
+      registrationNumber: "",
+      passingYear: "",
     },
   });
 
@@ -327,7 +330,7 @@ const Registration = () => {
               <div className="form-control flex flex-col">
                 <label className="label">
                   <span className="label-text font-semibold">
-                    স্কুল/কলেজ EIIN *
+                    বর্তমান কলেজ EIIN *
                   </span>
                 </label>
                 <input
@@ -356,6 +359,94 @@ const Registration = () => {
                     শিক্ষা প্রতিষ্ঠানের EIIN নম্বর (৬ ডিজিটের)
                   </span>
                 </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Roll Number */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      এসএসসি রোল নং *
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 123456"
+                    className={`input input-bordered w-full ${
+                      errors.rollNumber ? "input-error" : ""
+                    }`}
+                    {...register("rollNumber", {
+                      required: "রোল নং বাধ্যতামূলক",
+                    })}
+                  />
+                  {errors.rollNumber && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.rollNumber.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Registration Number */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      রেজিষ্ট্রেশন নং *
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 123456789"
+                    className={`input input-bordered w-full ${
+                      errors.registrationNumber ? "input-error" : ""
+                    }`}
+                    {...register("registrationNumber", {
+                      required: "রেজিষ্ট্রেশন নং বাধ্যতামূলক",
+                    })}
+                  />
+                  {errors.registrationNumber && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.registrationNumber.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Passing Year */}
+                <div className="form-control flex flex-col">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      পাশের সাল *
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 2023"
+                    className={`input input-bordered w-full ${
+                      errors.passingYear ? "input-error" : ""
+                    }`}
+                    {...register("passingYear", {
+                      required: "পাশের সাল বাধ্যতামূলক",
+                      min: {
+                        value: 1980,
+                        message: "ভ্যালিড সাল দিন",
+                      },
+                      max: {
+                        value: new Date().getFullYear(),
+                        message: "ভবিষ্যতের সাল দিতে পারবেন না",
+                      },
+                    })}
+                  />
+                  {errors.passingYear && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.passingYear.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* Account Information */}

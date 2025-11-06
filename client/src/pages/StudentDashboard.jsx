@@ -9,6 +9,7 @@ import {
   Clock,
   DollarSign,
   Eye,
+  EyeOff,
   Grid,
   List as ListIcon,
   Lock,
@@ -54,6 +55,7 @@ const StudentDashboard = () => {
   const [attendanceDateFilter, setAttendanceDateFilter] = useState("");
   const [attendanceViewType, setAttendanceViewType] = useState("cards");
   const [studentResults, setStudentResults] = useState([]);
+  const [showSummary, setShowSummary] = useState(false);
 
   const student = currentUser;
 
@@ -217,7 +219,7 @@ const StudentDashboard = () => {
   return (
     <DashboardLayout>
       {/* Welcome Card  */}
-      {enrolledCourseIds.length !== 0 && (
+      {enrolledCourseIds.length !== 0 && showSummary && (
         <div className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-xl mb-6">
           <div className="card-body">
             <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
@@ -271,7 +273,7 @@ const StudentDashboard = () => {
       )}
 
       {/* Stats Cards */}
-      {enrolledCourseIds.length !== 0 && (
+      {enrolledCourseIds.length !== 0 && showSummary && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="stat bg-base-100 rounded-lg shadow-lg hover:shadow-xl transition-all">
             <div className="stat-figure text-primary">
@@ -369,6 +371,18 @@ const StudentDashboard = () => {
           >
             <Award className="w-4 h-4" />
             MCQs
+          </a>
+          <a
+            role="tab"
+            className="tab gap-2 whitespace-nowrap"
+            onClick={() => setShowSummary(!showSummary)}
+          >
+            {!showSummary ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
+            )}
+            {!showSummary ? "Show" : "Hide"} Summary
           </a>
         </div>
       )}

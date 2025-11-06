@@ -262,13 +262,13 @@ const TestQuiz = () => {
               <input
                 className="btn border border-gray-400"
                 type="number"
-                placeholder="সংখ্যা লিখুন ১ থেকে ২০"
+                placeholder="সংখ্যা লিখুন ১ থেকে ১০"
                 value={iNumber}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (
                     value === "" ||
-                    (Number(value) <= 20 && Number(value) >= 1)
+                    (Number(value) <= 10 && Number(value) >= 1)
                   ) {
                     setINumber(value);
                   }

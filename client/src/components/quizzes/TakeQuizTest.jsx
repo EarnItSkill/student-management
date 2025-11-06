@@ -1,6 +1,7 @@
 import { Award, CheckCircle, Send, X } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "../../context/useAppContext";
+import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
   const { currentUser, submitQuiz, enrollments, submitMcq } = useAppContext();
@@ -167,7 +168,8 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
               <div className="card-body">
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-lg font-bold flex-1">
-                    {currentQuestion + 1}. {question.question}
+                    {currentQuestion + 1}.{" "}
+                    {parseSpecialToJSX(question.question)}
                   </h4>
                   {hasMultipleAnswers && (
                     <span className="badge badge-info">Multiple Answers</span>
@@ -210,7 +212,9 @@ const TakeQuizTest = ({ quiz, onClose, onSuccess }) => {
                             {String.fromCharCode(65 + index)}.
                           </span>
                         )}
-                        <span className="flex-1">{option}</span>
+                        <span className="flex-1">
+                          {parseSpecialToJSX(option)}
+                        </span>
                         {isSelected && !hasMultipleAnswers && (
                           <CheckCircle className="w-5 h-5" />
                         )}

@@ -34,6 +34,7 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
   } = useForm({
     defaultValues: batch || {
       batchName: "",
@@ -43,10 +44,13 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
       scheduleType: "",
       startTime: "",
       gender: "",
-      btchType: "",
-      totalSeats: 20,
+      batchType: "",
+      totalSeats: 1000,
+      batchMode: "",
     },
   });
+
+  const batchMode = watch("batchMode");
 
   const onSubmit = async (data) => {
     try {
@@ -70,6 +74,40 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
       console.error("Error saving batch:", error);
     }
   };
+
+  // const onSubmit = async (data) => {
+  //   try {
+  //     // Convert "YYYY-MM-DD" to local ISO format
+  //     const normalizeDate = (dateStr) => {
+  //       if (!dateStr) return "";
+  //       const [year, month, day] = dateStr.split("-").map(Number);
+  //       const localDate = new Date(year, month - 1, day);
+  //       return localDate.toISOString(); // ensures uniform date parsing
+  //     };
+
+  //     const batchData = {
+  //       ...data,
+  //       startDate: normalizeDate(data.startDate),
+  //       endDate: normalizeDate(data.endDate),
+  //       sBatchId: isEdit ? batch.batchId : generateBatchId(),
+  //       totalSeats: parseInt(data.totalSeats),
+  //       enrolledStudents: batch?.enrolledStudents || 0,
+  //       instructor: "মো. মোজাম্মেল হক",
+  //       courseFee: findFee(data),
+  //     };
+
+  // if (isEdit) {
+  //   updateBatch(batch._id, batchData);
+  // } else {
+  //   addBatch(batchData);
+  // }
+
+  //     onSuccess?.();
+  //     onClose();
+  //   } catch (error) {
+  //     console.error("Error saving batch:", error);
+  //   }
+  // };
 
   return (
     <div className="modal modal-open">
@@ -174,9 +212,9 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                   </label>
                   <select
                     className={`select select-bordered w-full ${
-                      errors.batchtype ? "select-error" : ""
+                      errors.batchType ? "select-error" : ""
                     }`}
-                    {...register("batchtype", {
+                    {...register("batchType", {
                       required: "Batch Type is required",
                     })}
                   >
@@ -185,10 +223,10 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                     <option value="office">Office</option>
                     <option value="excel">Excel</option>
                   </select>
-                  {errors.batchtype && (
+                  {errors.batchType && (
                     <label className="label">
                       <span className="label-text-alt text-error">
-                        {errors.batchtype.message}
+                        {errors.batchType.message}
                       </span>
                     </label>
                   )}
@@ -218,6 +256,34 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                     <label className="label">
                       <span className="label-text-alt text-error">
                         {errors.gender.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
+                {/* Batch Mode */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold text-base">
+                      Batch Mode
+                    </span>
+                    <span className="label-text-alt text-error">*</span>
+                  </label>
+                  <select
+                    className={`select select-bordered w-full ${
+                      errors.batchMode ? "select-error" : ""
+                    }`}
+                    {...register("batchMode", {
+                      required: "Batch mode is required",
+                    })}
+                  >
+                    <option value="">Select Mode</option>
+                    <option value="online">Online (অনলাইন)</option>
+                    <option value="offline">Offline (অফলাইন)</option>
+                  </select>
+                  {errors.batchMode && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        {errors.batchMode.message}
                       </span>
                     </label>
                   )}
@@ -357,8 +423,12 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">Total Seats</span>
-                  <span className="label-text-alt text-error">*</span>
+                  <span className="label-text font-semibold">
+                    Total Seats
+                    {batchMode === "offline" && (
+                      <span className="label-text-alt text-error">*</span>
+                    )}
+                  </span>
                 </label>
                 <input
                   type="number"
@@ -366,10 +436,14 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                   className={`input input-bordered w-full ${
                     errors.totalSeats ? "input-error" : ""
                   }`}
+                  disabled={batchMode === "online"}
                   {...register("totalSeats", {
-                    required: "Total seats is required",
+                    required:
+                      batchMode === "offline"
+                        ? "Total seats is required for offline batches"
+                        : false,
                     min: { value: 1, message: "Must be at least 1 seat" },
-                    max: { value: 100, message: "Cannot exceed 100 seats" },
+                    max: { value: 1000, message: "Cannot exceed 1000 seats" },
                     valueAsNumber: true,
                   })}
                 />
@@ -382,7 +456,9 @@ const BatchForm = ({ batch, onClose, onSuccess }) => {
                 )}
                 <label className="label">
                   <span className="label-text-alt text-gray-500">
-                    Maximum number of students allowed in this batch
+                    {batchMode === "online"
+                      ? "অনলাইন ব্যাচের জন্য সিট সীমা নেই"
+                      : "এই ব্যাচে সর্বোচ্চ শিক্ষার্থী সংখ্যা"}
                   </span>
                 </label>
               </div>

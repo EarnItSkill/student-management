@@ -39,6 +39,7 @@ export const AppProvider = ({ children }) => {
   const [mcqExamResult, setMcqExamResult] = useState([]);
   const [chapterSchedules, setChapterSchedules] = useState([]);
   const [cqQuestions, setCqQuestions] = useState([]);
+  const [paymentInfo, setPaymentInfo] = useState([]);
 
   // Loading State
   const [loading, setLoading] = useState(true);
@@ -972,6 +973,162 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // ======================= Payment Info =======================
+  const addPaymentInfo = async (newPayment) => {
+    console.log(newPayment);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/payment-info`,
+        newPayment,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPaymentInfo((prevPaymentInfo) => [
+        ...prevPaymentInfo,
+        response.data.data,
+      ]);
+
+      return response.data.data;
+    } catch (error) {
+      console.error("API-এর মাধ্যমে নতুন পেমেন্ট যোগ করার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const getPaymentInfo = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/payment-info`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPaymentInfo(response.data.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("পেমেন্ট তথ্য ফেচ করার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const updatePaymentInfo = async (id, updatedData) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/payment-info/${id}`,
+        updatedData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPaymentInfo((prevPaymentInfo) =>
+        prevPaymentInfo.map((payment) =>
+          payment._id === id ? { ...payment, ...updatedData } : payment
+        )
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error("পেমেন্ট আপডেট করার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const patchPaymentInfo = async (id, partialData) => {
+    try {
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/payment-info/${id}`,
+        partialData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPaymentInfo((prevPaymentInfo) =>
+        prevPaymentInfo.map((payment) =>
+          payment._id === id ? { ...payment, ...partialData } : payment
+        )
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error("পেমেন্ট আপডেট করার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const deletePaymentInfo = async (id) => {
+    try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/payment-info/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPaymentInfo((prevPaymentInfo) =>
+        prevPaymentInfo.filter((payment) => payment._id !== id)
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error("পেমেন্ট ডিলিট করার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const getPaymentInfoByStudentId = async (studentId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/payment-info-by-id/${studentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error("Student ID দিয়ে পেমেন্ট তথ্য খুঁজার সময় ত্রুটি:", error);
+      throw error;
+    }
+  };
+
+  const getPaymentInfoByBkash = async (bkashNo) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/payment-info-by-bkash/${bkashNo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error(
+        "Bkash নম্বর দিয়ে পেমেন্ট তথ্য খুঁজার সময় ত্রুটি:",
+        error
+      );
+      throw error;
+    }
+  };
+
   // ========================
   // Context Value
   // ========================
@@ -1057,6 +1214,17 @@ export const AppProvider = ({ children }) => {
     addCqQuestion,
     updateCqQuestion,
     deleteCqQuestion,
+
+    // Payment Info
+    paymentInfo,
+    setPaymentInfo,
+    addPaymentInfo,
+    getPaymentInfo,
+    updatePaymentInfo,
+    patchPaymentInfo,
+    deletePaymentInfo,
+    getPaymentInfoByStudentId,
+    getPaymentInfoByBkash,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

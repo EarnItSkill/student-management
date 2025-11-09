@@ -22,11 +22,13 @@ import BatchDetailsPage from "../pages/admin/BatchDetailsPage";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
 import PaymentInfo from "../pages/admin/PaymentInfo";
+import VerifiedStudentInfo from "../pages/admin/VerifiedStudentInfo";
 import AdminDashboard from "../pages/AdminDashboard";
 import CourseDetails from "../pages/CourseDetails";
 import ForgotCredentials from "../pages/ForgotCredentials";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
+import McqPage from "../pages/McqPage";
 import McqRankPage from "../pages/McqRankPage";
 import NotFound from "../pages/NotFound";
 import RankPage from "../pages/RankPage";
@@ -36,8 +38,6 @@ import StudentCqPage from "../pages/StudentCqPage";
 import StudentDashboard from "../pages/StudentDashboard";
 import StudentDetails from "../pages/StudentDetails";
 import StudentProfile from "../pages/StudentProfilePage";
-import StudentQuizPage from "../pages/StudentQuizPage";
-import StudentQuizResults from "../pages/StudentQuizResults";
 import StudentSearch from "../pages/StudentSearch";
 import TestQuiz from "../pages/TestQuiz";
 
@@ -84,11 +84,9 @@ const AppRoutes = () => {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="cq" element={<StudentCqPage />} />
         <Route path="test-quiz" element={<TestQuiz />} />
-        <Route path="practice-quiz" element={<StudentQuizPage />} />
-        <Route path="quiz-results" element={<StudentQuizResults />} />
-        <Route path="rankings" element={<McqRankPage />} />
         <Route path="ranks" element={<RankPage />} />
         <Route path="payment-info" element={<PaymentForm />} />
+        <Route path="mcq" element={<McqPage />} />
       </Route>
 
       {/* Protected Admin Routes */}
@@ -115,6 +113,7 @@ const AppRoutes = () => {
         <Route path="quiz-results" element={<AdminQuizResults />} />
         <Route path="rankings" element={<McqRankPage />} />
         <Route path="payment-info" element={<PaymentInfo />} />
+        <Route path="verified-info" element={<VerifiedStudentInfo />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

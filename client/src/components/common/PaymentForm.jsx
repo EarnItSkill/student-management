@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
 
 export default function PaymentForm() {
-  const { addPaymentInfo, currentUser } = useAppContext();
+  const { addPaymentInfo } = useAppContext();
 
   const {
     register,
@@ -38,8 +38,6 @@ export default function PaymentForm() {
       const submissionData = {
         ...data,
         timestamp: now.toLocaleString("bn-BD"),
-        success: true,
-        stuUid: currentUser?._id,
       };
       console.log(submissionData);
 
@@ -162,7 +160,7 @@ export default function PaymentForm() {
                 </label>
                 <input
                   type="text"
-                  placeholder="যেমন: STU001"
+                  placeholder="যেমন: STU-0001"
                   className={`w-full px-4 py-2 rounded-lg bg-slate-700 text-white border ${
                     errors.studentId ? "border-red-500" : "border-slate-600"
                   } focus:outline-none focus:border-blue-500 transition disabled:opacity-50`}
@@ -215,7 +213,7 @@ export default function PaymentForm() {
                 </label>
                 <input
                   type="text"
-                  placeholder="যেমন: B2024"
+                  placeholder="যেমন: BATCH-0001"
                   className={`w-full px-4 py-2 rounded-lg bg-slate-700 text-white border ${
                     errors.batchId ? "border-red-500" : "border-slate-600"
                   } focus:outline-none focus:border-blue-500 transition disabled:opacity-50`}

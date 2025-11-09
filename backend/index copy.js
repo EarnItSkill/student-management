@@ -110,38 +110,6 @@ async function run() {
       .collection("paymentInfo");
 
     // =========================
-    // Verify Student
-    // =========================
-    // const verifyStudent = async (req, res, next) => {
-    //   try {
-    //     console.log(req);
-    //     const userId = req.user.uid; // verifyToken থেকে ইউজারের UID
-    //     console.log(userId);
-    //     // এখানে ধরে নিচ্ছি studentCollection এ studentId ফিল্ড আছে
-
-    //     const student = await studentCollection.findOne({ studentId: userId });
-
-    //     // যদি student না থাকে বা তার status false হয়
-    //     if (!student || student.status === false) {
-    //       return res.status(403).send({
-    //         success: false,
-    //         message: "কোর্স অ্যাক্সেস করার অনুমতি নেই।",
-    //       });
-    //     }
-
-    //     // student ডাটা পরবর্তী রাউটে ব্যবহার করতে চাইলে req.student হিসেবে পাঠাও
-    //     req.student = student;
-    //     next();
-    //   } catch (error) {
-    //     console.error("verifyStudent Error:", error);
-    //     res.status(500).send({
-    //       success: false,
-    //       message: "সার্ভার এরর (verifyStudent)",
-    //     });
-    //   }
-    // };
-
-    // =========================
     // AUTHENTICATION
     // =========================
 
@@ -419,13 +387,12 @@ async function run() {
     // app.get("/courses", verifyToken, async (req, res) => {
     //   try {
     //     const userId = req.user._id; // verifyToken থেকে লগইনকৃত ইউজারের UID
-    //     console.log(userId);
 
     //     // studentCollection এ userId আছে কিনা চেক
     //     const student = await enrollmentCollection.findOne({
     //       studentId: userId,
     //     });
-    //     // console.log(student);
+    //     console.log(student);
 
     //     // যদি studentCollection এ student না থাকে (মানে userId পাওয়া যায়নি)
     //     if (!student) {

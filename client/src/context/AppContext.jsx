@@ -975,7 +975,6 @@ export const AppProvider = ({ children }) => {
 
   // ======================= Payment Info =======================
   const addPaymentInfo = async (newPayment) => {
-    console.log(newPayment);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/payment-info`,

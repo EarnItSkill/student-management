@@ -1,7 +1,7 @@
 import {
   BookOpen,
+  Brain,
   Calendar,
-  CircleDollarSign,
   FileText,
   Home,
   LayoutDashboard,
@@ -74,6 +74,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/verified-info",
+      label: "Verified",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,
@@ -114,37 +120,16 @@ const Sidebar = () => {
     {
       path: "/dashboard/student/test-quiz",
       label: "নিজেকে যাচাই করি",
-      icon: BookOpen,
+      icon: Brain,
       isDash: false,
       requiredEnrollment: false,
     },
     {
-      path: "/dashboard/student/practice-quiz",
+      path: "/dashboard/student/mcq",
       label: "MCQ পরীক্ষা",
       icon: BookOpen,
       isDash: false,
       requiredEnrollment: true,
-    },
-    {
-      path: "/dashboard/student/quiz-results",
-      label: "MCQ রেজাল্ট",
-      icon: Trophy,
-      isDash: false,
-      requiredEnrollment: true,
-    },
-    {
-      path: "/dashboard/student/rankings",
-      label: "MCQ পরীক্ষার অবস্থান",
-      icon: Trophy,
-      isDash: false,
-      requiredEnrollment: true,
-    },
-    {
-      path: "/dashboard/student/payment-info",
-      label: "পেমেন্ট তথ্য",
-      icon: CircleDollarSign,
-      isDash: false,
-      requiredEnrollment: false,
     },
   ];
 

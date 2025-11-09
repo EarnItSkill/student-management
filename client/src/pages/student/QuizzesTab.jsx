@@ -497,11 +497,12 @@ const QuizzesTab = ({
                                       </div>
                                     ) : quiz.isDateUnlocked ? (
                                       <div>
-                                        আনলক করার জন্য আগের কুইজ সম্পন্ন করুন
+                                        আনলক করার জন্য #{quiz.quizIndex} কুইজ
+                                        সম্পন্ন করুন
                                       </div>
                                     ) : (
                                       <div>
-                                        কুইজ সম্পন্ন করুন #{quiz.quizIndex} এবং
+                                        {quiz.quizIndex}নং কুইজ সম্পন্ন করুন এবং
                                         অপেক্ষা করুন{" "}
                                         {new Date(
                                           quiz.unlockDate

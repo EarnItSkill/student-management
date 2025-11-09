@@ -9,6 +9,7 @@ const TestQuiz = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
   const [iNumber, setINumber] = useState("");
+  console.log(quizzes);
 
   // Group quizzes by chapter
   const chapterGroups = useMemo(() => {

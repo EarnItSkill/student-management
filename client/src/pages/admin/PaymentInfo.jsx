@@ -128,7 +128,11 @@ export default function PaymentInfo() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("আপনি কি এই পেমেন্ট রেকর্ড মুছতে চান?")) {
+    if (
+      window.confirm(
+        "আপনি কি এই পেমেন্ট রেকর্ড মুছতে চান? তাহলে আপনাকে মেনুয়্যালি Enrollment ও Payment ডিলিট করতে হবে।"
+      )
+    ) {
       setIsLoading(true);
       try {
         await deletePaymentInfo(id);
@@ -277,7 +281,9 @@ export default function PaymentInfo() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEdit(payment)}
-                            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+                            className={`p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition ${
+                              payment.enroll === "yes" && "hidden"
+                            }`}
                             title="সম্পাদনা করুন"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -301,7 +307,8 @@ export default function PaymentInfo() {
                               payment.isOk === "yes" ? "no" : "yes"
                             )
                           }
-                          className="w-5 h-5 cursor-pointer rounded"
+                          disabled={payment.enroll === "yes"}
+                          className="w-5 h-5 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                       </td>
                     </tr>

@@ -12,8 +12,11 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAppContext } from "../context/useAppContext";
 
 const NotEnrolledPage = () => {
+  const { setIsSideMenu } = useAppContext();
   const contactInfo = {
     phone: "01515667293",
     email: "mrmozammal@gmail.com",
@@ -249,9 +252,16 @@ const NotEnrolledPage = () => {
               <div className="text-center mt-8">
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <GraduationCap className="w-6 h-6" />
-                  <span className="font-bold text-lg">
+                  <Link
+                    onClick={() => {
+                      setIsSideMenu(false);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    to="/dashboard/student/payment-info"
+                    className="font-bold text-lg"
+                  >
                     এখনই যোগাযোগ করুন এবং শুরু করুন!
-                  </span>
+                  </Link>
                 </div>
               </div>
 

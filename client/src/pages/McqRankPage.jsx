@@ -1,10 +1,9 @@
-import { ArrowLeft, BookOpen, Filter, Medal, Trophy } from "lucide-react";
+import { BookOpen, Medal, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
 
 const McqRankPage = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { mcqExamResult, batches, courses, currentUser, rankingStudents } =
     useAppContext();
 
@@ -177,14 +176,15 @@ const McqRankPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 p-6">
+    // <div className="min-h-screen bg-base-200 p-6">
+    <div className="min-h-screen bg-base-200">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => navigate(-1)} className="btn btn-ghost gap-2">
+          {/* <button onClick={() => navigate(-1)} className="btn btn-ghost gap-2">
             <ArrowLeft className="w-5 h-5" />
             ফিরে যান
-          </button>
+          </button> */}
           <div className="flex items-center gap-3">
             <Trophy className="w-10 h-10 text-primary" />
             <div>
@@ -250,10 +250,6 @@ const McqRankPage = () => {
         {/* Filters */}
         <div className="card bg-base-100 shadow-xl mb-6">
           <div className="card-body">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-bold">Filters</h3>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Gender Filter */}
               <div className="form-control">

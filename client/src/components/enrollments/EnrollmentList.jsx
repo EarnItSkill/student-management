@@ -11,6 +11,7 @@ const EnrollmentList = ({ onAdd }) => {
     courses,
     unenrollStudent,
     updateBatch,
+    // patchPaymentInfo,
   } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [batchFilter, setBatchFilter] = useState("all");
@@ -69,6 +70,10 @@ const EnrollmentList = ({ onAdd }) => {
 
         // ৩. স্টুডেন্টকে আন-এনরোল করা (আপনার বিদ্যমান লজিক)
         unenrollStudent(deleteModal.enrollment._id);
+        // patchPaymentInfo(deleteModal.enrollment._id, {
+        //   enroll: "no",
+        //   isOk: "no",
+        // });
         setDeleteModal({ isOpen: false, enrollment: null });
       } catch (error) {
         console.error("Error during unenrollment batch update:", error);

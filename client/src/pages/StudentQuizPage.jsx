@@ -303,7 +303,7 @@ const StudentQuizPage = () => {
 
   if (!studentEnrollment) {
     return (
-      <div className="min-h-screen bg-base-200 p-6">
+      <div className="min-h-screen bg-base-200">
         <div className="max-w-2xl mx-auto">
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body text-center py-12">
@@ -328,7 +328,7 @@ const StudentQuizPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-6">
+    <div className="min-h-screen bg-base-200">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">

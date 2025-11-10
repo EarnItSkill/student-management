@@ -1,15 +1,37 @@
+import axios from "axios";
 import { AlertCircle, ArrowRight, Calendar, Clock, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 
 const UpcomingBatchesSection = ({ limit }) => {
-  const { batches, courses, enrollments } = useAppContext();
+  const { courses, enrollments } = useAppContext();
+  const [batches, setBatches] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
 
   const path = location.pathname;
 
   const visibleCards = limit ? batches.slice(0, limit) : batches;
+
+  useEffect(() => {
+    const fetchUpcomingBatches = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/upcoming-batches`
+        );
+        if (res.data?.success) {
+          setBatches(res.data.data); // ✅ ব্যাচ ডাটা সেট করো
+        }
+      } catch (error) {
+        console.error("Error fetching upcoming batches:", error);
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchUpcomingBatches();
+  }, []);
 
   const handleClick = () => {
     navigate("/up-comming");

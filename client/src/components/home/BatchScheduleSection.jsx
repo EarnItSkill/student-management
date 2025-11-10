@@ -1,289 +1,325 @@
-import {
-  ArrowRight,
-  BookOpen,
-  Calendar,
-  DollarSign,
-  GraduationCap,
-  Sparkles,
-  Users,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import { useAppContext } from "../../context/useAppContext";
+import { BookOpen, Clock, DollarSign, Users, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-// সকল ডেটা একত্রিত করে কোর্সের ধরন (batchType) অনুযায়ী সারসংক্ষেপ তৈরি করে
-const aggregateBatchData = (batches, enrollments, quizzes) => {
-  const aggregatedData = {};
+export default function BatchScheduleSection() {
+  const [courses, setCourses] = useState([]);
+  const [displayedCourses, setDisplayedCourses] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
-  batches.forEach((batch) => {
-    const type = batch.batchType;
-    const batchId = batch._id;
-    const courseId = batch.courseId;
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
-    if (!aggregatedData[type]) {
-      aggregatedData[type] = {
-        type,
-        courseId,
-        totalEnrolled: 0,
-        totalBatches: 0,
-        minFee: Infinity,
-        batchIds: [],
-        // পুরাতন কমন স্টাইল/নামকরণ
-        ...getBatchTypeStyle(type),
-      };
+  useEffect(() => {
+    if (showAll) {
+      setDisplayedCourses(courses);
+    } else {
+      setDisplayedCourses(courses.slice(0, 3));
     }
+  }, [courses, showAll]);
 
-    // এনরোলমেন্ট গণনা (ঐ ব্যাচের)
-    const enrolledInBatch = enrollments.filter(
-      (e) => e.batchId === batchId && e.status === "active"
-    ).length;
-
-    // তথ্য একত্রিত করা
-    aggregatedData[type].totalEnrolled += enrolledInBatch;
-    aggregatedData[type].totalBatches += 1;
-    if (batch.courseFee < aggregatedData[type].minFee) {
-      aggregatedData[type].minFee = batch.courseFee;
+  const fetchCourses = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/make-courses`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setCourses(data.data || []);
+    } catch (error) {
+      console.error("কোর্স ফেচ করতে ত্রুটি:", error);
+    } finally {
+      setIsLoading(false);
     }
-    aggregatedData[type].batchIds.push(batchId);
-  });
+  };
 
-  // কুইজ গণনা (কোর্সের ID ধরে)
-  const courseQuizCounts = quizzes.reduce((acc, quiz) => {
-    acc[quiz.courseId] = (acc[quiz.courseId] || 0) + 1;
-    return acc;
-  }, {});
+  const handleCardClick = (course) => {
+    setSelectedCourse(course);
+    setShowModal(true);
+  };
 
-  // চূড়ান্ত ডেটা ফর্মেট
-  return Object.values(aggregatedData).map((data) => ({
-    ...data,
-    quizCount: courseQuizCounts[data.courseId] || 0,
-    cqCount: data.type === "ict" ? 15 : 10, // ডামি CQ সংখ্যা
-  }));
-};
-
-// ব্যাচ টাইপ অনুযায়ী কার্ডের স্টাইল এবং বিবরণ নির্ধারণ
-const getBatchTypeStyle = (type) => {
-  if (type === "ict") {
-    return {
-      title: "ICT এডমিশন ও একাডেমিক",
-      icon: "💻",
-      color: "from-blue-500 to-indigo-600",
-      tColor: "text-indigo-600",
-      bgColor: "from-blue-50 to-indigo-50",
-      borderColor: "border-indigo-300",
-      description:
-        "উচ্চ মাধ্যমিক ও এডমিশন আইসিটি কোর্সের চলমান ব্যাচসমূহ ও তথ্য।",
-      popular: true,
-    };
-  } else if (type === "office") {
-    return {
-      title: "কম্পিউটার অফিস অ্যাপ্লিকেশন",
-      icon: "🗄️",
-      color: "from-green-500 to-teal-600",
-      tColor: "text-teal-600",
-      bgColor: "from-green-50 to-teal-50",
-      borderColor: "border-teal-300",
-      description:
-        "কম্পিউটার বেসিক ও পেশাগত অফিস অ্যাপ্লিকেশনের চলমান ব্যাচসমূহ।",
-      popular: false,
-    };
-  }
-  //... অন্যান্য টাইপ
-  return {};
-};
-
-// স্থায়ী তথ্য (সব কোর্সের জন্য একই)
-const commonInfo = {
-  duration: "৩ মাস",
-  daysPerWeek: "৬ দিন (শনি - বৃহস্পতিবার)",
-  features: [
-    "অভিজ্ঞ শিক্ষক",
-    "ছোট ব্যাচ সাইজ",
-    "প্র্যাকটিক্যাল ক্লাস",
-    "সার্টিফিকেট প্রদান",
-  ],
-};
-
-const BatchScheduleSection = () => {
-  // ডেটা একত্রিত করা
-  const { batches, enrollments, quizzes } = useAppContext();
-  const processedBatchGroups = aggregateBatchData(
-    batches,
-    enrollments,
-    quizzes
-  );
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedCourse(null);
+  };
 
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="container mx-auto px-4">
-        {/* Section Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 py-12 px-4">
+      <div className="container mx-auto max-w-6xl">
+        {/* শিরোনাম */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-primary font-semibold">
-              কোর্স ও ব্যাচ সময়সূচী
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-5xl py-3 font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            আপনার পছন্দের ব্যাচটি সম্পর্কে জেনে নিন
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            চলমান সকল ব্যাচের তথ্য নিচে দেওয়া হলো। বিস্তারিত জানতে যেকোনো কার্ডে
-            ক্লিক করুন।
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-400 mb-4">
+            আমাদের ব্যাচ সমূহ
+          </h1>
+          <p className="text-slate-400 text-lg">
+            আপনার পছমন্দের ব্যাচ সম্পর্কে বিস্তারিত জেনে নিন
           </p>
         </div>
 
-        {/* Batch Type Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {processedBatchGroups.map((group, i) => (
-            <Link
-              key={i}
-              to={`/course-details/${group.type}`} // এখানে টাইপ অনুযায়ী বিস্তারিত পেজে পাঠানো হচ্ছে
-              className={`card rounded-2xl shadow-xl bg-gradient-to-br ${group.bgColor} border-4 ${group.borderColor} hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden group/card relative block`}
+        {/* কার্ড গ্রিড */}
+        {isLoading ? (
+          <div className="text-center text-slate-400 py-12">লোড হচ্ছে...</div>
+        ) : displayedCourses.length === 0 ? (
+          <div className="text-center text-slate-400 py-12">
+            কোন কোর্স পাওয়া যায়নি
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {displayedCourses.map((course) => (
+              <div
+                key={course._id}
+                onClick={() => handleCardClick(course)}
+                className="group bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-300 cursor-pointer transform hover:scale-105"
+              >
+                {/* কার্ড হেডার */}
+                <div className="h-40 bg-gradient-to-r from-blue-600 to-cyan-600 p-6 flex flex-col justify-end relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-8 -mt-8"></div>
+                  </div>
+                  <h3 className="text-xl font-bold text-white relative z-10 line-clamp-2">
+                    {course.courseName}
+                  </h3>
+                </div>
+
+                {/* কার্ড বডি */}
+                <div className="p-6 space-y-4">
+                  {/* শিক্ষক */}
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold">শিক্ষক:</span>{" "}
+                      {course.instructor}
+                    </p>
+                  </div>
+
+                  {/* ফি */}
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold">ফি:</span> ৳
+                      {course.courseFee}
+                    </p>
+                  </div>
+
+                  {/* টাইম */}
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold">সময়:</span>{" "}
+                      {course.startTime} - {course.endTime}
+                    </p>
+                  </div>
+
+                  {/* Type */}
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold">প্রকার:</span>{" "}
+                      <span className="capitalize bg-slate-600 px-2 py-1 rounded text-xs">
+                        {course.type}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* বর্ণনা (সংক্ষিপ্ত) */}
+                  <p className="text-sm text-slate-400 line-clamp-2">
+                    {course.description}
+                  </p>
+                </div>
+
+                {/* ফুটার - বিস্তারিত দেখুন */}
+                <div className="px-6 py-4 bg-slate-700/50 border-t border-slate-600 group-hover:bg-blue-600/20 transition-colors">
+                  <button className="w-full text-blue-400 group-hover:text-blue-300 font-semibold text-sm transition-colors">
+                    বিস্তারিত দেখুন →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* View More বাটন */}
+        {!showAll && courses.length > 3 && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowAll(true)}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
             >
-              {/* Popular Badge */}
-              {group.popular && (
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="flex items-center gap-1 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    জনপ্রিয়
-                  </div>
-                </div>
-              )}
+              আরও দেখুন ({courses.length - 3} আরও কোর্স)
+            </button>
+          </div>
+        )}
 
-              <div className="card-body p-6">
-                {/* Icon & Title */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-5xl">{group.icon}</div>
-                  <div className="flex-1">
-                    <h3 className={`text-2xl font-bold mb-1 ${group.tColor}`}>
-                      {group.title}
+        {showAll && courses.length > 3 && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowAll(false)}
+              className="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors"
+            >
+              কম দেখুন
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* মডাল */}
+      {showModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 border border-slate-700 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* মডাল হেডার */}
+            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 flex justify-between items-start sticky top-0 z-10">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                {selectedCourse.courseName}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-white/20 rounded-lg transition"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            {/* মডাল বডি */}
+            <div className="p-6 md:p-8 space-y-6">
+              {/* শিরোনাম */}
+              <div>
+                <h3 className="text-lg font-semibold text-blue-400 mb-2">
+                  শিরোনাম
+                </h3>
+                <p className="text-slate-300">{selectedCourse.title}</p>
+              </div>
+
+              {/* বর্ণনা */}
+              <div>
+                <h3 className="text-lg font-semibold text-blue-400 mb-2">
+                  বর্ণনা
+                </h3>
+                <p className="text-slate-300 leading-relaxed">
+                  {selectedCourse.description}
+                </p>
+              </div>
+
+              {/* গ্রিড তথ্য */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* কোর্স ফি */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">কোর্স ফি</p>
+                  <p className="text-2xl font-bold text-green-400">
+                    ৳{selectedCourse.courseFee}
+                  </p>
+                </div>
+
+                {/* শিক্ষক */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">শিক্ষক</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.instructor}
+                  </p>
+                </div>
+
+                {/* প্রকার */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">প্রকার</p>
+                  <p className="text-lg font-semibold capitalize text-slate-200">
+                    {selectedCourse.type}
+                  </p>
+                </div>
+
+                {/* লিঙ্গ */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">জন্য</p>
+                  <p className="text-lg font-semibold capitalize text-slate-200">
+                    {selectedCourse.gender === "all"
+                      ? "সকলের জন্য"
+                      : selectedCourse.gender === "male"
+                      ? "পুরুষ"
+                      : "মহিলা"}
+                  </p>
+                </div>
+
+                {/* শুরু সময় */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">শুরু সময়</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.startTime}
+                  </p>
+                </div>
+
+                {/* শেষ সময় */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">শেষ সময়</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.endTime}
+                  </p>
+                </div>
+
+                {/* মোট সময় */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">মোট সময়</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.totalTime}
+                  </p>
+                </div>
+
+                {/* মোট MCQ */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">মোট MCQ</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.totalMcq}
+                  </p>
+                </div>
+
+                {/* মোট CQ */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">মোট CQ</p>
+                  <p className="text-lg font-semibold text-slate-200">
+                    {selectedCourse.totalCq}
+                  </p>
+                </div>
+              </div>
+
+              {/* Features */}
+              {selectedCourse.features &&
+                selectedCourse.features.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-400 mb-3">
+                      বৈশিষ্ট্য
                     </h3>
-                    <p className="text-sm text-gray-400">{group.description}</p>
-                  </div>
-                </div>
-
-                {/* Quick Stats - Highlighted */}
-                <div
-                  className={`bg-gradient-to-r ${group.color} p-4 rounded-xl mb-4 transform group-hover/card:scale-[1.02] transition-transform text-white`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
-                      <span className="text-sm">কোর্স ফি:</span>
-                    </div>
-                    <span className="text-xl font-bold">
-                      {group.minFee} টাকা
-                    </span>
-                  </div>
-                </div>
-
-                {/* Live Data Info */}
-                <div className="space-y-3">
-                  <InfoItem
-                    icon={Users}
-                    title="মোট এনরোলমেন্ট"
-                    value={`${group.totalEnrolled} জন`}
-                    color="text-red-500"
-                  />
-                  <InfoItem
-                    icon={Calendar}
-                    title="মোট ব্যাচ"
-                    value={`${group.totalBatches} টি`}
-                    color="text-blue-500"
-                  />
-                  <InfoItem
-                    icon={BookOpen}
-                    title="মোট MCQ সেট"
-                    value={`${group.quizCount} টি`}
-                    color="text-purple-500"
-                  />
-                </div>
-
-                {/* CTA Button */}
-                <button className="btn btn-primary w-full mt-6 gap-2 group-hover/card:gap-4 transition-all">
-                  বিস্তারিত দেখুন
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Additional Info Section (Common Info) */}
-        <div className="card bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-2xl rounded-2xl">
-          <div className="card-body p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              {/* Left Side - Features */}
-              <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <GraduationCap className="w-12 h-12" />
-                  <h3 className="text-3xl font-bold">কোর্সের বিশেষত্ব</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {commonInfo.features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 bg-white/20 backdrop-blur-sm p-3 rounded-lg"
-                    >
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                      <span className="font-semibold">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Side - Class Days */}
-              <div>
-                <div className="card bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-xl">
-                  <div className="card-body p-6">
-                    <h4 className="text-xl font-bold mb-4">
-                      সাধারণ সময়কাল ও দিন
-                    </h4>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Calendar className="w-6 h-6" />
-                      <span className="text-lg font-semibold">
-                        {commonInfo.duration} মেয়াদী কোর্স
-                      </span>
-                    </div>
-                    <p className="font-semibold mb-3">সাধারণত প্রতি সপ্তাহে:</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["শনি", "রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ"].map(
-                        (day) => (
-                          <div
-                            key={day}
-                            className="bg-white/30 backdrop-blur-sm py-2 px-3 rounded-lg text-center font-bold"
-                          >
-                            {day}
-                          </div>
-                        )
-                      )}
-                    </div>
-                    <div className="mt-4 p-3 bg-white/30 backdrop-blur-sm rounded-lg text-center">
-                      <span className="text-sm font-semibold">
-                        শুক্রবার সাপ্তাহিক ছুটি
-                      </span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {selectedCourse.features.map((feature, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 bg-slate-700/50 p-3 rounded-lg"
+                        >
+                          <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                          <span className="text-slate-300">{feature}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
+                )}
+            </div>
+
+            {/* মডাল ফুটার */}
+            <div className="border-t border-slate-700 p-6 bg-slate-700/50">
+              <button
+                onClick={closeModal}
+                className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
-};
-
-// ছোট হেল্পার কম্পোনেন্ট
-const InfoItem = ({ icon: Icon, title, value, color }) => (
-  <div className="flex items-center gap-3 text-sm p-2 rounded-lg bg-white/50 border border-gray-100">
-    <div className="p-1 rounded-lg">
-      <Icon className={`w-5 h-5 ${color}`} />
-    </div>
-    <div className="flex justify-between flex-1">
-      <p className="text-xs text-gray-400">{title}</p>
-      <p className="font-bold text-gray-800">{value}</p>
-    </div>
-  </div>
-);
-
-export default BatchScheduleSection;
+}

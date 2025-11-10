@@ -80,6 +80,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/make-course",
+      label: "Make Course",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,

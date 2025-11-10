@@ -94,7 +94,7 @@ export default function VerifiedStudentInfo() {
         const paymentData = {
           studentId: payment.stuUid,
           batchId: batchId,
-          amount: payment.payAmount,
+          amount: Number(payment.payAmount),
           method: "Bkash",
           status: "paid",
           paymentDate: payment.createdAt,

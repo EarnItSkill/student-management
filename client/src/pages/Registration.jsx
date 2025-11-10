@@ -1,3 +1,4 @@
+import axios from "axios";
 import { ArrowLeft, CheckCircle, Save, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -5,18 +6,36 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
 
 const Registration = () => {
-  const { addStudent, students } = useAppContext();
+  const { addStudent } = useAppContext();
   const navigate = useNavigate();
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [maxUid, setMaxUid] = useState([]);
+
+  useEffect(() => {
+    const fetchLatestStudent = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/max-uid`);
+        if (res.data && res.data.length > 0) {
+          setMaxUid(res.data); // [{ studentId: "STU-0002" }] → প্রথম অবজেক্টটা নিচ্ছে
+        }
+      } catch (error) {
+        console.error("Error fetching latest student:", error);
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchLatestStudent();
+  }, []);
 
   // Generate next student ID
   const generateStudentId = () => {
-    if (students.length === 0) {
+    if (maxUid.length === 0) {
       return "STU-0001";
     }
 
-    const ids = students
+    const ids = maxUid
       .map((s) => s.studentId)
       .filter((id) => id && id.startsWith("STU-"))
       .map((id) => parseInt(id.split("-")[1]))
@@ -59,14 +78,39 @@ const Registration = () => {
 
   // Set student ID when students data is loaded
   useEffect(() => {
-    if (students && students.length >= 0) {
+    if (maxUid && maxUid.length >= 0) {
       setValue("studentId", generateStudentId());
     }
-  }, [students, setValue]);
+  }, [maxUid, setValue]);
+
+  // const onSubmit = async (data) => {
+  //   try {
+  //     await addStudent(data);
+  //     setIsSuccess(true);
+
+  //     window.scrollTo({
+  //       top: 0,
+  //       behavior: "smooth",
+  //     });
+
+  //     // Redirect to login after 3 seconds
+  //     setTimeout(() => {
+  //       navigate("/login");
+  //     }, 10000);
+  //   } catch (error) {
+  //     console.error("Error registering student:", error);
+  //     alert("Registration failed. Please try again.");
+  //   }
+  // };
 
   const onSubmit = async (data) => {
+    // 💡 পরিবর্তন শুরু: ডেটাবেসে পাঠানোর আগে confirmPassword প্রপার্টিটি সরিয়ে দিন।
+    const { confirmPassword, ...studentData } = data; // confirmPassword আলাদা করুন এবং বাকি ডেটা studentData-তে রাখুন।
+    // 💡 পরিবর্তন শেষ
+
     try {
-      await addStudent(data);
+      // ডাটাবেসে শুধু ছাত্র/ছাত্রীর ডেটা (confirmPassword ছাড়া) পাঠান।
+      await addStudent(studentData);
       setIsSuccess(true);
 
       window.scrollTo({

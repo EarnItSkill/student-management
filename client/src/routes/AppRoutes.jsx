@@ -10,6 +10,7 @@ import PrivacyPolicy from "../components/common/PrivacyPolicy";
 import RefundPolicy from "../components/common/RefundPolicy";
 import TermsConditions from "../components/common/TermsConditions";
 import CourseList from "../components/courses/CourseList";
+import CourseMakeForm from "../components/courses/CourseMakeForm";
 import EnrollmentList from "../components/enrollments/EnrollmentList";
 import BatchDetails from "../components/home/BatchDetails";
 import PaymentList from "../components/payments/PaymentList";
@@ -114,6 +115,7 @@ const AppRoutes = () => {
         <Route path="rankings" element={<McqRankPage />} />
         <Route path="payment-info" element={<PaymentInfo />} />
         <Route path="verified-info" element={<VerifiedStudentInfo />} />
+        <Route path="make-course" element={<CourseMakeForm />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

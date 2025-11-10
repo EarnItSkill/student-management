@@ -78,9 +78,6 @@ async function run() {
     const coursesCollection = client
       .db(process.env.DB_NAME)
       .collection("courses");
-    const makeCoursesCollection = client
-      .db(process.env.DB_NAME)
-      .collection("make-courses");
     const batchCollection = client
       .db(process.env.DB_NAME)
       .collection("batches");
@@ -303,36 +300,6 @@ async function run() {
       }
     });
 
-    // সর্বশেষ আইডি পাওয়ার জন্য
-    app.get("/max-uid", async (req, res) => {
-      try {
-        const students = await studentCollection.find().toArray();
-
-        if (students.length === 0) {
-          return res.status(404).send({
-            success: false,
-            message: "কোনো ছাত্র পাওয়া যায়নি",
-          });
-        }
-
-        // studentId থেকে সংখ্যা বের করে সবচেয়ে বড়টা বের করো
-        const latestStudent = students.reduce((max, current) => {
-          const maxNum = parseInt(max.studentId.replace("STU-", ""));
-          const currentNum = parseInt(current.studentId.replace("STU-", ""));
-          return currentNum > maxNum ? current : max;
-        });
-
-        // শুধু studentId রিটার্ন করো
-        res.send([{ studentId: latestStudent.studentId }]);
-      } catch (error) {
-        console.error("Error fetching latest student:", error);
-        res.status(500).send({
-          success: false,
-          message: "সার্ভার এরর হয়েছে",
-        });
-      }
-    });
-
     // আমার প্রোফাইল (Protected)
     app.get("/student-profile", verifyToken, async (req, res) => {
       try {
@@ -440,93 +407,40 @@ async function run() {
       }
     });
 
+    app.get("/courses", verifyToken, async (req, res) => {
+      try {
+        const result = await coursesCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ success: false, message: "সার্ভার এরর" });
+      }
+    });
+
     // app.get("/courses", verifyToken, async (req, res) => {
     //   try {
+    //     const userId = req.user._id; // verifyToken থেকে লগইনকৃত ইউজারের UID
+    //     console.log(userId);
+
+    //     // studentCollection এ userId আছে কিনা চেক
+    //     const student = await enrollmentCollection.findOne({
+    //       studentId: userId,
+    //     });
+    //     // console.log(student);
+
+    //     // যদি studentCollection এ student না থাকে (মানে userId পাওয়া যায়নি)
+    //     if (!student) {
+    //       return res.status(403).send({
+    //         success: false,
+    //         message: "কোর্স অ্যাক্সেস করার অনুমতি নেই।",
+    //       });
+    //     }
+
     //     const result = await coursesCollection.find().toArray();
     //     res.send(result);
     //   } catch (error) {
     //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
     //   }
     // });
-
-    // app.get("/courses", verifyToken, async (req, res) => {
-    //   try {
-    //     const user = req.user;
-
-    //     // প্রাথমিক নিরাপত্তা চেক
-    //     if (!user || !user.role) {
-    //       return res.status(403).send({
-    //         success: false,
-    //         message: "ব্যবহারকারীর তথ্য অনুপস্থিত বা অ্যাক্সেস অনুমোদিত নয়",
-    //       });
-    //     }
-
-    //     let query = {}; // MongoDB Query Object
-
-    //     // 1. এডমিন চেক
-    //     if (user.role === "admin") {
-    //       // এডমিনের জন্য সব কোর্স ডেটা
-    //       // query = {};
-    //     }
-    //     // 2. স্টুডেন্ট এবং অন্যান্য ব্যবহারকারী
-    //     else {
-    //       // ছাত্র/ছাত্রী বা অন্যান্য সাধারণ ব্যবহারকারীকেও সাধারণত সব কোর্স দেখতে দেওয়া হয়।
-    //       // যদি আপনি চান যে ছাত্র/ছাত্রী শুধু 'published: true' কোর্স দেখুক,
-    //       // তাহলে নিচের লাইনটি ব্যবহার করুন:
-    //       // query = { status: "published" };
-    //       // আপাতত ধরে নিচ্ছি তারা সকল কোর্স দেখতে পারবে (ফ্রন্ট-এন্ডে ডিসপ্লে ম্যানেজ করা হবে)
-    //       // query = {};
-    //     }
-
-    //     const result = await coursesCollection.find(query).toArray();
-
-    //     res.send(result);
-    //   } catch (error) {
-    //     console.error("Error fetching courses:", error);
-    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
-    //   }
-    // });
-
-    app.get("/courses", async (req, res) => {
-      try {
-        const token = req.headers.authorization?.split(" ")[1];
-        let user = null;
-
-        // যদি টোকেন থাকে তাহলে ইউজার যাচাই করো
-        if (token) {
-          try {
-            user = jwt.verify(token, process.env.JWT_SECRET);
-          } catch (err) {
-            user = null;
-          }
-        }
-
-        // সব কোর্স ডাটা আনো
-        const courses = await coursesCollection.find({}).toArray();
-
-        // 🔹 যদি ইউজার না থাকে (মানে লগইন করেনি) → পাবলিক ভিউ
-        if (!user) {
-          const limitedCourses = courses.map((course) => ({
-            ...course,
-            classes: course.classes.slice(0, 2), // শুধুমাত্র ২টা ক্লাস দেখা যাবে
-          }));
-
-          return res.send(limitedCourses);
-        }
-
-        // 🔹 যদি ইউজার থাকে এবং সে admin হয়
-        if (user.role === "admin") {
-          return res.send(courses); // সব কোর্স + সব ক্লাস
-        }
-
-        // 🔹 অন্য ইউজার (যেমন student / editor) হলে
-        // চাইলে এখানেও সীমাবদ্ধতা দিতে পারো, বা পুরো কোর্স পাঠাতে পারো
-        return res.send(courses);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-        res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
 
     app.get("/course/:id", verifyToken, async (req, res) => {
       try {
@@ -575,199 +489,6 @@ async function run() {
     });
 
     // =========================
-    // MAKE COURSES
-    // =========================
-    // POST - নতুন কোর্স তৈরি করা (Admin only)
-    app.post("/make-courses", verifyToken, verifyAdmin, async (req, res) => {
-      try {
-        const courseData = {
-          ...req.body,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        const result = await makeCoursesCollection.insertOne(courseData);
-
-        res.send({
-          success: true,
-          message: "কোর্স সফলভাবে তৈরি হয়েছে",
-          data: { ...courseData, _id: result.insertedId },
-        });
-      } catch (error) {
-        res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
-
-    // GET - সকল কোর্স পাওয়া
-    app.get("/make-courses", async (req, res) => {
-      try {
-        const result = await makeCoursesCollection.find().toArray();
-
-        res.send({
-          success: true,
-          data: result,
-        });
-      } catch (error) {
-        res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
-
-    // GET - একটি নির্দিষ্ট কোর্স পাওয়া (Admin only)
-    app.get("/make-courses/:id", verifyToken, verifyAdmin, async (req, res) => {
-      try {
-        const course = await makeCoursesCollection.findOne({
-          _id: new ObjectId(req.params.id),
-        });
-
-        if (!course) {
-          return res
-            .status(404)
-            .send({ success: false, message: "কোর্স পাওয়া যায়নি" });
-        }
-
-        res.send({
-          success: true,
-          data: course,
-        });
-      } catch (error) {
-        res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
-
-    // PUT - কোর্স সম্পূর্ণ আপডেট করা (Admin only)
-    app.put("/make-courses/:id", verifyToken, verifyAdmin, async (req, res) => {
-      try {
-        const updatedData = req.body;
-        delete updatedData._id;
-
-        updatedData.updatedAt = new Date();
-
-        const result = await makeCoursesCollection.updateOne(
-          { _id: new ObjectId(req.params.id) },
-          { $set: updatedData }
-        );
-
-        if (result.matchedCount === 0) {
-          return res
-            .status(404)
-            .send({ success: false, message: "কোর্স পাওয়া যায়নি" });
-        }
-
-        res.send({
-          success: true,
-          message: "কোর্স আপডেট হয়েছে",
-          data: result,
-        });
-      } catch (error) {
-        res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
-
-    // PATCH - কোর্সের কিছু ফিল্ড আপডেট করা (Admin only)
-    app.patch(
-      "/make-courses/:id",
-      verifyToken,
-      verifyAdmin,
-      async (req, res) => {
-        try {
-          const partialData = req.body;
-          delete partialData._id;
-
-          partialData.updatedAt = new Date();
-
-          const result = await makeCoursesCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: partialData }
-          );
-
-          if (result.matchedCount === 0) {
-            return res
-              .status(404)
-              .send({ success: false, message: "কোর্স পাওয়া যায়নি" });
-          }
-
-          res.send({
-            success: true,
-            message: "কোর্স আপডেট হয়েছে",
-            data: result,
-          });
-        } catch (error) {
-          res.status(500).send({ success: false, message: "সার্ভার এরর" });
-        }
-      }
-    );
-
-    // DELETE - কোর্স মুছে ফেলা (Admin only)
-    app.delete(
-      "/make-courses/:id",
-      verifyToken,
-      verifyAdmin,
-      async (req, res) => {
-        try {
-          const result = await makeCoursesCollection.deleteOne({
-            _id: new ObjectId(req.params.id),
-          });
-
-          if (result.deletedCount === 0) {
-            return res
-              .status(404)
-              .send({ success: false, message: "কোর্স পাওয়া যায়নি" });
-          }
-
-          res.send({
-            success: true,
-            message: "কোর্স ডিলিট হয়েছে",
-            data: result,
-          });
-        } catch (error) {
-          res.status(500).send({ success: false, message: "সার্ভার এরর" });
-        }
-      }
-    );
-
-    // GET - কোর্স টাইপ অনুযায়ী খোঁজা (Admin only)
-    app.get(
-      "/make-courses-by-type/:type",
-      verifyToken,
-      verifyAdmin,
-      async (req, res) => {
-        try {
-          const result = await makeCoursesCollection
-            .find({ type: req.params.type })
-            .toArray();
-
-          res.send({
-            success: true,
-            data: result,
-          });
-        } catch (error) {
-          res.status(500).send({ success: false, message: "সার্ভার এরর" });
-        }
-      }
-    );
-
-    // GET - ইন্সট্রাক্টর অনুযায়ী কোর্স খোঁজা (Admin only)
-    app.get(
-      "/make-courses-by-instructor/:instructor",
-      verifyToken,
-      verifyAdmin,
-      async (req, res) => {
-        try {
-          const result = await makeCoursesCollection
-            .find({ instructor: req.params.instructor })
-            .toArray();
-
-          res.send({
-            success: true,
-            data: result,
-          });
-        } catch (error) {
-          res.status(500).send({ success: false, message: "সার্ভার এরর" });
-        }
-      }
-    );
-
-    // =========================
     // BATCHES
     // =========================
 
@@ -784,79 +505,12 @@ async function run() {
       }
     });
 
-    // app.get("/batches", verifyToken, async (req, res) => {
-    //   try {
-    //     const result = await batchCollection.find().toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
-    //   }
-    // });
-
     app.get("/batches", verifyToken, async (req, res) => {
       try {
-        const user = req.user;
-
-        // প্রাথমিক নিরাপত্তা চেক: user এবং তার role/userId আছে কিনা
-        if (!user || !user.role) {
-          return res.status(403).send({
-            success: false,
-            message: "ব্যবহারকারীর তথ্য অনুপস্থিত বা অ্যাক্সেস অনুমোদিত নয়",
-          });
-        }
-
-        let query = {}; // MongoDB Query Object
-
-        // 1. এডমিন চেক
-        if (user.role === "admin") {
-          // এডমিনের জন্য সব ব্যাচ ডেটা
-          // query = {};
-        }
-        // 2. স্টুডেন্ট এবং অন্যান্য ব্যবহারকারী
-        else {
-          // ছাত্র/ছাত্রী বা অন্যান্য সাধারণ ব্যবহারকারীকে শুধুমাত্র অ্যাক্টিভ ব্যাচ দেখানোর জন্য
-          // (ধরে নিচ্ছি আপনার ব্যাচ কালেকশনে status ফিল্ড আছে)
-          // query = { status: "active" };
-          // যদি সব ব্যাচ দেখানোর প্রয়োজন হয়, তাহলে query = {}; থাকবে
-        }
-
-        const result = await batchCollection.find(query).toArray();
-
+        const result = await batchCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching batches:", error);
         res.status(500).send({ success: false, message: "সার্ভার এরর" });
-      }
-    });
-
-    // Public upcoming batch
-    app.get("/upcoming-batches", async (req, res) => {
-      try {
-        const today = new Date().toISOString().split("T")[0]; // আজকের তারিখ yyyy-mm-dd
-
-        // শুধু ভবিষ্যতের ব্যাচগুলো বের করো (startDate > আজ)
-        const result = await batchCollection
-          .find({ startDate: { $gte: today } })
-          .toArray();
-
-        if (result.length === 0) {
-          return res.status(404).send({
-            success: false,
-            message: "কোনো আসন্ন ব্যাচ পাওয়া যায়নি",
-          });
-        }
-
-        res.send({
-          success: true,
-          message: "পাবলিক অ্যাক্সেসযোগ্য আসন্ন ব্যাচ",
-          data: result,
-        });
-      } catch (error) {
-        console.error("Error fetching public upcoming batches:", error);
-        res.status(500).send({
-          success: false,
-          message: "সার্ভার এরর হয়েছে",
-        });
       }
     });
 
@@ -938,56 +592,11 @@ async function run() {
       }
     });
 
-    // app.get("/enrollments", verifyToken, async (req, res) => {
-    //   try {
-    //     const result = await enrollmentCollection.find().toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
-    //   }
-    // });
-
     app.get("/enrollments", verifyToken, async (req, res) => {
       try {
-        // verifyToken মিডলওয়্যার থেকে প্রাপ্ত ইউজার ডেটা
-        const user = req.user;
-
-        // প্রাথমিক নিরাপত্তা চেক: user এবং তার role/userId আছে কিনা
-        if (!user || !user.role) {
-          return res.status(403).send({
-            success: false,
-            message: "ব্যবহারকারীর তথ্য অনুপস্থিত বা অ্যাক্সেস অনুমোদিত নয়",
-          });
-        }
-
-        let query = {}; // MongoDB Query Object
-
-        // 1. এডমিন চেক
-        if (user.role === "admin") {
-          // এডমিনের জন্য: কোনো ফিল্টার নেই, সব ডেটা আনবে
-          // query = {};
-        }
-        // 2. স্টুডেন্ট চেক
-        else if (user.role === "student") {
-          // ছাত্র/ছাত্রীর জন্য: শুধু তার studentId দিয়ে ফিল্টার
-          // (ধরে নেওয়া হচ্ছে enrollment কালেকশনের ফিল্ড studentId)
-          query = { studentId: user._id };
-        }
-        // 3. অন্যান্য রোল
-        else {
-          return res.status(403).send({
-            success: false,
-            message: "আপনার এই তথ্যে অ্যাক্সেস করার অনুমতি নেই",
-          });
-        }
-
-        // MongoDB-তে কোয়েরি এক্সিকিউট করা (Enrollment Collection ব্যবহার করে)
-        const result = await enrollmentCollection.find(query).toArray();
-
-        // সফলভাবে ডেটা পাঠানো
+        const result = await enrollmentCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching enrollments:", error);
         res.status(500).send({ success: false, message: "সার্ভার এরর" });
       }
     });
@@ -1151,31 +760,9 @@ async function run() {
 
     app.get("/attendance", verifyToken, async (req, res) => {
       try {
-        // req.user এ আপনার verifyToken মিডলওয়্যার থেকে role ও userId আছে
-        const user = req.user;
-
-        let query = {}; // MongoDB Query Object
-
-        if (user && user.role === "admin") {
-          // এডমিনের জন্য: কোনো ফিল্টার নেই, সব ডেটা
-          // query = {};
-        } else if (user && user.role === "student") {
-          // ছাত্র/ছাত্রীর জন্য: শুধু তার studentId দিয়ে ফিল্টার
-          // (এখানে user.userId ব্যবহার করা হলো, যদি আপনার টোকেনে userId থাকে)
-
-          query = { studentId: user._id };
-        } else {
-          return res.status(403).send({
-            success: false,
-            message: "অ্যাক্সেস অনুমোদিত নয়",
-          });
-        }
-
-        const result = await attendanceCollection.find(query).toArray();
-
+        const result = await attendanceCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching attendance:", error);
         res.status(500).send({ success: false, message: "সার্ভার এরর" });
       }
     });
@@ -1347,63 +934,14 @@ async function run() {
       }
     });
 
-    // app.get("/results", verifyToken, async (req, res) => {
-    //   try {
-    //     const result = await resultsCollection
-    //       .find({})
-    //       .sort({ submittedAt: -1 })
-    //       .toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
-    //   }
-    // });
-
     app.get("/results", verifyToken, async (req, res) => {
       try {
-        // verifyToken মিডলওয়্যার থেকে প্রাপ্ত ইউজার ডেটা
-        const user = req.user;
-
-        // প্রাথমিক নিরাপত্তা চেক: user এবং তার role/userId আছে কিনা
-        if (!user || !user.role) {
-          return res.status(403).send({
-            success: false,
-            message: "ব্যবহারকারীর তথ্য অনুপস্থিত বা অ্যাক্সেস অনুমোদিত নয়",
-          });
-        }
-
-        let query = {}; // MongoDB Query Object
-
-        // --- মূল ফিল্টারিং লজিক ---
-        if (user.role === "admin") {
-          // এডমিনের জন্য: কোনো ফিল্টার নেই, সব ডেটা আনবে
-          // query = {};
-        }
-        // 2. স্টুডেন্ট চেক
-        else if (user.role === "student") {
-          // ছাত্র/ছাত্রীর জন্য: শুধু তার studentId দিয়ে ফিল্টার
-          // (ধরে নেওয়া হচ্ছে results কালেকশনের ফিল্ড studentId)
-          query = { studentId: user._id };
-        }
-        // 3. অন্যান্য রোল
-        else {
-          return res.status(403).send({
-            success: false,
-            message: "আপনার এই তথ্যে অ্যাক্সেস করার অনুমতি নেই",
-          });
-        }
-        // -------------------------
-
-        // MongoDB-তে কোয়েরি এক্সিকিউট করা
         const result = await resultsCollection
-          .find(query) // ✅ ফিল্টারড query ব্যবহার করা হলো
+          .find({})
           .sort({ submittedAt: -1 })
           .toArray();
-
-        // সফলভাবে ডেটা পাঠানো
         res.send(result);
       } catch (error) {
-        console.error("Error fetching results:", error);
         res.status(500).send({ success: false, message: "সার্ভার এরর" });
       }
     });

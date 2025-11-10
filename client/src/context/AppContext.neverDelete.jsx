@@ -188,108 +188,49 @@ export const AppProvider = ({ children }) => {
   //   getData();
   // }, [isAuthenticated, currentUser]);
 
-  // useEffect(() => {
-  //   const getRankingData = async () => {
-  //     try {
-  //       if (!isAuthenticated || !currentUser) {
-  //         setLoading(false);
-  //         return;
-  //       }
-
-  //       const promises = [
-  //         axios.get(`${import.meta.env.VITE_API_URL}/courses`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/batches`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/enrollments`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/attendance`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/quizzes`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/chapter-schedules`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/cq-questions`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/ranking-students`), // ✅ Ranking students
-  //         axios.get(`${import.meta.env.VITE_API_URL}/results`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/payments`),
-  //         axios.get(`${import.meta.env.VITE_API_URL}/mcqquizzes`),
-  //       ];
-
-  //       // ✅ Admin হলে শুধু সম্পূর্ণ students ডাটা
-  //       if (currentUser.role === "admin") {
-  //         promises.push(axios.get(`${import.meta.env.VITE_API_URL}/students`));
-  //       }
-
-  //       const results = await Promise.all(promises);
-
-  //       setCourses(results[0]?.data || []);
-  //       setBatches(results[1]?.data || []);
-  //       setEnrollments(results[2]?.data || []);
-  //       setAttendance(results[3]?.data || []);
-  //       setQuizzes(results[4]?.data || []);
-  //       setChapterSchedules(results[5]?.data || []);
-  //       setCqQuestions(results[6]?.data || []);
-  //       setRankingStudents(results[7]?.data || []); // ✅ Ranking students (সকলের জন্য)
-  //       setMcqResult(results[8]?.data || []);
-  //       setPayments(results[9]?.data || []);
-  //       setMcqExamResult(results[10]?.data || []);
-
-  //       if (currentUser.role === "admin") {
-  //         setStudents(results[11]?.data || []); // ✅ সম্পূর্ণ students (Admin only)
-  //       }
-
-  //       setLoading(false);
-  //     } catch (error) {
-  //       console.error("Error loading data:", error);
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   getRankingData();
-  // }, [isAuthenticated, currentUser]);
-
   useEffect(() => {
     const getRankingData = async () => {
       try {
-        const promises = [
-          axios.get(`${import.meta.env.VITE_API_URL}/courses`), // public user এখানেও যাবে
-        ];
-
-        if (isAuthenticated && currentUser) {
-          promises.push(
-            axios.get(`${import.meta.env.VITE_API_URL}/batches`),
-            axios.get(`${import.meta.env.VITE_API_URL}/enrollments`),
-            axios.get(`${import.meta.env.VITE_API_URL}/attendance`),
-            axios.get(`${import.meta.env.VITE_API_URL}/quizzes`),
-            axios.get(`${import.meta.env.VITE_API_URL}/chapter-schedules`),
-            axios.get(`${import.meta.env.VITE_API_URL}/cq-questions`),
-            axios.get(`${import.meta.env.VITE_API_URL}/ranking-students`),
-            axios.get(`${import.meta.env.VITE_API_URL}/results`),
-            axios.get(`${import.meta.env.VITE_API_URL}/payments`),
-            axios.get(`${import.meta.env.VITE_API_URL}/mcqquizzes`)
-          );
-
-          if (currentUser.role === "admin") {
-            promises.push(
-              axios.get(`${import.meta.env.VITE_API_URL}/students`)
-            );
-          }
+        if (!isAuthenticated || !currentUser) {
+          setLoading(false);
+          return;
         }
 
-        const results = await Promise.allSettled(promises);
+        const promises = [
+          axios.get(`${import.meta.env.VITE_API_URL}/courses`),
+          axios.get(`${import.meta.env.VITE_API_URL}/batches`),
+          axios.get(`${import.meta.env.VITE_API_URL}/enrollments`),
+          axios.get(`${import.meta.env.VITE_API_URL}/attendance`),
+          axios.get(`${import.meta.env.VITE_API_URL}/quizzes`),
+          axios.get(`${import.meta.env.VITE_API_URL}/chapter-schedules`),
+          axios.get(`${import.meta.env.VITE_API_URL}/cq-questions`),
+          axios.get(`${import.meta.env.VITE_API_URL}/ranking-students`), // ✅ Ranking students
+          axios.get(`${import.meta.env.VITE_API_URL}/results`),
+          axios.get(`${import.meta.env.VITE_API_URL}/payments`),
+          axios.get(`${import.meta.env.VITE_API_URL}/mcqquizzes`),
+        ];
 
-        // index অনুযায়ী ডাটা সেট করো
-        setCourses(results[0]?.value?.data || []);
-        if (isAuthenticated && currentUser) {
-          setBatches(results[1]?.value?.data || []);
-          setEnrollments(results[2]?.value?.data || []);
-          setAttendance(results[3]?.value?.data || []);
-          setQuizzes(results[4]?.value?.data || []);
-          setChapterSchedules(results[5]?.value?.data || []);
-          setCqQuestions(results[6]?.value?.data || []);
-          setRankingStudents(results[7]?.value?.data || []);
-          setMcqResult(results[8]?.value?.data || []);
-          setPayments(results[9]?.value?.data || []);
-          setMcqExamResult(results[10]?.value?.data || []);
+        // ✅ Admin হলে শুধু সম্পূর্ণ students ডাটা
+        if (currentUser.role === "admin") {
+          promises.push(axios.get(`${import.meta.env.VITE_API_URL}/students`));
+        }
 
-          if (currentUser.role === "admin") {
-            setStudents(results[11]?.value?.data || []);
-          }
+        const results = await Promise.all(promises);
+
+        setCourses(results[0]?.data || []);
+        setBatches(results[1]?.data || []);
+        setEnrollments(results[2]?.data || []);
+        setAttendance(results[3]?.data || []);
+        setQuizzes(results[4]?.data || []);
+        setChapterSchedules(results[5]?.data || []);
+        setCqQuestions(results[6]?.data || []);
+        setRankingStudents(results[7]?.data || []); // ✅ Ranking students (সকলের জন্য)
+        setMcqResult(results[8]?.data || []);
+        setPayments(results[9]?.data || []);
+        setMcqExamResult(results[10]?.data || []);
+
+        if (currentUser.role === "admin") {
+          setStudents(results[11]?.data || []); // ✅ সম্পূর্ণ students (Admin only)
         }
 
         setLoading(false);

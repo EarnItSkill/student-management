@@ -193,7 +193,7 @@ const CourseDetails = () => {
           {/* Mobile Sidebar Toggle Button */}
           <div className="lg:hidden mb-4">
             <button
-              onClick={() => setIsSidebarOpen(true)}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="btn btn-primary btn-block gap-2"
             >
               <GraduationCap className="w-5 h-5" />
@@ -255,11 +255,10 @@ const CourseDetails = () => {
                           <div className="card-body p-0">
                             {selectedClassData?.videoUrl ? (
                               <video
-                                className="h-96"
+                                className="h-96 rounded-lg"
                                 width="100%"
                                 height="auto"
                                 controls
-                                className="rounded-lg"
                               >
                                 <source
                                   src={selectedClassData.videoUrl}

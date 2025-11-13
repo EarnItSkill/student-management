@@ -1,4 +1,13 @@
-import { BookOpen, GraduationCap, Plus, Save, Trash2, X } from "lucide-react";
+import {
+  BookOpen,
+  GraduationCap,
+  Maximize,
+  Minimize,
+  Plus,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
@@ -8,6 +17,7 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
   const isEdit = !!course;
   const [selectedClassIndex, setSelectedClassIndex] = useState(0);
   const [show, setShow] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const getDefaultValues = () => {
     if (course) {
@@ -139,7 +149,14 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-7xl max-h-[98vh] overflow-y-auto p-0">
+      {/* <div className="modal-box max-w-7xl max-h-[98vh] overflow-y-auto p-0"> */}
+      <div
+        className={`modal-box overflow-y-auto p-0 transition-all duration-300 ${
+          isFullScreen
+            ? "w-screen h-screen max-w-none max-h-none rounded-none"
+            : "max-w-7xl max-h-[98vh]"
+        }`}
+      >
         {/* Header */}
         <div className="flex justify-between items-center p-6 sticky top-0 bg-base-100 z-10 border-b">
           <h3 className="font-bold text-2xl flex items-center gap-2">
@@ -160,6 +177,18 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             >
               <Plus className="w-4 h-4" />
               Add Class
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFullScreen(!isFullScreen)}
+              className="btn btn-ghost btn-sm btn-circle mr-2"
+              title={isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullScreen ? (
+                <Minimize className="w-5 h-5" />
+              ) : (
+                <Maximize className="w-5 h-5" />
+              )}
             </button>
 
             <button
@@ -495,7 +524,7 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
                                 {index + 1}
                               </div>
                               <span className="text-sm font-medium">
-                                Class {index + 1}
+                                {field.topic[0]}
                               </span>
                             </div>
                           </div>
@@ -622,6 +651,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
         </h5>
         <button
           type="button"
+          disabled
           onClick={() => removeClass(classIndex)}
           className="btn btn-error btn-sm gap-2"
         >
@@ -702,7 +732,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                         { required: true }
                       )}
                     />
-                    <input
+                    {/* <input
                       type="text"
                       placeholder="Answer"
                       className="input input-md text-gray-400 input-bordered w-full"
@@ -710,7 +740,15 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                         `classes.${classIndex}.quesAns.${index}.answer`,
                         { required: true }
                       )}
-                    />
+                    /> */}
+                    <textarea
+                      placeholder="Answer"
+                      className="textarea textarea-md text-gray-400 textarea-bordered w-full"
+                      {...register(
+                        `classes.${classIndex}.quesAns.${index}.answer`,
+                        { required: true }
+                      )}
+                    ></textarea>
                   </div>
                 </div>
               </div>

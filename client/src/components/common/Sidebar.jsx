@@ -86,6 +86,18 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/topic-viewer",
+      label: "Topic Viewer",
+      icon: FileText,
+      isDash: false,
+    },
+    {
+      path: "/dashboard/admin/cqg",
+      label: "CQG",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,

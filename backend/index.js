@@ -164,7 +164,7 @@ async function run() {
         if (identifier === process.env.ADMIN_EMAIL) {
           if (password === process.env.ADMIN_PASSWORD) {
             const adminUser = {
-              id: 0,
+              _id: "0",
               name: "মো. মোজাম্মেল হক",
               email: process.env.ADMIN_EMAIL,
               role: "admin",
@@ -1240,24 +1240,60 @@ async function run() {
       }
     });
 
+    // app.get("/quizzes", verifyToken, async (req, res) => {
+    //   try {
+    //     const userId = req.user._id; // verifyToken থেকে লগইনকৃত ইউজারের UID
+
+    //     // studentCollection এ userId আছে কিনা চেক
+    //     const student = await enrollmentCollection.findOne({
+    //       studentId: userId,
+    //     });
+
+    //     let query = {};
+    //     let limit = 0;
+
+    //     // যদি studentCollection এ student না থাকে (মানে userId পাওয়া যায়নি)
+    //     if (!student) {
+    //       query = { chapter: "3" };
+    //       limit = 3;
+    //     }
+
+    //     const result = await quizzesCollection
+    //       .find(query)
+    //       .limit(limit || 0)
+    //       .toArray();
+
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.error(error);
+    //     res.status(500).send({ success: false, message: "সার্ভার এরর" });
+    //   }
+    // });
+
     app.get("/quizzes", verifyToken, async (req, res) => {
       try {
-        const userId = req.user._id; // verifyToken থেকে লগইনকৃত ইউজারের UID
-
-        // studentCollection এ userId আছে কিনা চেক
-        const student = await enrollmentCollection.findOne({
-          studentId: userId,
-        });
-
+        const user = req.user; // verifyToken থেকে লগইনকৃত ইউজার তথ্য
         let query = {};
         let limit = 0;
 
-        // যদি studentCollection এ student না থাকে (মানে userId পাওয়া যায়নি)
-        if (!student) {
-          query = { chapter: "3" };
-          limit = 3;
+        // 🧠 যদি অ্যাডমিন হয় → সব কুইজ দাও
+        if (user.role === "admin") {
+          query = {}; // কোনো ফিল্টার লাগবে না
+          limit = 0;
+        } else {
+          // 🧠 Student কিনা চেক
+          const student = await enrollmentCollection.findOne({
+            studentId: user._id,
+          });
+
+          if (!student) {
+            // Student না হলে সীমিত কুইজ দাও
+            query = { chapter: "3" };
+            limit = 3;
+          }
         }
 
+        // 🔍 কুইজ সংগ্রহ
         const result = await quizzesCollection
           .find(query)
           .limit(limit || 0)

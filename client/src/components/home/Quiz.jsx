@@ -327,17 +327,6 @@ export default function Quiz() {
                   </div>
                 </div>
               </div>
-
-              {/* Recognition Display */}
-              <div className="mt-8 p-6 bg-slate-700/50 rounded-xl border border-slate-600">
-                <p className="text-center text-slate-300">
-                  <span className="font-bold text-white block mb-2">
-                    📜 প্রদত্ত সম্মাননা পত্র:
-                  </span>
-                  সকল সম্মাননা পত্র আপনার অফিশিয়াল একাউন্টে ডাউনলোডযোগ্য থাকবে
-                  এবং প্রয়োজনে শেয়ার করা যাবে
-                </p>
-              </div>
             </div>
           </div>
         </div>

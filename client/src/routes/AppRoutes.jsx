@@ -11,6 +11,8 @@ import RefundPolicy from "../components/common/RefundPolicy";
 import TermsConditions from "../components/common/TermsConditions";
 import CourseList from "../components/courses/CourseList";
 import CourseMakeForm from "../components/courses/CourseMakeForm";
+import BanglaVoiceTextarea from "../components/cq/BanglaVoiceTextarea";
+import CreativeQuestionGenerator from "../components/cq/CreativeQuestionGenerator";
 import EnrollmentList from "../components/enrollments/EnrollmentList";
 import BatchDetails from "../components/home/BatchDetails";
 import PaymentList from "../components/payments/PaymentList";
@@ -20,6 +22,7 @@ import StudentList from "../components/students/StudentList";
 import AdminChapterSchedule from "../pages/admin/AdminChapterSchedule";
 import AdminQuizResults from "../pages/admin/AdminQuizResults";
 import BatchDetailsPage from "../pages/admin/BatchDetailsPage";
+import CourseClassesViewer from "../pages/admin/CourseClassesViewer";
 import CqForm from "../pages/admin/CqForm";
 import CqPageList from "../pages/admin/CqPageList";
 import PaymentInfo from "../pages/admin/PaymentInfo";
@@ -72,6 +75,7 @@ const AppRoutes = () => {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-conditions" element={<TermsConditions />} />
       <Route path="/refund-policy" element={<RefundPolicy />} />
+      <Route path="/voice" element={<BanglaVoiceTextarea />} />
 
       {/* Protected Student Routes */}
       <Route
@@ -116,6 +120,8 @@ const AppRoutes = () => {
         <Route path="payment-info" element={<PaymentInfo />} />
         <Route path="verified-info" element={<VerifiedStudentInfo />} />
         <Route path="make-course" element={<CourseMakeForm />} />
+        <Route path="topic-viewer" element={<CourseClassesViewer />} />
+        <Route path="cqg" element={<CreativeQuestionGenerator />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

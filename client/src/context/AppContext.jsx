@@ -224,11 +224,52 @@ export const AppProvider = ({ children }) => {
 
   // ============== Student CRUD Functions ==============
 
+  // const addStudent = async (newStudent) => {
+  //   try {
+  //     if (!newStudent.password || newStudent.password.length < 6) {
+  //       toast.error("পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে");
+  //       return null;
+  //     }
+
+  //     const studentData = {
+  //       ...newStudent,
+  //       role: "student",
+  //       image:
+  //         newStudent.image ||
+  //         (newStudent.gender === "male"
+  //           ? "https://i.ibb.co/LbG04VL/male.jpg"
+  //           : "https://i.ibb.co/gFdhJ5Js/female.jpg"),
+  //     };
+
+  //     const response = await axios.post(
+  //       `${import.meta.env.VITE_API_URL}/student`,
+  //       studentData
+  //     );
+
+  //     setStudents((prev) => [...prev, response.data.data]);
+
+  //     toast.success("ছাত্রটি সফলভাবে যোগ করা হয়েছে!", {
+  //       icon: <UserPlus className="text-green-500" />,
+  //     });
+
+  //     return response.data.data;
+  //   } catch (error) {
+  //     if (error.response?.status === 400) {
+  //       toast.error(error.response.data.message);
+  //     } else {
+  //       toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
+  //         icon: <XCircle className="text-red-500" />,
+  //       });
+  //     }
+  //     return null;
+  //   }
+  // };
+
   const addStudent = async (newStudent) => {
     try {
       if (!newStudent.password || newStudent.password.length < 6) {
         toast.error("পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে");
-        return null;
+        return { success: false, type: "validation" };
       }
 
       const studentData = {
@@ -246,22 +287,24 @@ export const AppProvider = ({ children }) => {
         studentData
       );
 
+      // list update
       setStudents((prev) => [...prev, response.data.data]);
 
       toast.success("ছাত্রটি সফলভাবে যোগ করা হয়েছে!", {
         icon: <UserPlus className="text-green-500" />,
       });
 
-      return response.data.data;
+      return response.data; // 🔥 এখানে মূল পরিবর্তন
     } catch (error) {
       if (error.response?.status === 400) {
-        toast.error(error.response.data.message);
+        return error.response.data; // 🔥 Backend-এর error UI-তে পাঠানো
       } else {
-        toast.error("ছাত্র যোগ করতে ব্যর্থ হয়েছে!", {
-          icon: <XCircle className="text-red-500" />,
-        });
+        return {
+          success: false,
+          type: "server",
+          message: "Server error!",
+        };
       }
-      return null;
     }
   };
 
@@ -913,6 +956,31 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const reorderCqQuestions = async (chapter, courseId, reorderedIds) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/cq-question/reorder`,
+        {
+          chapter,
+          courseId,
+          reorderedIds, // Array of CQ IDs in new order
+        }
+      );
+
+      // Update local state with new order
+      const updatedCqs = cqQuestions.map((cq) => {
+        const newOrder = reorderedIds.indexOf(cq._id);
+        return newOrder !== -1 ? { ...cq, order: newOrder } : cq;
+      });
+
+      setCqQuestions(updatedCqs);
+      return response.data;
+    } catch (error) {
+      console.error("Error reordering CQ questions:", error);
+      throw error;
+    }
+  };
+
   // ======================= Payment Info =======================
   const addPaymentInfo = async (newPayment) => {
     try {
@@ -1153,6 +1221,7 @@ export const AppProvider = ({ children }) => {
     addCqQuestion,
     updateCqQuestion,
     deleteCqQuestion,
+    reorderCqQuestions,
 
     // Payment Info
     paymentInfo,

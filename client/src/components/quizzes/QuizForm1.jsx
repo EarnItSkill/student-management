@@ -1,19 +1,9 @@
-import {
-  AlertCircle,
-  Award,
-  CheckCircle,
-  Plus,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
-import { useState } from "react";
+import { Award, CheckCircle, Plus, Save, Trash2, X } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useAppContext } from "../../context/useAppContext";
 
 const QuizForm = ({ quiz, onClose, onSuccess }) => {
   const { courses, addQuiz, updateQuiz } = useAppContext();
-  const [imageErrors, setImageErrors] = useState({});
   const isEdit = !!quiz;
 
   const {
@@ -44,16 +34,6 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
   });
 
   const watchQuestions = watch("questions");
-
-  const isValidImageUrl = (url) => {
-    if (!url || typeof url !== "string") return false;
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
-    const urlLower = url.toLowerCase();
-    return (
-      (urlLower.startsWith("http://") || urlLower.startsWith("https://")) &&
-      imageExtensions.some((ext) => urlLower.includes(ext))
-    );
-  };
 
   const toggleCorrectAnswer = (questionIndex, optionIndex) => {
     const currentAnswers = watchQuestions[questionIndex]?.correctAnswers || [];
@@ -122,6 +102,33 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Quiz Basic Info */}
           <div className="space-y-4">
+            {/* <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">Quiz Title *</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Microsoft Word - Basic Quiz"
+                className={`input input-bordered ${
+                  errors.title ? "input-error" : ""
+                }`}
+                {...register("title", {
+                  required: "Title is required",
+                  minLength: {
+                    value: 5,
+                    message: "Title must be at least 5 characters",
+                  },
+                })}
+              />
+              {errors.title && (
+                <label className="label">
+                  <span className="label-text-alt text-error">
+                    {errors.title.message}
+                  </span>
+                </label>
+              )}
+            </div> */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Quiz Title */}
               <div className="form-control flex-1">
@@ -166,13 +173,13 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                     required: "Chapter selection is required",
                   })}
                 >
-                  <option value="">-- অধ্যায় --</option>
+                  <option value="">-- অধ্যায় --</option>
                   <option value="1">
                     তথ্য ও যোগযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ প্রেক্ষিত
                   </option>
-                  <option value="2">কমিউনিকেশন সিস্টেম ও নেটওয়ার্কিং</option>
+                  <option value="2">কমিউনিকেশন সিস্টেম ও নেটওয়ার্কিং</option>
                   <option value="3">সংখ্যা পদ্ধতি এবং ডিজিটাল বর্তনী</option>
-                  <option value="4">ওয়েভ ডিজাইন পরিচিতি এবং HTML</option>
+                  <option value="4">ওয়েভ ডিজাইন পরিচিতি এবং HTML</option>
                   <option value="5">প্রোগ্রামিং ভাষা</option>
                   <option value="6">ডাটাবেজ ম্যানেজমেন্ট সিস্টেম</option>
                 </select>
@@ -276,7 +283,7 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                       </span>
                     </label>
                     <textarea
-                      placeholder="Enter your question or paste image URL"
+                      placeholder="Enter your question"
                       className={`textarea textarea-bordered h-20 w-full ${
                         errors.questions?.[questionIndex]?.question
                           ? "textarea-error"
@@ -294,44 +301,6 @@ const QuizForm = ({ quiz, onClose, onSuccess }) => {
                       </label>
                     )}
                   </div>
-
-                  {/* Image Preview */}
-                  {watchQuestions[questionIndex]?.question &&
-                    isValidImageUrl(watchQuestions[questionIndex].question) && (
-                      <div className="mt-4 p-4 bg-base-100 rounded-lg border border-primary">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className="w-4 h-4 text-success" />
-                          <span className="text-sm font-semibold text-primary">
-                            Image Preview
-                          </span>
-                        </div>
-                        <img
-                          src={watchQuestions[questionIndex].question}
-                          alt="Question Preview"
-                          className="max-w-xs max-h-64 rounded object-contain"
-                          onError={() => {
-                            setImageErrors((prev) => ({
-                              ...prev,
-                              [questionIndex]: true,
-                            }));
-                          }}
-                          onLoad={() => {
-                            setImageErrors((prev) => ({
-                              ...prev,
-                              [questionIndex]: false,
-                            }));
-                          }}
-                        />
-                        {imageErrors[questionIndex] && (
-                          <div className="alert alert-warning mt-2 py-2">
-                            <AlertCircle className="w-4 h-4" />
-                            <span className="text-sm">
-                              ছবি লোড করতে পারছে না
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
 
                   {/* Options with Correct Answer Highlight */}
                   <div className="space-y-3 mt-4">

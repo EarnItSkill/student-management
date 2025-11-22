@@ -1,0 +1,7 @@
+[
+  {
+    "title": "C Program Example",
+    "content": "### Sample C Code\n\n```c\n#include <stdio.h>\n\nint main() {\n    printf(\"Hello World\");\n    return 0;\n}\n```",
+    "createdAt": "2025-11-16T10:00:00Z"
+  }
+]

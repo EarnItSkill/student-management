@@ -5,8 +5,11 @@ import { useAppContext } from "../context/useAppContext";
 import AttendanceList from "../components/attendence/AttendanceList";
 import BatchList from "../components/batches/BatchList";
 import UpComming from "../components/batches/UpComming";
+import MarkdownEditor from "../components/common/editor/MarkdownEditor";
+import MarkdownRender from "../components/common/MarkdownRender";
 import PaymentForm from "../components/common/PaymentForm";
 import PrivacyPolicy from "../components/common/PrivacyPolicy";
+import QuizClassBrowser from "../components/common/QuizClassBrowser";
 import RefundPolicy from "../components/common/RefundPolicy";
 import TermsConditions from "../components/common/TermsConditions";
 import CourseList from "../components/courses/CourseList";
@@ -66,6 +69,8 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/code-render" element={<MarkdownRender />} />
+      <Route path="/code-editor" element={<MarkdownEditor />} />
       <Route path="/course/:id" element={<CourseDetails />} />
       <Route path="/registration" element={<Registration />} />
       <Route path="/forgot" element={<ForgotCredentials />} />
@@ -122,6 +127,7 @@ const AppRoutes = () => {
         <Route path="make-course" element={<CourseMakeForm />} />
         <Route path="topic-viewer" element={<CourseClassesViewer />} />
         <Route path="cqg" element={<CreativeQuestionGenerator />} />
+        <Route path="mcq" element={<QuizClassBrowser />} />
         <Route path="settings" element={<Settings />} />
         <Route
           path="/dashboard/admin/students/search"

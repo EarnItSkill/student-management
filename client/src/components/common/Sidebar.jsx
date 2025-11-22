@@ -98,6 +98,12 @@ const Sidebar = () => {
       isDash: false,
     },
     {
+      path: "/dashboard/admin/mcq",
+      label: "mcq",
+      icon: FileText,
+      isDash: false,
+    },
+    {
       path: "/dashboard/admin/settings",
       label: "Settings",
       icon: Settings,

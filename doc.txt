@@ -37,3 +37,6 @@ https://i.ibb.co.com/LbG04VL/male.jpg
 https://i.ibb.co.com/gFdhJ5Js/female.jpg
 
 https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}
+
+show as code
+npm install react-markdown remark-gfm rehype-prism-plus prismjs

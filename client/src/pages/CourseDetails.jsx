@@ -532,7 +532,10 @@ const CourseDetails = () => {
                                   <div className="card-body">
                                     <h3 className="card-title text-lg flex items-center gap-2 mb-4">
                                       <HelpCircle className="w-5 h-5 text-warning" />
-                                      MCQ - {classQuiz.title}
+                                      MCQ - {classQuiz.title}{" "}
+                                      <span className="text-sm text-green-500">
+                                        মোট: {classQuiz.questions.length} টি
+                                      </span>
                                     </h3>
                                     <div className="mb-4">
                                       <span className="badge badge-warning me-3">

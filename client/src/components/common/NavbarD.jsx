@@ -103,6 +103,9 @@ const NavbarD = () => {
                 <li className="menu-title text-xs text-gray-500">
                   <span>{currentUser?.email}</span>
                 </li>
+                <li>
+                  <Link to="/dashboard/student/profile">প্রোফাইল</Link>
+                </li>
                 <li className="menu-title text-xs">
                   <span className="badge badge-primary badge-sm">
                     {currentUser?.role === "admin" ? "👨‍💼 Admin" : "Student"}

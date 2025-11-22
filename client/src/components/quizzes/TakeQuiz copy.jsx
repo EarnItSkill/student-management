@@ -9,23 +9,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [shuffledQuiz, setShuffledQuiz] = useState(null);
-  const [optionMappings, setOptionMappings] = useState([]);
-
-  // Image URL extract করার function
-  const extractImageUrl = (text) => {
-    if (!text || typeof text !== "string") return null;
-    const urlRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i;
-    const match = text.match(urlRegex);
-    return match ? match[0] : null;
-  };
-
-  // Text থেকে image URL remove করে বাকি টেক্সট রিটার্ন করা
-  const extractTextWithoutUrl = (text) => {
-    if (!text || typeof text !== "string") return "";
-    return text
-      .replace(/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i, "")
-      .trim();
-  };
+  const [optionMappings, setOptionMappings] = useState([]); // নতুন: mapping track করার জন্য
 
   // Get batchId from enrollments based on courseId
   const enrollment = enrollments.find((e) => e.studentId === currentUser._id);
@@ -44,19 +28,23 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   // Shuffle quiz options on component mount
   useEffect(() => {
     if (quiz) {
-      const mappings = [];
+      const mappings = []; // Store mappings for each question
 
       const shuffledQuestions = quiz.questions.map((question) => {
+        // Create array with options and their original indices
         const optionsWithIndex = question.options.map((opt, idx) => ({
           option: opt,
           originalIndex: idx,
         }));
 
+        // Shuffle the options
         const shuffledOptions = shuffleArray(optionsWithIndex);
 
+        // Store mapping: shuffled index -> original index
         const mapping = shuffledOptions.map((item) => item.originalIndex);
         mappings.push(mapping);
 
+        // Map correct answers to new positions
         const newCorrectAnswers = question.correctAnswers.map((correctIdx) => {
           return shuffledOptions.findIndex(
             (item) => item.originalIndex === correctIdx
@@ -95,9 +83,11 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     const question = shuffledQuiz.questions[questionIndex];
     const currentAnswers = answers[questionIndex] || [];
 
+    // Check if this question has multiple correct answers
     const hasMultipleAnswers = question.correctAnswers.length > 1;
 
     if (hasMultipleAnswers) {
+      // Toggle selection for multiple answers
       let newAnswers;
       if (currentAnswers.includes(optionIndex)) {
         newAnswers = currentAnswers.filter((idx) => idx !== optionIndex);
@@ -110,6 +100,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
         [questionIndex]: newAnswers.length > 0 ? newAnswers : undefined,
       });
     } else {
+      // Single answer selection
       setAnswers({
         ...answers,
         [questionIndex]: [optionIndex],
@@ -130,6 +121,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
   };
 
   const handleSubmit = () => {
+    // Calculate score
     let totalScore = 0;
     const marksPerQuestion =
       shuffledQuiz.totalMarks / shuffledQuiz.questions.length;
@@ -138,6 +130,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
       const userAnswers = answers[index] || [];
       const correctAnswers = question.correctAnswers;
 
+      // Check if arrays are equal (same elements, order doesn't matter)
       const isCorrect =
         userAnswers.length === correctAnswers.length &&
         userAnswers
@@ -153,11 +146,14 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
     setScore(finalScore);
     const quizId = quiz._id;
 
+    // Prepare submission data with ORIGINAL indices
+    // Convert shuffled indices back to original indices
     const originalAnswers = {};
     Object.keys(answers).forEach((questionIdx) => {
       const shuffledIndices = answers[questionIdx];
       const mapping = optionMappings[questionIdx];
 
+      // Map shuffled indices back to original indices
       originalAnswers[questionIdx] = shuffledIndices.map(
         (shuffledIdx) => mapping[shuffledIdx]
       );
@@ -167,10 +163,12 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
       studentId: currentUser._id,
       batchId: batchId,
       score: finalScore,
-      answers: originalAnswers,
+      answers: originalAnswers, // Send original indices
       submittedAt: new Date().toISOString(),
     };
 
+    // Submit quiz result
+    // submitQuiz(quizId, submissionData);
     submitMcq(quizId, submissionData);
     setShowResult(true);
   };
@@ -247,66 +245,18 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
               <div className="card-body">
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-lg font-bold flex-1">
-                    {currentQuestion + 1}. Question
+                    {currentQuestion + 1}. {question.question}
                   </h4>
                   {hasMultipleAnswers && (
                     <span className="badge badge-info">Multiple Answers</span>
                   )}
                 </div>
 
-                {/* Question Content - Text and/or Image */}
-                <div className="mb-6 p-3 bg-base-100 rounded-lg border border-base-300 space-y-3">
-                  {(() => {
-                    const imageUrl = extractImageUrl(question.question);
-                    const textContent = extractTextWithoutUrl(
-                      question.question
-                    );
-
-                    return (
-                      <>
-                        {/* Text Content */}
-                        {textContent && (
-                          <p className="text-base">{textContent}</p>
-                        )}
-
-                        {/* Image Content */}
-                        {imageUrl && (
-                          <div className="flex flex-col gap-2">
-                            <span className="text-xs text-success font-semibold flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              Image Preview
-                            </span>
-                            <img
-                              src={imageUrl}
-                              alt={`Question ${currentQuestion + 1}`}
-                              className="max-w-full max-h-20 rounded object-contain"
-                              onError={(e) => {
-                                e.target.style.display = "none";
-                                if (e.target.nextElementSibling) {
-                                  e.target.nextElementSibling.style.display =
-                                    "block";
-                                }
-                              }}
-                            />
-                            <div
-                              style={{ display: "none" }}
-                              className="alert alert-warning py-2"
-                            >
-                              <span className="text-sm">
-                                ছবি লোড করতে পারছে না
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-
                 {hasMultipleAnswers && (
                   <div className="alert alert-info mb-4">
                     <span className="text-sm">
-                      ℹ️ এই প্রশ্নের একাধিক উত্তর রয়েছে।
+                      ℹ️ This question has multiple correct answers. Select all
+                      that apply.
                     </span>
                   </div>
                 )}
@@ -461,7 +411,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                 )}
               </div>
 
-              {/* Answer Review */}
+              {/* Answer Review - Use SHUFFLED quiz for display */}
               <div className="text-left mb-6">
                 <h4 className="font-bold text-lg mb-4">Answer Review:</h4>
                 <div className="space-y-3">
@@ -477,9 +427,6 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                           (val, idx) => val === correctAnswers.sort()[idx]
                         );
 
-                    const questionImageUrl = extractImageUrl(q.question);
-                    const questionText = extractTextWithoutUrl(q.question);
-
                     return (
                       <div
                         key={index}
@@ -487,7 +434,7 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                           isCorrect ? "bg-success/10" : "bg-error/10"
                         } shadow`}
                       >
-                        <div className="card-body p-4 space-y-3">
+                        <div className="card-body p-4">
                           <div className="flex items-start gap-2">
                             {isCorrect ? (
                               <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-1" />
@@ -496,37 +443,15 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                             )}
                             <div className="flex-1">
                               <p className="font-semibold text-sm">
-                                {index + 1}. Question
+                                {index + 1}. {q.question}
                               </p>
-
-                              {/* Question Text and Image Display */}
-                              <div className="mt-2 p-2 bg-base-100 rounded border border-base-300 space-y-2">
-                                {questionText && (
-                                  <p className="text-sm">{questionText}</p>
-                                )}
-                                {questionImageUrl && (
-                                  <div className="flex flex-col gap-1">
-                                    <img
-                                      src={questionImageUrl}
-                                      alt={`Question ${index + 1}`}
-                                      className="max-w-full max-h-48 rounded object-contain"
-                                      onError={(e) => {
-                                        e.target.style.display = "none";
-                                      }}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="text-xs mt-3 space-y-1">
+                              <div className="text-xs mt-2">
                                 <div
                                   className={
                                     isCorrect ? "text-success" : "text-error"
                                   }
                                 >
-                                  <span className="font-semibold">
-                                    Your answer:{" "}
-                                  </span>
+                                  Your answer:{" "}
                                   {userAnswers
                                     .map(
                                       (idx) =>
@@ -537,10 +462,8 @@ const TakeQuiz = ({ quiz, onClose, onSuccess }) => {
                                     .join(", ")}
                                 </div>
                                 {!isCorrect && (
-                                  <div className="text-success">
-                                    <span className="font-semibold">
-                                      Correct answer:{" "}
-                                    </span>
+                                  <div className="text-success mt-1">
+                                    Correct answer:{" "}
                                     {correctAnswers
                                       .map(
                                         (idx) =>

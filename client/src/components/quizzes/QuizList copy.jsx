@@ -1,5 +1,4 @@
 import {
-  AlertCircle,
   ArrowLeft,
   Award,
   BookOpen,
@@ -872,7 +871,6 @@ const QuizList = ({ onEdit, onAdd }) => {
       />
 
       {/* View Quiz Modal (অপরিবর্তিত) */}
-      {/* View Quiz Modal - Question Preview সহ Image Support */}
       {viewModal.isOpen && viewModal.quiz && (
         <div className="modal modal-open">
           <div className="modal-box max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -916,35 +914,12 @@ const QuizList = ({ onEdit, onAdd }) => {
                 const correctAnswers = q.correctAnswers || [];
                 const hasMultipleCorrect = correctAnswers.length > 1;
 
-                // Image URL extract করার function
-                const extractImageUrl = (text) => {
-                  if (!text || typeof text !== "string") return null;
-                  const urlRegex =
-                    /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i;
-                  const match = text.match(urlRegex);
-                  return match ? match[0] : null;
-                };
-
-                // Text থেকে image URL remove করে বাকি টেক্সট রিটার্ন করা
-                const extractTextWithoutUrl = (text) => {
-                  if (!text || typeof text !== "string") return "";
-                  return text
-                    .replace(
-                      /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i,
-                      ""
-                    )
-                    .trim();
-                };
-
-                const questionImageUrl = extractImageUrl(q.question);
-                const questionText = extractTextWithoutUrl(q.question);
-
                 return (
                   <div key={q.id} className="card bg-base-200 shadow-lg">
                     <div className="card-body p-4">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg flex-1">
-                          Question {index + 1}
+                          {index + 1}. {parseSpecialToJSX(q.question)}
                         </h4>
                         {hasMultipleCorrect && (
                           <div className="badge badge-info badge-lg gap-1">
@@ -954,48 +929,6 @@ const QuizList = ({ onEdit, onAdd }) => {
                         )}
                       </div>
 
-                      {/* Question Content - Text and/or Image */}
-                      <div className="mb-4 p-3 bg-base-100 rounded-lg border border-base-300 space-y-3">
-                        {/* Text Content */}
-                        {questionText && (
-                          <p className="text-base">
-                            {parseSpecialToJSX(questionText)}
-                          </p>
-                        )}
-
-                        {/* Image Content */}
-                        {questionImageUrl && (
-                          <div className="flex flex-col gap-2">
-                            <span className="text-xs text-success font-semibold flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              Image Preview
-                            </span>
-                            <img
-                              src={questionImageUrl}
-                              alt={`Question ${index + 1}`}
-                              className="max-w-full max-h-20 rounded object-contain"
-                              onError={(e) => {
-                                e.target.style.display = "none";
-                                if (e.target.nextElementSibling) {
-                                  e.target.nextElementSibling.style.display =
-                                    "block";
-                                }
-                              }}
-                            />
-                            <div
-                              style={{ display: "none" }}
-                              className="alert alert-warning py-2"
-                            >
-                              <AlertCircle className="w-4 h-4" />
-                              <span className="text-sm">
-                                ছবি লোড করতে পারছে না
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Options */}
                       <div className="space-y-2 mt-2">
                         {q.options.map((option, optIndex) => {
                           const isCorrect = correctAnswers.includes(optIndex);

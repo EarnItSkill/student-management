@@ -237,48 +237,190 @@ async function run() {
     // =========================
 
     // নতুন ছাত্র যোগ (Public - Admin থেকে)
+    // Don't Delete
+    // app.post("/student", async (req, res) => {
+    //   try {
+    //     const newStudent = req.body;
+
+    //     const existingStudent = await studentCollection.findOne({
+    //       $or: [{ email: newStudent.email }, { phone: newStudent.phone }],
+    //     });
+
+    //     if (existingStudent) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message:
+    //           "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
+    //       });
+    //     }
+
+    //     if (!newStudent.password || newStudent.password.length < 6) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         message: "পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে",
+    //       });
+    //     }
+
+    //     const hashedPassword = await bcrypt.hash(newStudent.password, 10);
+
+    //     const studentToInsert = {
+    //       ...newStudent,
+    //       status: false,
+    //       password: hashedPassword,
+    //     };
+
+    //     const result = await studentCollection.insertOne(studentToInsert);
+
+    //     res.send({
+    //       success: true,
+    //       message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
+    //       data: { ...studentToInsert, _id: result.insertedId },
+    //     });
+    //   } catch (error) {
+    //     console.error("Student Insert Error:", error);
+    //     res.status(500).send({
+    //       success: false,
+    //       message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
+    //     });
+    //   }
+    // });
+
+    // app.post("/student", async (req, res) => {
+    //   try {
+    //     const newStudent = req.body;
+
+    //     // ▶ 1. Email/Phone Already Exists Check
+    //     const existingStudent = await studentCollection.findOne({
+    //       $or: [{ email: newStudent.email }, { phone: newStudent.phone }],
+    //     });
+
+    //     if (existingStudent) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         type: "exists",
+    //         message:
+    //           "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
+    //       });
+    //     }
+
+    //     // ▶ 2. Password Validation
+    //     if (!newStudent.password || newStudent.password.length < 6) {
+    //       return res.status(400).send({
+    //         success: false,
+    //         type: "validation",
+    //         message: "পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে",
+    //       });
+    //     }
+
+    //     // ▶ 3. Hash Password
+    //     const hashedPassword = await bcrypt.hash(newStudent.password, 10);
+
+    //     const studentToInsert = {
+    //       ...newStudent,
+    //       status: false,
+    //       password: hashedPassword,
+    //       createdAt: new Date(),
+    //     };
+
+    //     // ▶ 4. Insert Student
+    //     const result = await studentCollection.insertOne(studentToInsert);
+
+    //     return res.status(201).send({
+    //       success: true,
+    //       type: "success",
+    //       message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
+    //       data: { ...studentToInsert, _id: result.insertedId },
+    //     });
+    //   } catch (error) {
+    //     console.error("Student Insert Error:", error);
+
+    //     return res.status(500).send({
+    //       success: false,
+    //       type: "server",
+    //       message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
+    //     });
+    //   }
+    // });
+
     app.post("/student", async (req, res) => {
       try {
         const newStudent = req.body;
 
+        // ▶ 1. Email/Phone Already Exists Check (সংশোধিত)
+        const orConditions = [];
+
+        // যদি ইমেইল থাকে এবং এটি খালি স্ট্রিং না হয়, তবে কোয়েরিতে যোগ করা হবে
+        if (newStudent.email) {
+          orConditions.push({ email: newStudent.email });
+        }
+
+        // যদি ফোন নম্বর থাকে এবং এটি খালি স্ট্রিং না হয়, তবে কোয়েরিতে যোগ করা হবে
+        if (newStudent.phone) {
+          orConditions.push({ phone: newStudent.phone });
+        }
+
+        // যদি Email বা Phone কোনোটিই না থাকে, তবে একটি ত্রুটি (Error) পাঠানো হবে
+        if (orConditions.length === 0) {
+          return res.status(400).send({
+            success: false,
+            type: "validation",
+            message: "রেজিস্ট্রেশনের জন্য ইমেইল বা ফোন নম্বর অবশ্যই প্রয়োজন",
+          });
+        }
+
+        // $or এর মাধ্যমে ডাটাবেসে অনুসন্ধান
         const existingStudent = await studentCollection.findOne({
-          $or: [{ email: newStudent.email }, { phone: newStudent.phone }],
+          $or: orConditions,
         });
+
+        console.log(existingStudent); // এখন শুধু ম্যাচ হওয়া ডেটা বা null দেখাবে
 
         if (existingStudent) {
           return res.status(400).send({
             success: false,
+            type: "exists",
             message:
               "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যে রেজিস্ট্রেশন করা হয়েছে",
           });
         }
 
+        // ---
+
+        // ▶ 2. Password Validation
         if (!newStudent.password || newStudent.password.length < 6) {
           return res.status(400).send({
             success: false,
+            type: "validation",
             message: "পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে",
           });
         }
 
+        // ▶ 3. Hash Password
+        // মনে রাখবেন: bcrypt ভেরিয়েবলটি আগে import করা থাকতে হবে
         const hashedPassword = await bcrypt.hash(newStudent.password, 10);
 
         const studentToInsert = {
           ...newStudent,
           status: false,
           password: hashedPassword,
+          createdAt: new Date(),
         };
 
+        // ▶ 4. Insert Student
         const result = await studentCollection.insertOne(studentToInsert);
 
-        res.send({
+        return res.status(201).send({
           success: true,
+          type: "success",
           message: "ছাত্র সফলভাবে যোগ করা হয়েছে",
           data: { ...studentToInsert, _id: result.insertedId },
         });
       } catch (error) {
         console.error("Student Insert Error:", error);
-        res.status(500).send({
+
+        return res.status(500).send({
           success: false,
+          type: "server",
           message: "সার্ভার ত্রুটি! আবার চেষ্টা করুন",
         });
       }
@@ -1954,6 +2096,66 @@ async function run() {
         }
       }
     );
+
+    app.put("/cq-question/reorder", verifyToken, async (req, res) => {
+      try {
+        const { chapter, courseId, reorderedIds } = req.body;
+
+        // Validation
+        if (
+          !chapter ||
+          !courseId ||
+          !reorderedIds ||
+          !Array.isArray(reorderedIds)
+        ) {
+          return res.status(400).json({
+            error:
+              "Missing or invalid parameters: chapter, courseId, reorderedIds (array)",
+          });
+        }
+
+        if (reorderedIds.length === 0) {
+          return res.status(400).json({ error: "reorderedIds array is empty" });
+        }
+
+        // Convert string IDs to ObjectId
+        const { ObjectId } = require("mongodb");
+        const objectIds = reorderedIds.map((id) => new ObjectId(id));
+
+        // Create bulk write operations
+        const bulkOps = reorderedIds.map((id, index) => ({
+          updateOne: {
+            filter: { _id: new ObjectId(id) },
+            update: { $set: { order: index } },
+          },
+        }));
+
+        // Execute bulk write
+        const result = await cqQuestionsCollection.bulkWrite(bulkOps);
+
+        // Fetch updated CQs sorted by new order
+        const updatedCqs = await cqQuestionsCollection
+          .find({
+            chapter: chapter,
+            courseId: new ObjectId(courseId),
+          })
+          .sort({ order: 1 })
+          .toArray();
+
+        res.json({
+          message: "CQ questions reordered successfully",
+          data: updatedCqs,
+          modifiedCount: result.modifiedCount,
+          upsertedCount: result.upsertedCount,
+        });
+      } catch (error) {
+        console.error("Error reordering CQ questions:", error);
+        res.status(500).json({
+          error: "Failed to reorder CQ questions",
+          details: error.message,
+        });
+      }
+    });
 
     // =========================
     // PAYMENT INFO

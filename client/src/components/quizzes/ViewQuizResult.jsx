@@ -1,9 +1,25 @@
-import { Award, CheckCircle, X, XCircle } from "lucide-react";
+import { AlertCircle, Award, CheckCircle, X, XCircle } from "lucide-react";
 import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const ViewQuizResult = ({ quiz, studentId, onClose }) => {
   // Find student's result
   const myResult = quiz.results.find((r) => r.studentId === studentId);
+
+  // Image URL extract করার function
+  const extractImageUrl = (text) => {
+    if (!text || typeof text !== "string") return null;
+    const urlRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i;
+    const match = text.match(urlRegex);
+    return match ? match[0] : null;
+  };
+
+  // Text থেকে image URL remove করে বাকি টেক্সট রিটার্ন করা
+  const extractTextWithoutUrl = (text) => {
+    if (!text || typeof text !== "string") return "";
+    return text
+      .replace(/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg))/i, "")
+      .trim();
+  };
 
   if (!myResult) {
     return null;
@@ -135,6 +151,9 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
                 userAnswer.length === correctAnswers.length &&
                 userAnswer.every((ans) => correctAnswers.includes(ans));
 
+              const questionImageUrl = extractImageUrl(question.question);
+              const questionText = extractTextWithoutUrl(question.question);
+
               return (
                 <div
                   key={question.id}
@@ -144,11 +163,11 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
                       : "bg-error/5 border-error/30"
                   }`}
                 >
-                  <div className="card-body p-4">
+                  <div className="card-body p-4 space-y-3">
                     {/* Question Header */}
                     <div className="flex items-start justify-between mb-3">
                       <h5 className="font-semibold flex-1">
-                        {index + 1}. {parseSpecialToJSX(question.question)}
+                        {index + 1}. Question
                       </h5>
                       <div
                         className={`badge ${
@@ -167,6 +186,44 @@ const ViewQuizResult = ({ quiz, studentId, onClose }) => {
                           </>
                         )}
                       </div>
+                    </div>
+
+                    {/* Question Content - Text and/or Image */}
+                    <div className="p-3 bg-base-100 rounded-lg border border-base-300 space-y-3">
+                      {questionText && (
+                        <p className="text-base">
+                          {parseSpecialToJSX(questionText)}
+                        </p>
+                      )}
+                      {questionImageUrl && (
+                        <div className="flex flex-col gap-2">
+                          <span className="text-xs text-success font-semibold flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Image Preview
+                          </span>
+                          <img
+                            src={questionImageUrl}
+                            alt={`Question ${index + 1}`}
+                            className="max-w-full max-h-20 rounded object-contain"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              if (e.target.nextElementSibling) {
+                                e.target.nextElementSibling.style.display =
+                                  "block";
+                              }
+                            }}
+                          />
+                          <div
+                            style={{ display: "none" }}
+                            className="alert alert-warning py-2"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            <span className="text-sm">
+                              ছবি লোড করতে পারছে না
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Options */}

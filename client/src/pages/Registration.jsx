@@ -2,6 +2,7 @@ import axios from "axios";
 import { ArrowLeft, CheckCircle, Save, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
 
@@ -83,9 +84,15 @@ const Registration = () => {
     }
   }, [maxUid, setValue]);
 
+  // Don\t Delete
   // const onSubmit = async (data) => {
+  //   // 💡 পরিবর্তন শুরু: ডেটাবেসে পাঠানোর আগে confirmPassword প্রপার্টিটি সরিয়ে দিন।
+  //   const { confirmPassword, ...studentData } = data; // confirmPassword আলাদা করুন এবং বাকি ডেটা studentData-তে রাখুন।
+  //   // 💡 পরিবর্তন শেষ
+
   //   try {
-  //     await addStudent(data);
+  //     // ডাটাবেসে শুধু ছাত্র/ছাত্রীর ডেটা (confirmPassword ছাড়া) পাঠান।
+  //     await addStudent(studentData);
   //     setIsSuccess(true);
 
   //     window.scrollTo({
@@ -104,27 +111,51 @@ const Registration = () => {
   // };
 
   const onSubmit = async (data) => {
-    // 💡 পরিবর্তন শুরু: ডেটাবেসে পাঠানোর আগে confirmPassword প্রপার্টিটি সরিয়ে দিন।
-    const { confirmPassword, ...studentData } = data; // confirmPassword আলাদা করুন এবং বাকি ডেটা studentData-তে রাখুন।
-    // 💡 পরিবর্তন শেষ
+    // confirmPassword বাদ দাও
+    const { confirmPassword, ...studentData } = data;
 
     try {
-      // ডাটাবেসে শুধু ছাত্র/ছাত্রীর ডেটা (confirmPassword ছাড়া) পাঠান।
-      await addStudent(studentData);
+      const response = await addStudent(studentData); // must return res.data
+
+      // ----------- Handle All Error Types -----------
+      if (!response.success) {
+        switch (response.type) {
+          case "exists":
+            toast.error(response.message); // শুধু exist দেখাবে
+            break;
+
+          case "validation":
+            toast.error(response.message); // validation error
+            break;
+
+          case "server":
+            toast.error("Server error! Please try again.");
+            break;
+
+          default:
+            toast.error("Registration failed!"); // fallback
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      // ----------- SUCCESS CASE -----------
+      toast.success("রেজিস্ট্রেশন সফল হয়েছে!");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
       setIsSuccess(true);
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-
-      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate("/login");
       }, 10000);
     } catch (error) {
-      console.error("Error registering student:", error);
-      alert("Registration failed. Please try again.");
+      console.error("Registration Error:", error);
+
+      // Backend didn't respond or crashed
+      // toast.error("Something went wrong! Try again.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

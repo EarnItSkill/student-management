@@ -16,11 +16,15 @@
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.544.0",
+    "prismjs": "^1.30.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
     "react-hot-toast": "^2.6.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.3",
+    "rehype-prism-plus": "^2.0.1",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {

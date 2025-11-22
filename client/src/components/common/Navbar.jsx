@@ -137,11 +137,6 @@ const Navbar = () => {
                       <img
                         src={currentUser?.image}
                         alt={currentUser?.name}
-                        // onError={(e) => {
-                        //   e.target.src =
-                        //     "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
-                        //     currentUser?.name;
-                        // }}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -156,11 +151,6 @@ const Navbar = () => {
                         <img
                           src={currentUser?.image}
                           alt={currentUser?.name}
-                          // onError={(e) => {
-                          //   e.target.src =
-                          //     "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
-                          //     currentUser?.name;
-                          // }}
                           className="w-12 h-12 rounded-lg ring-2 ring-slate-600"
                         />
                         <div>
@@ -170,6 +160,7 @@ const Navbar = () => {
                           <p className="text-xs text-slate-400">
                             {currentUser?.email}
                           </p>
+                          <Link to="/dashboard/student/profile">প্রোফাইল</Link>
                           <div className="mt-2">
                             <span
                               className={`badge text-xs px-2 py-1 ${

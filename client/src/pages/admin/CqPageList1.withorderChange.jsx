@@ -1,15 +1,14 @@
-// =====================================================
-// FILE 1: src/pages/admin/CqPageList.jsx
-// Admin CQ List Page
-// =====================================================
 import {
   BookOpen,
+  ChevronDown,
+  ChevronUp,
   Eye,
   FileText,
   Grid,
   Image as ImageIcon,
   List,
   Plus,
+  Save,
   Search,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -20,12 +19,14 @@ import { parseSpecialToJSX } from "../../utils/parseSpecialToJSX";
 
 const CqPageList = () => {
   const navigate = useNavigate();
-  const { cqQuestions } = useAppContext();
+  const { cqQuestions, courses, reorderCqQuestions } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedChapter, setSelectedChapter] = useState(null);
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [viewMode, setViewMode] = useState("grid");
   const [selectedCq, setSelectedCq] = useState(null);
+  const [reorderedCqs, setReorderedCqs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Group by chapter
   const chapterGroups = useMemo(() => {
@@ -70,8 +71,52 @@ const CqPageList = () => {
       );
     }
 
-    return filtered;
-  }, [selectedChapter, chapterGroups, searchTerm]);
+    return reorderedCqs.length > 0 ? reorderedCqs : filtered;
+  }, [selectedChapter, chapterGroups, searchTerm, reorderedCqs]);
+
+  // Move CQ up/down
+  const moveCq = (index, direction) => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+
+    if (newIndex < 0 || newIndex >= filteredCqs.length) return;
+
+    const updatedCqs = [...filteredCqs];
+    [updatedCqs[index], updatedCqs[newIndex]] = [
+      updatedCqs[newIndex],
+      updatedCqs[index],
+    ];
+
+    setReorderedCqs(updatedCqs);
+  };
+
+  const handleSaveOrder = async () => {
+    try {
+      setIsLoading(true);
+
+      // Get the courseId from the first CQ
+      const courseId = reorderedCqs[0]?.courseId || courses[0]?._id;
+
+      // Get only the IDs in new order
+      const reorderedIds = reorderedCqs.map((cq) => cq._id);
+
+      // Call the reorder function
+      await reorderCqQuestions(selectedChapter, courseId, reorderedIds);
+
+      setReorderedCqs([]);
+      alert("ক্রম সফলভাবে আপডেট হয়েছে!");
+    } catch (error) {
+      console.error("Error saving order:", error);
+      alert("অর্ডার আপডেট করতে ব্যর্থ হয়েছে");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToChapters = () => {
+    setSelectedChapter(null);
+    setSearchTerm("");
+    setReorderedCqs([]);
+  };
 
   return (
     <div className="space-y-6">
@@ -120,49 +165,70 @@ const CqPageList = () => {
           {/* Toolbar */}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <button
-                  onClick={() => {
-                    setSelectedChapter(null);
-                    setSearchTerm("");
-                  }}
-                  className="btn btn-ghost"
-                >
-                  ← Back to Chapters
-                </button>
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col md:flex-row gap-4 items-center flex-1">
+                  <button
+                    onClick={handleBackToChapters}
+                    className="btn btn-ghost"
+                  >
+                    ← Back to Chapters
+                  </button>
 
-                <div className="form-control flex-1">
-                  <div className="input-group flex items-center gap-3">
-                    <span className="bg-base-200">
-                      <Search className="w-5 h-5" />
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Search in stimulus or questions..."
-                      className="input input-bordered w-full"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                  <div className="form-control flex-1">
+                    <div className="input-group flex items-center gap-3">
+                      <span className="bg-base-200">
+                        <Search className="w-5 h-5" />
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Search in stimulus or questions..."
+                        className="input input-bordered w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="btn-group">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`btn ${
-                      viewMode === "grid" ? "btn-primary" : ""
-                    }`}
-                  >
-                    <Grid className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`btn ${
-                      viewMode === "list" ? "btn-primary" : ""
-                    }`}
-                  >
-                    <List className="w-5 h-5" />
-                  </button>
+                <div className="flex gap-2">
+                  <div className="btn-group">
+                    <button
+                      onClick={() => setViewMode("grid")}
+                      className={`btn ${
+                        viewMode === "grid" ? "btn-primary" : ""
+                      }`}
+                    >
+                      <Grid className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`btn ${
+                        viewMode === "list" ? "btn-primary" : ""
+                      }`}
+                    >
+                      <List className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {reorderedCqs.length > 0 && (
+                    <button
+                      onClick={handleSaveOrder}
+                      disabled={isLoading}
+                      className="btn btn-success gap-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="loading loading-spinner loading-sm"></span>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5" />
+                          Save Order
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -180,8 +246,8 @@ const CqPageList = () => {
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCqs.map((cq) => (
-                <div key={cq._id} className="card bg-base-100 shadow-xl">
+              {filteredCqs.map((cq, index) => (
+                <div key={cq._id} className="card bg-base-100 shadow-xl group">
                   <div className="card-body">
                     <div className="flex items-center justify-between mb-3">
                       {cq.stimulusType === "image" ? (
@@ -223,13 +289,31 @@ const CqPageList = () => {
                       ))}
                     </div>
 
-                    <button
-                      onClick={() => setSelectedCq(cq)}
-                      className="btn btn-primary btn-sm mt-3 gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Details
-                    </button>
+                    <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => moveCq(index, "up")}
+                        disabled={index === 0}
+                        className="btn btn-warning btn-sm btn-square"
+                        title="Move Up"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => moveCq(index, "down")}
+                        disabled={index === filteredCqs.length - 1}
+                        className="btn btn-warning btn-sm btn-square"
+                        title="Move Down"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedCq(cq)}
+                        className="btn btn-primary btn-sm flex-1 gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -238,10 +322,10 @@ const CqPageList = () => {
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
                 <div className="space-y-4">
-                  {filteredCqs.map((cq) => (
+                  {filteredCqs.map((cq, index) => (
                     <div
                       key={cq._id}
-                      className="card bg-base-200 shadow hover:shadow-lg transition-all"
+                      className="card bg-base-200 shadow hover:shadow-lg transition-all group"
                     >
                       <div className="card-body p-4">
                         <div className="flex items-start gap-4">
@@ -269,6 +353,9 @@ const CqPageList = () => {
                               <div className="badge badge-ghost">
                                 {cq.stimulusType === "image" ? "Image" : "Text"}
                               </div>
+                              <div className="badge badge-info">
+                                {index + 1} of {filteredCqs.length}
+                              </div>
                             </div>
 
                             {cq.stimulusType === "text" && (
@@ -287,13 +374,31 @@ const CqPageList = () => {
                             </div>
                           </div>
 
-                          <button
-                            onClick={() => setSelectedCq(cq)}
-                            className="btn btn-primary btn-sm gap-2"
-                          >
-                            <Eye className="w-4 h-4" />
-                            View
-                          </button>
+                          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => moveCq(index, "up")}
+                              disabled={index === 0}
+                              className="btn btn-warning btn-sm btn-square"
+                              title="Move Up"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => moveCq(index, "down")}
+                              disabled={index === filteredCqs.length - 1}
+                              className="btn btn-warning btn-sm btn-square"
+                              title="Move Down"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setSelectedCq(cq)}
+                              className="btn btn-primary btn-sm gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

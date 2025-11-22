@@ -1,7 +1,5 @@
 import {
   BookOpen,
-  ChevronDown,
-  ChevronUp,
   GraduationCap,
   Maximize,
   Minimize,
@@ -64,7 +62,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
     fields: classFields,
     append: appendClass,
     remove: removeClass,
-    move: moveClass,
   } = useFieldArray({
     control,
     name: "classes",
@@ -152,6 +149,7 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
   return (
     <div className="modal modal-open">
+      {/* <div className="modal-box max-w-7xl max-h-[98vh] overflow-y-auto p-0"> */}
       <div
         className={`modal-box overflow-y-auto p-0 transition-all duration-300 ${
           isFullScreen
@@ -166,23 +164,6 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
             {isEdit ? "Edit Course" : "Add New Course"}
           </h3>
           <div>
-            {/* <button
-              type="submit"
-              className="btn btn-primary gap-2 mr-2"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="loading loading-spinner loading-sm"></span>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  {isEdit ? "Update" : "Save"} Course
-                </>
-              )}
-            </button> */}
             <button
               className="btn btn-info mr-2"
               onClick={() => setShow(!show)}
@@ -521,20 +502,17 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
                     <div className="space-y-2">
                       {classFields.map((field, index) => (
-                        <div
+                        <button
                           key={field.id}
-                          className="flex gap-1 items-center group"
+                          type="button"
+                          onClick={() => setSelectedClassIndex(index)}
+                          className={`w-full text-left p-3 rounded-lg transition-all ${
+                            selectedClassIndex === index
+                              ? "bg-primary text-primary-content shadow-md"
+                              : "bg-base-100 hover:bg-base-200"
+                          }`}
                         >
-                          <button
-                            key={field.id}
-                            type="button"
-                            onClick={() => setSelectedClassIndex(index)}
-                            className={`flex-1 text-left p-3 rounded-lg transition-all ${
-                              selectedClassIndex === index
-                                ? "bg-primary text-primary-content shadow-md"
-                                : "bg-base-100 hover:bg-base-200"
-                            }`}
-                          >
+                          <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div
                                 className={`badge badge-sm ${
@@ -545,32 +523,12 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
                               >
                                 {index + 1}
                               </div>
-                              <span className="text-sm font-medium truncate">
-                                {field.topic[0] || "Untitled"}
+                              <span className="text-sm font-medium">
+                                {field.topic[0]}
                               </span>
                             </div>
-                          </button>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              type="button"
-                              onClick={() => moveClass(index, index - 1)}
-                              disabled={index === 0}
-                              className="btn btn-warning btn-xs btn-square"
-                              title="Move Up"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveClass(index, index + 1)}
-                              disabled={index === classFields.length - 1}
-                              className="btn btn-warning btn-xs btn-square"
-                              title="Move Down"
-                            >
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -642,12 +600,10 @@ const CourseForm = ({ course, onClose, onSuccess }) => {
 
 // Separate Component for Each Class
 const ClassSection = ({ classIndex, register, control, removeClass }) => {
-  const [isDelete, setIsDelete] = useState(true);
   const {
     fields: topicFields,
     append: appendTopic,
     remove: removeTopic,
-    move: moveTopic,
   } = useFieldArray({
     control,
     name: `classes.${classIndex}.topic`,
@@ -658,7 +614,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
     fields: quesAnsFields,
     append: appendQuesAns,
     remove: removeQuesAns,
-    move: moveQuesAns,
   } = useFieldArray({
     control,
     name: `classes.${classIndex}.quesAns`,
@@ -669,7 +624,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
     fields: homeWorkFields,
     append: appendHomeWork,
     remove: removeHomeWork,
-    move: moveHomeWork,
   } = useFieldArray({
     control,
     name: `classes.${classIndex}.homeWork`,
@@ -680,7 +634,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
     fields: someWordFields,
     append: appendSomeWord,
     remove: removeSomeWord,
-    move: moveSomeWord,
   } = useFieldArray({
     control,
     name: `classes.${classIndex}.someWord`,
@@ -696,22 +649,15 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
           </div>
           <span>ক্লাস {classIndex + 1} এর বিবরণ</span>
         </h5>
-        <div>
-          <input
-            onClick={() => setIsDelete(!isDelete)}
-            type="checkbox"
-            className="mr-3"
-          />
-          <button
-            type="button"
-            disabled={isDelete}
-            onClick={() => removeClass(classIndex)}
-            className="btn btn-error btn-sm gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Remove Class
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled
+          onClick={() => removeClass(classIndex)}
+          className="btn btn-error btn-sm gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Remove Class
+        </button>
       </div>
 
       {/* Topics */}
@@ -723,7 +669,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
         <div className="collapse-content">
           <div className="space-y-2 mt-2">
             {topicFields.map((field, index) => (
-              <div key={field.fieldId} className="flex gap-2 items-center">
+              <div key={field.fieldId} className="flex gap-2">
                 <input
                   type="text"
                   placeholder={`Topic ${index + 1}`}
@@ -732,24 +678,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     required: true,
                   })}
                 />
-                <button
-                  type="button"
-                  onClick={() => moveTopic(index, index - 1)}
-                  disabled={index === 0}
-                  className="btn btn-warning btn-sm btn-square"
-                  title="Move Up"
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveTopic(index, index + 1)}
-                  disabled={index === topicFields.length - 1}
-                  className="btn btn-warning btn-sm btn-square"
-                  title="Move Down"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </button>
                 <button
                   type="button"
                   onClick={() => removeTopic(index)}
@@ -786,33 +714,13 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <span className="text-md font-semibold text-gray-400">
                       Q&A {index + 1}
                     </span>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveQuesAns(index, index - 1)}
-                        disabled={index === 0}
-                        className="btn btn-warning btn-xs btn-square"
-                        title="Move Up"
-                      >
-                        <ChevronUp className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveQuesAns(index, index + 1)}
-                        disabled={index === quesAnsFields.length - 1}
-                        className="btn btn-warning btn-xs btn-square"
-                        title="Move Down"
-                      >
-                        <ChevronDown className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeQuesAns(index)}
-                        className="btn btn-error btn-xs"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeQuesAns(index)}
+                      className="btn btn-error btn-xs"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                   <div className="space-y-2">
                     <input
@@ -824,6 +732,15 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                         { required: true }
                       )}
                     />
+                    {/* <input
+                      type="text"
+                      placeholder="Answer"
+                      className="input input-md text-gray-400 input-bordered w-full"
+                      {...register(
+                        `classes.${classIndex}.quesAns.${index}.answer`,
+                        { required: true }
+                      )}
+                    /> */}
                     <textarea
                       placeholder="Answer"
                       className="textarea textarea-md text-gray-400 textarea-bordered w-full"
@@ -863,33 +780,13 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     <span className="text-sm text-gray-400 font-semibold">
                       HW {index + 1}
                     </span>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveHomeWork(index, index - 1)}
-                        disabled={index === 0}
-                        className="btn btn-warning btn-xs btn-square"
-                        title="Move Up"
-                      >
-                        <ChevronUp className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveHomeWork(index, index + 1)}
-                        disabled={index === homeWorkFields.length - 1}
-                        className="btn btn-warning btn-xs btn-square"
-                        title="Move Down"
-                      >
-                        <ChevronDown className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeHomeWork(index)}
-                        className="btn btn-error btn-xs"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeHomeWork(index)}
+                      className="btn btn-error btn-xs"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <input
@@ -935,7 +832,7 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
         <div className="collapse-content">
           <div className="space-y-2 mt-2">
             {someWordFields.map((field, index) => (
-              <div key={field.fieldId} className="flex gap-2 items-center">
+              <div key={field.fieldId} className="flex gap-2">
                 <input
                   type="text"
                   placeholder={`Word ${index + 1}`}
@@ -944,24 +841,6 @@ const ClassSection = ({ classIndex, register, control, removeClass }) => {
                     required: true,
                   })}
                 />
-                <button
-                  type="button"
-                  onClick={() => moveSomeWord(index, index - 1)}
-                  disabled={index === 0}
-                  className="btn btn-warning btn-sm btn-square"
-                  title="Move Up"
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveSomeWord(index, index + 1)}
-                  disabled={index === someWordFields.length - 1}
-                  className="btn btn-warning btn-sm btn-square"
-                  title="Move Down"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </button>
                 <button
                   type="button"
                   onClick={() => removeSomeWord(index)}
